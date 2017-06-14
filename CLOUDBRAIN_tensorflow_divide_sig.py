@@ -14,13 +14,10 @@ import sys
 import time 
 import datetime
 
+from folderDefs import *
 
 print("Starting")
 slim = tf.contrib.slim
-
-nc_file     = '../SPCAM_outputs.nc'
-LogDirMain  = './TRAINS'
-filename    = 'NN_tensorflow_fit'
 
 # Parameters
 fraction_data   = 1./100. # fraction of data used for the training
@@ -49,7 +46,7 @@ print('Nloop=',Nloop)
 
 # need to retrieve mean and standard deviation of the full dataset first
 print("Reading Netcdf for Normalization")
-fh        = Dataset('../normalization.nc', mode='r')
+fh        = Dataset(nc_norm_file, mode='r')
 mean_in   = fh.variables['mean'][:]
 std_in    = fh.variables['std'][:]
 fh.close()
@@ -175,20 +172,22 @@ with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
          y_data   = y_data[:,batchlarge]
          fh.close()
          print("End Reading Netcdf")
-    
-         input = np.append(PS[None,:], QAP, axis=0)
-         del QAP
-         del PS
-         input = np.append(input, TAP, axis=0)
-         del TAP
-         input = np.append(input, OMEGA, axis=0)
-         del OMEGA
-         input = np.append(input, SHFLX[None,:], axis=0)
-         del SHFLX
-         input = np.append(input, LHFLX[None,:], axis=0)
-         input = np.transpose(input)
+         print(PS[None,:].shape)
+         print(QAP.shape)
+
+         inX = np.append(PS[None,:], QAP, axis=0)
+#         del QAP
+#         del PS
+         inX = np.append(inX, TAP, axis=0)
+#         del TAP
+         inX = np.append(inX, OMEGA, axis=0)
+#         del OMEGA
+         inX = np.append(inX, SHFLX[None,:], axis=0)
+#         del SHFLX
+         inX = np.append(inX, LHFLX[None,:], axis=0)
+         inX = np.transpose(inX)
         
-         input       = (input - mean_in)/std_in
+         inX       = (inX - mean_in)/std_in
          y_data      = np.transpose(y_data)
      
          # Launch the graph
@@ -200,7 +199,7 @@ with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
          # Loop over all small batches
          for epoch in range(total_batch):
             batch = np.int_(Ndata*np.random.rand(batch_size))
-            batch_x = input[batch,:]      	# input sample
+            batch_x = inX[batch,:]      	# input sample
             batch_y = y_data[batch,:]  		# output sample
             # Run optimization op (backprop) and cost op (to get loss value)
             _, summary, l = sess.run([optimizer, merged, loss], feed_dict={x: batch_x, y: batch_y})
@@ -215,6 +214,6 @@ with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
                   train_writer.add_run_metadata(run_metadata, 'step%03d' % (counter))
                   save_path = saver.save(sess, filename)
                   print("Model saved in file: %s" % save_path)
-	 print("Large Batch Optimization Finished!")
+   print("Large Batch Optimization Finished!")
 print("Final Optimization Finished!")
         
