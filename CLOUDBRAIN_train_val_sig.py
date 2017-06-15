@@ -27,12 +27,12 @@ fraction_data   = 1./100. # fraction of data used for the training
 training_epochs = 10 
 learning_rate   = 1e-3
 batch_size      = 4096
-display_step    = 128
+record_step     = 100
 Ntimedata       = 1. # number of times through the same dataset
 
 # Network Parameters
-n_hidden_1      = 10 # 1st layer number of features
-n_hidden_2      = 10 # 2nd layer number of features
+n_hidden_1      = 5 # 1st layer number of features
+n_hidden_2      = 0 # 2nd layer number of features
 
 LogDir  = LogDirMain + '/layer1_' + str(n_hidden_1)
 if n_hidden_2>0:
@@ -136,14 +136,14 @@ tf.contrib.layers.summarize_tensor(pred)
 print("Running tensorflow")
 with tf.device('/gpu:0'):
    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as sess:
-   	merged       = tf.summary.merge_all()
-   	train_writer = tf.summary.FileWriter(LogDir + '/train', sess.graph)
-   	test_writer  = tf.summary.FileWriter(LogDir + '/test')
-   	model        = tf.global_variables_initializer()
-   	sess.run(model)
+      merged       = tf.summary.merge_all()
+      train_writer = tf.summary.FileWriter(LogDir + '/train', sess.graph)
+      test_writer  = tf.summary.FileWriter(LogDir + '/test')
+      model        = tf.global_variables_initializer()
+      sess.run(model)
 
-   	# Define loss and optimizer
-    for index in range(0,Nloop):
+      # Define loss and optimizer
+      for index in range(0,Nloop):
          print("Loop number ", index)
          #fields = {'PS','QAP','TAP','OMEGA','SHFLX','LHFLX'};
          #input_names    = {'PS','QAP','TAP','OMEGA','SHFLX','LHFLX'};
@@ -189,7 +189,7 @@ with tf.device('/gpu:0'):
      
          # Launch the graph
          total_batch = int(Ndata/batch_size)
-         print("total batch size", total_batch)
+         print("total batch size ", total_batch)
                
          # https://www.tensorflow.org/programmers_guide/threading_and_queues
          # Loop over all small batches
@@ -205,21 +205,22 @@ with tf.device('/gpu:0'):
                 test_writer.add_summary(summary, counter)
                 print('Loss at step %s: %s' % (counter, l))
             else: # Record train set summaries, and train
-                if counteri % 100 == 99:  # Record execution stats
+                if counter % record_step == (record_step-1):  # Record execution stats
                     run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
                     run_metadata = tf.RunMetadata()
                     summary, _ , l = sess.run([merged, optimizer, loss],
-                              feed_dict={x: batch_x, y: batch_y},
-                              options=run_options,
-                              run_metadata=run_metadata)
+                              		feed_dict={x: batch_x, y: batch_y},
+                              		options=run_options,
+                              		run_metadata=run_metadata)
                     train_writer.add_run_metadata(run_metadata, 'step%d' % counter)
                     train_writer.add_summary(summary, counter)
+                    print("Epoch:", '%04d' % (epoch), "loss=", "{:.9f}".format(l))
                     # save_path = saver.save(sess, filename, global_step=counter)
                     # print("Model saved in file: %s" % save_path)
                     print('Adding run metadata for counter=', str(counter))
                 else:  # Record a summary
-                     summary, _ = sess.run([merged, train_step], feed_dict={x: batch_x, y: batch_y})
+                     summary, _ = sess.run([merged, optimizer], feed_dict={x: batch_x, y: batch_y})
                      train_writer.add_summary(summary, counter)
-        print("Large Batch Optimization Finished!")
+         print("Large Batch Optimization Finished!")
 print("Final Optimization Finished!")
         
