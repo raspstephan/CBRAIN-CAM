@@ -143,7 +143,7 @@ with tf.device('/gpu:0'):
    	sess.run(model)
 
    	# Define loss and optimizer
-        for index in range(0,Nloop):
+    for index in range(0,Nloop):
          print("Loop number ", index)
          #fields = {'PS','QAP','TAP','OMEGA','SHFLX','LHFLX'};
          #input_names    = {'PS','QAP','TAP','OMEGA','SHFLX','LHFLX'};
@@ -198,23 +198,28 @@ with tf.device('/gpu:0'):
             batch_x = input[batch,:]      	# input sample
             batch_y = y_data[batch,:]  		# output sample
             # Run optimization op (backprop) and cost op (to get loss value)
-            counter = counter + 1
-            if epoch % 100 == 0:
-                # record the validation data
-	        summary,l = sess.run([merged,loss], feed_dict={x: batch_x, y: batch_y})
+            counter += 1
+
+            if counter % 10 == 0:  # Record summaries and test-set accuracy
+                summary,l = sess.run([merged,loss], feed_dict={x: batch_x, y: batch_y})
                 test_writer.add_summary(summary, counter)
-            else: 
-                # Record a training summary
-		_, summary,l = sess.run([optimizer, merged, loss], feed_dict={x: batch_x, y: batch_y})
-	        train_writer.add_summary(summary, counter)
-            # Display logs per epoch step
-            if epoch % display_step == 0:
-               	  print("Epoch:", '%04d' % (epoch+1), "loss=", "{:.9f}".format(l))
-                  # Save the variables to disk.
-               	  run_metadata = tf.RunMetadata()
-                  train_writer.add_run_metadata(run_metadata, 'step%03d' % (counter))
-                  save_path = saver.save(sess, filename, global_step=counter)
-                  print("Model saved in file: %s" % save_path)
-	 print("Large Batch Optimization Finished!")
-	print("Final Optimization Finished!")
+                print('Loss at step %s: %s' % (counter, l))
+            else: # Record train set summaries, and train
+                if counteri % 100 == 99:  # Record execution stats
+                    run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+                    run_metadata = tf.RunMetadata()
+                    summary, _ , l = sess.run([merged, optimizer, loss],
+                              feed_dict={x: batch_x, y: batch_y},
+                              options=run_options,
+                              run_metadata=run_metadata)
+                    train_writer.add_run_metadata(run_metadata, 'step%d' % counter)
+                    train_writer.add_summary(summary, counter)
+                    # save_path = saver.save(sess, filename, global_step=counter)
+                    # print("Model saved in file: %s" % save_path)
+                    print('Adding run metadata for counter=', str(counter))
+                else:  # Record a summary
+                     summary, _ = sess.run([merged, train_step], feed_dict={x: batch_x, y: batch_y})
+                     train_writer.add_summary(summary, counter)
+        print("Large Batch Optimization Finished!")
+print("Final Optimization Finished!")
         
