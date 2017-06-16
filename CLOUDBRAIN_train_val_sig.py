@@ -14,13 +14,10 @@ import sys
 import time 
 import datetime
 
+from folderDefs import *
 
 print("Starting")
 slim = tf.contrib.slim
-
-nc_file     = '../SPCAM_outputs.nc'
-LogDirMain  = './TRAINS'
-filename    = 'NN_tensorflow_fit'
 
 # Parameters
 fraction_data   = 1./100. # fraction of data used for the training
@@ -49,7 +46,7 @@ print('Nloop=',Nloop)
 
 # need to retrieve mean and standard deviation of the full dataset first
 print("Reading Netcdf for Normalization")
-fh        = Dataset('../normalization.nc', mode='r')
+fh        = Dataset(nc_norm_file, mode='r')
 mean_in   = fh.variables['mean'][:]
 std_in    = fh.variables['std'][:]
 fh.close()
