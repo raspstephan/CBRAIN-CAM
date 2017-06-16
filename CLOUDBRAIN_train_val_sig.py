@@ -130,14 +130,15 @@ with tf.name_scope('train'):
 saver = tf.train.Saver()
 tf.contrib.layers.summarize_tensor(pred)
 
+merged = tf.summary.merge_all()
+init = tf.global_variables_initializer()
+
 print("Running tensorflow")
 with tf.device('/gpu:0'):
    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as sess:
-      merged       = tf.summary.merge_all()
       train_writer = tf.summary.FileWriter(LogDir + '/train', sess.graph)
       test_writer  = tf.summary.FileWriter(LogDir + '/test')
-      model        = tf.global_variables_initializer()
-      sess.run(model)
+      sess.run(init)
 
       # Define loss and optimizer
       for index in range(0,Nloop):
@@ -153,35 +154,37 @@ with tf.device('/gpu:0'):
          N        = PS.shape[0]
          Ndata    = np.int_(fraction_data*N)
          batchlarge = np.int_(N*np.random.rand(Ndata))
-         PS       = PS[batchlarge]
+         #PS       = PS[batchlarge]
          QAP      = fh.variables['QAP'][:]
-         QAP      = QAP[:,batchlarge]
+         #QAP      = QAP[:,batchlarge]
          TAP      = fh.variables['TAP'][:]
-         TAP      = TAP[:,batchlarge]
+         #TAP      = TAP[:,batchlarge]
          OMEGA    = fh.variables['OMEGA'][:]
-         OMEGA    = OMEGA[:,batchlarge]
+         #OMEGA    = OMEGA[:,batchlarge]
          SHFLX    = fh.variables['SHFLX'][:]
-         SHFLX    = SHFLX[batchlarge]
+         #SHFLX    = SHFLX[batchlarge]
          LHFLX    = fh.variables['LHFLX'][:]
-         LHFLX    = LHFLX[batchlarge]
+         #LHFLX    = LHFLX[batchlarge]
          y_data   = fh.variables['SPDT'][:]
-         y_data   = y_data[:,batchlarge]
+         #y_data   = y_data[:,batchlarge]
          fh.close()
          print("End Reading Netcdf")
+
+         print(PS.shape, QAP.shape)
     
-         input = np.append(PS[None,:], QAP, axis=0)
-         del QAP
-         del PS
-         input = np.append(input, TAP, axis=0)
-         del TAP
-         input = np.append(input, OMEGA, axis=0)
-         del OMEGA
-         input = np.append(input, SHFLX[None,:], axis=0)
-         del SHFLX
-         input = np.append(input, LHFLX[None,:], axis=0)
-         input = np.transpose(input)
+         inX = np.append(PS, QAP, axis=0)
+         #del QAP
+         #del PS
+         inX = np.append(inX, TAP, axis=0)
+         #del TAP
+         inX = np.append(inX, OMEGA, axis=0)
+         #del OMEGA
+         inX = np.append(inX, SHFLX, axis=0)
+         #del SHFLX
+         inX = np.append(inX, LHFLX, axis=0)
+         inX = np.transpose(inX)
         
-         input       = (input - mean_in)/std_in
+         inX       = (inX - mean_in)/std_in
          y_data      = np.transpose(y_data)
      
          # Launch the graph
@@ -192,7 +195,7 @@ with tf.device('/gpu:0'):
          # Loop over all small batches
          for epoch in range(total_batch):
             batch = np.int_(Ndata*np.random.rand(batch_size))
-            batch_x = input[batch,:]      	# input sample
+            batch_x = inX[batch,:]      	# input sample
             batch_y = y_data[batch,:]  		# output sample
             # Run optimization op (backprop) and cost op (to get loss value)
             counter += 1
