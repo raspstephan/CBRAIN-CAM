@@ -23,7 +23,7 @@ slim = tf.contrib.slim
 fraction_data   = 1./100. # fraction of data used for the training
 training_epochs = 10 
 learning_rate   = 1e-3
-batch_size      = 4096
+batch_size      = 128
 record_step     = 100
 Ntimedata       = 1. # number of times through the same dataset
 
@@ -150,27 +150,36 @@ with tf.device('/gpu:0'):
          print("Reading Netcdf")
          # read netcdf file
          fh = Dataset(nc_file, mode='r')
-         PS       = fh.variables['PS'][:]
+         PS       = fh.variables['PS'][:]#.T
          N        = PS.shape[0]
          Ndata    = np.int_(fraction_data*N)
          batchlarge = np.int_(N*np.random.rand(Ndata))
+         print('N',N)
+         print('Ndata',Ndata)
+         print('batchlarge',batchlarge)
          #PS       = PS[batchlarge]
-         QAP      = fh.variables['QAP'][:]
+         QAP      = fh.variables['QAP'][:]#.T
          #QAP      = QAP[:,batchlarge]
-         TAP      = fh.variables['TAP'][:]
+         TAP      = fh.variables['TAP'][:]#.T
          #TAP      = TAP[:,batchlarge]
-         OMEGA    = fh.variables['OMEGA'][:]
+         OMEGA    = fh.variables['OMEGA'][:]#.T
          #OMEGA    = OMEGA[:,batchlarge]
-         SHFLX    = fh.variables['SHFLX'][:]
+         SHFLX    = fh.variables['SHFLX'][:]#.T
          #SHFLX    = SHFLX[batchlarge]
-         LHFLX    = fh.variables['LHFLX'][:]
+         LHFLX    = fh.variables['LHFLX'][:]#.T
          #LHFLX    = LHFLX[batchlarge]
-         y_data   = fh.variables['SPDT'][:]
+         y_data   = fh.variables['SPDT'][:]#.T
          #y_data   = y_data[:,batchlarge]
          fh.close()
          print("End Reading Netcdf")
 
-         print(PS.shape, QAP.shape)
+         print('PS.shape', PS.shape)
+         print('QAP.shape', QAP.shape)
+         print('TAP.shape', TAP.shape)
+         print('OMEGA.shape', OMEGA.shape)
+         print('SHFLX.shape', SHFLX.shape)
+         print('LHFLX.shape', LHFLX.shape)
+         print('y_data.shape', y_data.shape)
     
          inX = np.append(PS, QAP, axis=0)
          #del QAP
@@ -188,7 +197,7 @@ with tf.device('/gpu:0'):
          y_data      = np.transpose(y_data)
      
          # Launch the graph
-         total_batch = int(Ndata/batch_size)
+         total_batch = 100#int(Ndata/batch_size)
          print("total batch size ", total_batch)
                
          # https://www.tensorflow.org/programmers_guide/threading_and_queues
