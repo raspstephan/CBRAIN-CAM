@@ -23,9 +23,12 @@ slim = tf.contrib.slim
 fraction_data   = 1./100. # fraction of data used for the training
 training_epochs = 10 
 learning_rate   = 1e-3
-batch_size      = 4096
+batch_size      = 128
 record_step     = 100
 Ntimedata       = 1. # number of times through the same dataset
+# number of loops through entire dataset - randomly sampled
+Nloop = 2#int(float(Ntimedata)/fraction_data)                 
+print('Nloop=',Nloop)
 
 # Network Parameters
 n_hidden_1      = 5 # 1st layer number of features
@@ -40,9 +43,6 @@ filename = LogDir + '/' + filename
 
 print('LogDir is ' + LogDir)
 counter = 0
-# number of loops through entire dataset - randomly sampled
-Nloop = int(float(Ntimedata)/fraction_data)                 
-print('Nloop=',Nloop)
 
 # need to retrieve mean and standard deviation of the full dataset first
 print("Reading Netcdf for Normalization")
@@ -151,7 +151,7 @@ with tf.device('/gpu:0'):
          print("Reading Netcdf")
          # read netcdf file
          fh = Dataset(nc_file, mode='r')
-         PS       = fh.variables['PS'][:]#.T
+         PS       = fh.variables['PS'][:]
          N        = PS.shape[0]
          Ndata    = np.int_(fraction_data*N)
          batchlarge = np.int_(N*np.random.rand(Ndata))
@@ -182,16 +182,16 @@ with tf.device('/gpu:0'):
          print('LHFLX.shape', LHFLX.shape)
          print('y_data.shape', y_data.shape)
     
-         inX = np.append(PS, QAP, axis=0)
+         inX = np.append(PS[None,:], QAP, axis=0)
          #del QAP
          #del PS
          inX = np.append(inX, TAP, axis=0)
          #del TAP
          inX = np.append(inX, OMEGA, axis=0)
          #del OMEGA
-         inX = np.append(inX, SHFLX, axis=0)
+         inX = np.append(inX, SHFLX[None,:], axis=0)
          #del SHFLX
-         inX = np.append(inX, LHFLX, axis=0)
+         inX = np.append(inX, LHFLX[None,:], axis=0)
          inX = np.transpose(inX)
         
          inX       = (inX - mean_in)/std_in
