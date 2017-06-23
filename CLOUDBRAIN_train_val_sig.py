@@ -23,7 +23,7 @@ slim = tf.contrib.slim
 fraction_data   = 1./100. # fraction of data used for the training
 training_epochs = 10 
 learning_rate   = 1e-3
-batch_size      = 128
+batch_size      = 4096
 record_step     = 100
 Ntimedata       = 1. # number of times through the same dataset
 
@@ -106,29 +106,30 @@ def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.nn.sigmoid)
 
 # starting neural network:
 # tf Graph input 
-x = tf.placeholder(tf.float32, [None, n_input], name='x-input')
-y = tf.placeholder(tf.float32, [None, n_outputs], name='y-output')
+with tf.device('/gpu:0'):
+  x = tf.placeholder(tf.float32, [None, n_input], name='x-input')
+  y = tf.placeholder(tf.float32, [None, n_outputs], name='y-output')
 
-hidden1 = nn_layer(x, n_input, n_hidden_1, 'layer1')
-if n_hidden_2>0:
-    hidden2 = nn_layer(hidden1, n_hidden_1, n_hidden_2, 'layer2')
-    pred = nn_layer(hidden2, n_hidden_2, n_outputs, 'layerout', act=tf.identity)    
-else:
-    pred = nn_layer(hidden1, n_hidden_1, n_outputs, 'layerout', act=tf.identity)
+  hidden1 = nn_layer(x, n_input, n_hidden_1, 'layer1')
+  if n_hidden_2>0:
+      hidden2 = nn_layer(hidden1, n_hidden_1, n_hidden_2, 'layer2')
+      pred = nn_layer(hidden2, n_hidden_2, n_outputs, 'layerout', act=tf.identity)    
+  else:
+      pred = nn_layer(hidden1, n_hidden_1, n_outputs, 'layerout', act=tf.identity)
 
-# Add ops to save and restore all the variables.
-with tf.name_scope('loss'):
-    loss = tf.reduce_mean(tf.square(pred - y))
-tf.summary.scalar('loss', loss)
+  # Add ops to save and restore all the variables.
+  with tf.name_scope('loss'):
+      loss = tf.reduce_mean(tf.square(pred - y))
+  tf.summary.scalar('loss', loss)
 
-with tf.name_scope('logloss'):
-    logloss = tf.log(tf.reduce_mean(tf.square(pred - y)))
-tf.summary.scalar('logloss', logloss)
+  with tf.name_scope('logloss'):
+      logloss = tf.log(tf.reduce_mean(tf.square(pred - y)))
+  tf.summary.scalar('logloss', logloss)
 
-with tf.name_scope('train'):
-    optimizer  = tf.train.AdamOptimizer(learning_rate).minimize(loss)
-saver = tf.train.Saver()
-tf.contrib.layers.summarize_tensor(pred)
+  with tf.name_scope('train'):
+      optimizer  = tf.train.AdamOptimizer(learning_rate).minimize(loss)
+  saver = tf.train.Saver()
+  tf.contrib.layers.summarize_tensor(pred)
 
 merged = tf.summary.merge_all()
 init = tf.global_variables_initializer()
@@ -158,17 +159,17 @@ with tf.device('/gpu:0'):
          print('Ndata',Ndata)
          print('batchlarge',batchlarge)
          #PS       = PS[batchlarge]
-         QAP      = fh.variables['QAP'][:]#.T
+         QAP      = fh.variables['QAP'][:]
          #QAP      = QAP[:,batchlarge]
-         TAP      = fh.variables['TAP'][:]#.T
+         TAP      = fh.variables['TAP'][:]
          #TAP      = TAP[:,batchlarge]
-         OMEGA    = fh.variables['OMEGA'][:]#.T
+         OMEGA    = fh.variables['OMEGA'][:]
          #OMEGA    = OMEGA[:,batchlarge]
-         SHFLX    = fh.variables['SHFLX'][:]#.T
+         SHFLX    = fh.variables['SHFLX'][:]
          #SHFLX    = SHFLX[batchlarge]
-         LHFLX    = fh.variables['LHFLX'][:]#.T
+         LHFLX    = fh.variables['LHFLX'][:]
          #LHFLX    = LHFLX[batchlarge]
-         y_data   = fh.variables['SPDT'][:]#.T
+         y_data   = fh.variables['SPDT'][:]
          #y_data   = y_data[:,batchlarge]
          fh.close()
          print("End Reading Netcdf")
@@ -197,7 +198,7 @@ with tf.device('/gpu:0'):
          y_data      = np.transpose(y_data)
      
          # Launch the graph
-         total_batch = 100#int(Ndata/batch_size)
+         total_batch = int(Ndata/batch_size)
          print("total batch size ", total_batch)
                
          # https://www.tensorflow.org/programmers_guide/threading_and_queues
