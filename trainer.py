@@ -117,12 +117,15 @@ class Trainer(object):
         print('x:',x)
         print('y:',y)
 
-        hidden1 = nn_layer(x, self.data_loader.n_input, n_hidden_1, 'layer1')
-        if n_hidden_2>0:
-            hidden2 = nn_layer(hidden1, n_hidden_1, n_hidden_2, 'layer2')
-            pred = nn_layer(hidden2, n_hidden_2, self.data_loader.n_output, 'layerout', act=tf.identity)    
-        else:
-            pred = nn_layer(hidden1, n_hidden_1, self.data_loader.n_output, 'layerout', act=tf.identity)
+        net = x
+        nLayPrev = self.data_loader.n_input
+        iLay = 0
+        for nLay in self.config.hidden.split(','):
+            iLay += 1
+            nLay = int(nLay)
+            net = nn_layer(net, nLayPrev, nLay, 'layer'+str(iLay))
+            nLayPrev = nLay
+        pred = nn_layer(net, nLayPrev, self.data_loader.n_output, 'layerout', act=tf.identity)
 
         # Add ops to save and restore all the variables.
         with tf.name_scope('loss'):
