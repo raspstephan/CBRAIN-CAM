@@ -14,15 +14,16 @@ def add_argument_group(name):
 
 # Network
 net_arg = add_argument_group('Network')
-net_arg.add_argument('--input_scale_size', type=int, default=64, help='input image will be resized with the given value as width and height')
-net_arg.add_argument('--conv_hidden_num', type=int, default=128, choices=[64, 128,16,32],help='n in the paper')
-net_arg.add_argument('--hidden', type=str, default='8,8', help='comma separated list of hidden layer units')
+#net_arg.add_argument('--input_scale_size', type=int, default=64, help='input image will be resized with the given value as width and height')
+#net_arg.add_argument('--conv_hidden_num', type=int, default=128, choices=[64, 128,16,32],help='n in the paper')
+net_arg.add_argument('--hidden',  type=str, default='5,5', help='comma separated list of hidden layer units')
+net_arg.add_argument('--varname', type=str, default='SPDT', help='names of trained variable')
 
 # Data
 data_arg = add_argument_group('Data')
 data_arg.add_argument('--dataset', type=str, default='sample')
-data_arg.add_argument('--batch_size', type=int, default=128)
-data_arg.add_argument('--frac_train', type=float, default=0.9)
+data_arg.add_argument('--batch_size', type=int, default=2048)
+data_arg.add_argument('--frac_train', type=float, default=0.8)
 data_arg.add_argument('--local', type=str2bool, default=False)
 
 # Training / test parameters
@@ -32,7 +33,7 @@ train_arg.add_argument('--optimizer', type=str, default='adam')
 train_arg.add_argument('--max_step', type=int, default=1000000)
 train_arg.add_argument('--lr_update_step', type=int, default=100000, choices=[100000, 75000, 10000, 20000, 1000])
 train_arg.add_argument('--lr', type=float, default=0.001)
-train_arg.add_argument('--lr_lower_boundary', type=float, default=0.000002)
+train_arg.add_argument('--lr_lower_boundary', type=float, default=2e-6)
 train_arg.add_argument('--beta1', type=float, default=0.5)
 train_arg.add_argument('--beta2', type=float, default=0.999)
 train_arg.add_argument('--gamma', type=float, default=0.5)

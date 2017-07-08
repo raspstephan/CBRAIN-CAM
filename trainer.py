@@ -22,6 +22,8 @@ class Trainer(object):
 
         self.optimizer = config.optimizer
         self.batch_size = config.batch_size
+        self.hidden    = config.hidden
+        self.varname   = config.varname
 
         self.step = tf.Variable(0, name='step', trainable=False)
 
@@ -47,7 +49,8 @@ class Trainer(object):
 
         self.valStr = '' if config.is_train else '_val'
         self.saver = tf.train.Saver()# if self.is_train else None
-        self.summary_writer = tf.summary.FileWriter(self.model_dir + self.valStr)
+        self.summary_writer = tf.summary.FileWriter(self.model_dir + '_' + 
+                                                    self.varname + '_' + self.hidden + '_' + self.valStr)
 
         sv = tf.train.Supervisor(logdir=self.model_dir,
                                 is_chief=True,
@@ -74,7 +77,8 @@ class Trainer(object):
             if step % self.log_step == 0:
                 fetch_dict.update({
                     "summary": self.summary_op,
-                    "loss": self.loss
+                    "loss": self.loss,
+                    "logloss": self.logloss
                 })
             result = self.sess.run(fetch_dict)
 
@@ -83,8 +87,9 @@ class Trainer(object):
                 self.summary_writer.flush()
 
                 loss = result['loss']
-                trainBar.set_description("q:{}, L:{:.6f}". \
-                    format(self.data_loader.size_op.eval(session=self.sess), loss))
+                logloss = result['logloss']
+                trainBar.set_description("q:{}, L:{:.6f}, logL:{:.6f}". \
+                    format(self.data_loader.size_op.eval(session=self.sess), loss, logloss))
 
             if step % self.lr_update_step == self.lr_update_step - 1:
                 self.sess.run([self.lr_update])
@@ -97,6 +102,7 @@ class Trainer(object):
                 fetch_dict.update({
                     "summary": self.summary_op,
                     "loss": self.loss,
+                    "logloss": self.logloss
                 })
             result = self.sess.run(fetch_dict)
 
@@ -105,8 +111,8 @@ class Trainer(object):
                 self.summary_writer.flush()
 
                 loss = result['loss']
-                trainBar.set_description("q:{}, L:{:.6f}". \
-                    format(self.data_loader.size_op.eval(session=self.sess), loss))
+                trainBar.set_description("q:{}, L:{:.6f}, logL:{:.6f}". \
+                    format(self.data_loader.size_op.eval(session=self.sess), loss, logloss))
 
             if step % self.lr_update_step == self.lr_update_step - 1:
                 self.sess.run([self.lr_update])
@@ -152,10 +158,6 @@ class Trainer(object):
             optimizer = optimizer(self.lr)
             self.optim = optimizer.minimize(self.loss)
 
-
-# Network Parameters
-n_hidden_1      = 5 # 1st layer number of features
-n_hidden_2      = 0 # 2nd layer number of features
 def variable_summaries(var):
   """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
   with tf.name_scope('summaries'):

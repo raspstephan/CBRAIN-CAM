@@ -1,8 +1,8 @@
 import numpy as np
 import shutil, time, math, itertools, os
 import h5py
-#import netCDF4 as nc 
-#from netCDF4 import Dataset
+import netCDF4 as nc 
+from netCDF4 import Dataset
 from tqdm import tqdm
 import tensorflow as tf
 import threading
@@ -17,35 +17,28 @@ class DataLoader:
         self.filePath = folderPath+self.config.dataset
         self.batchSize = config.batch_size
         self.nSampleFetching = 1024
-        self.fileReader = []
-        self.lock = threading.Lock()
         self.reload()
 
     def reload(self, finishedEpoch = 0):
         # need to retrieve mean and standard deviation of the full dataset first
         print("Reading Netcdf for Normalization")
-        fh = h5py.File(nc_norm_file, mode='r')
-        self.mean_in   = fh['mean'][:]
-        self.std_in    = fh['std'][:]
+        fh = Dataset(nc_norm_file, mode='r')
+        self.mean_in   = fh.variables['mean'][:]
+        self.std_in    = fh.variables['std'][:]
         fh.close()
         print("End Reading Netcdf for Normalization")
         try:
-            for i in range(len(self.fileReader)):
-                self.fileReader[i].close()
+            self.f.close()
         except:
             pass
         print("opening "+self.filePath)
-#        self.f = Dataset(nc_file, mode='r')
-#        for i in range(1):#self.maxReaders):
-#            self.fileReader += [Dataset(nc_file, mode='r')]
+        self.f = Dataset(nc_file, mode='r')
         print("batchSize = ", self.batchSize)
 
-        fh = h5py.File(nc_file, mode='r')
-        self.Nsamples = fh['PS'][:].shape[0]
+        self.Nsamples = self.f.variables['PS'][:].shape[0]
         print('Nsamples', self.Nsamples)
         self.n_input = self.mean_in.shape[0]
-        self.n_output = fh['SPDT'][:].shape[0]
-        fh.close()
+        self.n_output = self.f.variables['SPDT'][:].shape[0]
 
         self.NumBatch = self.Nsamples // self.config.batch_size
         self.NumBatchTrain = int(self.Nsamples * self.config.frac_train) // self.batchSize
@@ -78,21 +71,20 @@ class DataLoader:
         return self
     def __exit__(self, exc_type, exc_value, traceback):
         try:
-            for i in range(len(self.fileReader)):
-                self.fileReader[i].close()
+            self.f.close()
         except:
             pass
 
-    def accessData(self, s, l, ithFileReader):
-#        print("Reading Netcdf", ithFileReader, threading.current_thread())
-        fh = self.fileReader[ithFileReader]
-        PS       = fh['PS'][s:s+l]
-        QAP      = fh['QAP'][:,s:s+l]
-        TAP      = fh['TAP'][:,s:s+l]
-        OMEGA    = fh['OMEGA'][:,s:s+l]
-        SHFLX    = fh['SHFLX'][s:s+l]
-        LHFLX    = fh['LHFLX'][s:s+l]
-        y_data   = fh['SPDT'][:,s:s+l]
+    def accessData(self, s, l):
+#        print("Reading Netcdf")
+        fh = self.f
+        PS       = fh.variables['PS'][s:s+l]
+        QAP      = fh.variables['QAP'][:,s:s+l]
+        TAP      = fh.variables['TAP'][:,s:s+l]
+        OMEGA    = fh.variables['OMEGA'][:,s:s+l]
+        SHFLX    = fh.variables['SHFLX'][s:s+l]
+        LHFLX    = fh.variables['LHFLX'][s:s+l]
+        y_data   = fh.variables['SPDT'][:,s:s+l]
 #        print("End Reading Netcdf")
 
 #        print('PS.shape', PS.shape)
@@ -120,28 +112,23 @@ class DataLoader:
 
         return inX, y_data
 
-    def sampleTrain(self, ithFileReader):
-#        self.lock.acquire()
+    def sampleTrain(self):
         s = self.randSamplesTrain[self.posTrain]
-        #print(ithFileReader, self.posTrain, s)
-        self.posTrain += 1
-        self.posTrain %= self.numFetchesTrain
-#        self.lock.release()
-        x,y = self.accessData(s, self.nSampleFetching, ithFileReader)
+        #print(self.posTrain, s)
+        self.posTrain = (self.posTrain+1) % self.numFetchesTrain
+        x,y = self.accessData(s, self.nSampleFetching)
         return x,y
 
-    def sampleValid(self, ithFileReader):
+    def sampleValid(self):
         s = self.randSamplesValid[self.posValid]
-        self.posValid += 1
-        self.posValid %= self.numFetchesValid
-        x,y = self.accessData(s, self.nSampleFetching, ithFileReader)
+        self.posValid = (self.posValid+1) % self.numFetchesValid
+        x,y = self.accessData(s, self.nSampleFetching)
         return x,y
 
-    def data_iterator(self, ithFileReader):
+    def data_iterator(self):
         """ A simple data iterator """
-        print('data_iterator', ithFileReader, threading.current_thread())
         while True:
-            sampX, sampY = self.sampleTrain(ithFileReader) if self.config.is_train else self.sampleValid(ithFileReader)
+            sampX, sampY = self.sampleTrain() if self.config.is_train else self.sampleValid()
             yield sampX, sampY
 
     def prepareQueue(self):
@@ -165,19 +152,16 @@ class DataLoader:
             print("b_X",b_X.get_shape(), "b_Y",b_Y.get_shape())
             return b_X, b_Y
 
-    def thread_main(self, sess, ithFileReader):
-        print('thread_main', ithFileReader, threading.current_thread())
-        while len(self.fileReader) <= ithFileReader + 1:
-            self.fileReader += [h5py.File(nc_file, mode='r')]
-        for dtX, dtY in self.data_iterator(ithFileReader):
+    def thread_main(self, sess):
+        for dtX, dtY in self.data_iterator():
             sess.run(self.enqueue_op, feed_dict={self.dataX:dtX, self.dataY:dtY})
 
-    def start_threads(self, sess, n_threads=4):
+    def start_threads(self, sess, n_threads=1):
         """ Start background threads to feed queue """
         threads = []
         print("starting %d data threads for training" % n_threads)
         for n in range(n_threads):
-            t = threading.Thread(target=self.thread_main, args=(sess,0,))
+            t = threading.Thread(target=self.thread_main, args=(sess,))
             t.daemon = True # thread will close when parent quits
             t.start()
             threads.append(t)
