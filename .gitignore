@@ -3,3 +3,4 @@
 *.nc
 /folderDefs.py
 /logs/
+/.DS_Store

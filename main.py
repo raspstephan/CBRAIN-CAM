@@ -11,6 +11,8 @@ from  dataLoad import *
 from folderDefs import *
 
 def main(config):
+    'Preparing dirs and files'
+
     prepare_dirs_and_logger(config)
 
     rng = np.random.RandomState(config.random_seed)
@@ -24,7 +26,7 @@ def main(config):
         setattr(config, 'batch_size', 1024)
         data_path = config.data_path
         do_shuffle = False
-    with DataLoader(tainingDataDir, config) as data_loader:
+    with DataLoader(trainingDataDir, config) as data_loader:
         with tf.device("/cpu:0"):
             data_loader.prepareQueue()
         #data_loader = get_loader(data_path, config.batch_size, config.input_scale_size, config.data_format, config.split)

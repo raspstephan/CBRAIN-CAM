@@ -17,6 +17,7 @@ class DataLoader:
         self.filePath = folderPath+self.config.dataset
         self.batchSize = config.batch_size
         self.nSampleFetching = 1024
+        self.varname = config.varname
         self.fileReader = []
         self.lock = threading.Lock()
         self.reload()
@@ -44,7 +45,7 @@ class DataLoader:
         self.Nsamples = fh['PS'][:].shape[0]
         print('Nsamples', self.Nsamples)
         self.n_input = self.mean_in.shape[0]
-        self.n_output = fh['SPDT'][:].shape[0]
+        self.n_output = fh[self.varname][:].shape[0]
         fh.close()
 
         self.NumBatch = self.Nsamples // self.config.batch_size
