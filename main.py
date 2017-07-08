@@ -11,6 +11,8 @@ from  dataLoad import *
 from folderDefs import *
 
 def main(config):
+    'Preparing dirs and files'
+
     prepare_dirs_and_logger(config)
 
     rng = np.random.RandomState(config.random_seed)

@@ -16,6 +16,7 @@ class DataLoader:
         self.config = config
         self.filePath = folderPath+self.config.dataset
         self.batchSize = config.batch_size
+        self.varname  = config.varname
         self.nSampleFetching = 1024
         self.reload()
 
@@ -38,7 +39,7 @@ class DataLoader:
         self.Nsamples = self.f.variables['PS'][:].shape[0]
         print('Nsamples', self.Nsamples)
         self.n_input = self.mean_in.shape[0]
-        self.n_output = self.f.variables['SPDT'][:].shape[0]
+        self.n_output = self.f.variables[self.varname][:].shape[0]
 
         self.NumBatch = self.Nsamples // self.config.batch_size
         self.NumBatchTrain = int(self.Nsamples * self.config.frac_train) // self.batchSize
