@@ -138,7 +138,7 @@ class Trainer(object):
             self.loss = tf.reduce_mean(tf.square(pred - y))
 
         with tf.name_scope('logloss'):
-            self.logloss = tf.log(tf.reduce_mean(tf.square(pred - y)))
+            self.logloss = tf.log(10**-18 + tf.reduce_mean(tf.square(pred - y))) # add a tiny bias to avoid numerical error
 
         self.summary_op = tf.summary.merge([
             tf.summary.histogram("x", self.x),
@@ -175,7 +175,7 @@ def weight_variable(shape):
   return tf.Variable(initial)
 
 def bias_variable(shape):
-  initial = tf.constant(0.1, shape=shape)
+  initial = tf.constant(1., shape=shape)
   return tf.Variable(initial)
 
 def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.nn.sigmoid):

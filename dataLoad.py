@@ -84,7 +84,7 @@ class DataLoader:
         OMEGA    = fh.variables['OMEGA'][:,s:s+l]
         SHFLX    = fh.variables['SHFLX'][s:s+l]
         LHFLX    = fh.variables['LHFLX'][s:s+l]
-        y_data   = fh.variables['SPDT'][:,s:s+l]
+        y_data   = fh.variables[self.varname][:,s:s+l]
 #        print("End Reading Netcdf")
 
 #        print('PS.shape', PS.shape)
