@@ -134,7 +134,7 @@ class DataLoader:
         s = self.randSamplesValid[self.posValid]
         self.posValid += 1
         self.posValid %= self.numFetchesValid
-        x,y = self.accessData(s, self.nSampleFetching)
+        x,y = self.accessData(s, self.nSampleFetching, ithFileReader)
         return x,y
 
     def data_iterator(self, ithFileReader):
