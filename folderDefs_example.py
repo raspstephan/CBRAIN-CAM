@@ -1,8 +1,8 @@
 
+trainingDataDir  = './'
+nc_file     = trainingDataDir+'SPCAM_outputs_sample.nc'
+nc_norm_file= trainingDataDir+'normalization.nc'
 
-nc_file     = '../SPCAM_outputs.nc'
 
 LogDirMain  = './TRAINS'
-
-filename    = 'NN_tensorflow_fit'
 
