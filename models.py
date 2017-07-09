@@ -5,3 +5,4 @@ import random
 from dataLoad import *
 from utils import *
 
+slim = tf.contrib.slim
