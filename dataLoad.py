@@ -26,8 +26,10 @@ class DataLoader:
         # need to retrieve mean and standard deviation of the full dataset first
         print("Reading Netcdf for Normalization")
         fh = h5py.File(nc_norm_file, mode='r')
-        self.mean_in   = fh['mean'][:]
-        self.std_in    = fh['std'][:]
+        self.mean_in   = fh['mean'][:]   # (93, 1)
+        self.std_in    = fh['std'][:]    # (93, 1)
+        print('self.mean_in', self.mean_in.shape)
+        print('self.std_in', self.std_in.shape)
         fh.close()
         print("End Reading Netcdf for Normalization")
         try:
@@ -85,18 +87,19 @@ class DataLoader:
             pass
 
     def accessData(self, s, l, ithFileReader):
-#        print("Reading Netcdf", ithFileReader, threading.current_thread())
         fh = self.fileReader[ithFileReader]
-        PS       = fh['PS'][s:s+l]
-        QAP      = fh['QAP'][:,s:s+l]
-        TAP      = fh['TAP'][:,s:s+l]
-        OMEGA    = fh['OMEGA'][:,s:s+l]
-        SHFLX    = fh['SHFLX'][s:s+l]
-        LHFLX    = fh['LHFLX'][s:s+l]
-        y_data   = fh['SPDT'][:,s:s+l]
-#        print("End Reading Netcdf")
+
+        PS       = fh['PS'][s:s+l][None]    #  1
+        QAP      = fh['QAP'][:,s:s+l]       # 30
+        TAP      = fh['TAP'][:,s:s+l]       # 30
+        OMEGA    = fh['OMEGA'][:,s:s+l]     # 30
+        SHFLX    = fh['SHFLX'][s:s+l][None] #  1
+        LHFLX    = fh['LHFLX'][s:s+l][None] #  1
+
+        y_data   = fh['SPDT'][:,s:s+l]      # 30
 
 #        print('PS.shape', PS.shape)
+#        print('PS.shape[None,:]', PS.shape)
 #        print('QAP.shape', QAP.shape)
 #        print('TAP.shape', TAP.shape)
 #        print('OMEGA.shape', OMEGA.shape)
@@ -104,17 +107,9 @@ class DataLoader:
 #        print('LHFLX.shape', LHFLX.shape)
 #        print('y_data.shape', y_data.shape)
 
-        inX = np.append(PS[None,:], QAP, axis=0)
-        #del QAP
-        #del PS
-        inX = np.append(inX, TAP, axis=0)
-        #del TAP
-        inX = np.append(inX, OMEGA, axis=0)
-        #del OMEGA
-        inX = np.append(inX, SHFLX[None,:], axis=0)
-        #del SHFLX
-        inX = np.append(inX, LHFLX[None,:], axis=0)
+        inX = np.concatenate([PS, QAP, TAP, OMEGA, SHFLX, LHFLX], axis=0)
         inX = np.transpose(inX)
+#        print('inX.shape', inX.shape)
 
         inX    = (inX - self.mean_in) / self.std_in
         y_data = np.transpose(y_data)
