@@ -26,8 +26,8 @@ class DataLoader:
         # need to retrieve mean and standard deviation of the full dataset first
         print("Reading Netcdf for Normalization")
         fh = h5py.File(nc_norm_file, mode='r')
-        self.mean_in   = fh['mean'][:]   # (93, 1)
-        self.std_in    = fh['std'][:]    # (93, 1)
+        self.mean_in   = fh['mean'][:][None]   # (93, 1)
+        self.std_in    = fh['std'][:][None]    # (93, 1)
         print('self.mean_in', self.mean_in.shape)
         print('self.std_in', self.std_in.shape)
         fh.close()
@@ -46,7 +46,7 @@ class DataLoader:
         fh = h5py.File(nc_file, mode='r')
         self.Nsamples = fh['PS'][:].shape[0]
         print('Nsamples', self.Nsamples)
-        self.n_input = self.mean_in.shape[0]
+        self.n_input = self.mean_in.shape[1]
         self.n_output = fh[self.varname][:].shape[0]
         fh.close()
 
@@ -96,7 +96,7 @@ class DataLoader:
         SHFLX    = fh['SHFLX'][s:s+l][None] # SHFLX  W/m2    1    Surface sensible heat flux
         LHFLX    = fh['LHFLX'][s:s+l][None] # LHFLX  W/m2    1    Surface latent heat flux
 
-        y_data   = fh['SPDT'][:,s:s+l]      # SPDT   K/s     30   dT/dt
+        y_data   = fh[self.varname][:,s:s+l]      # SPDT   K/s     30   dT/dt
 
 #        print('PS.shape', PS.shape)
 #        print('PS.shape[None,:]', PS.shape)
