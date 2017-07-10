@@ -26,8 +26,8 @@ class DataLoader:
         # need to retrieve mean and standard deviation of the full dataset first
         print("Reading Netcdf for Normalization")
         fh = h5py.File(nc_norm_file, mode='r')
-        self.mean_in   = fh['mean'][:]   # (93, 1)
-        self.std_in    = fh['std'][:]    # (93, 1)
+        self.mean_in   = fh['mean'][:].T   # (93, 1)
+        self.std_in    = fh['std'][:].T    # (93, 1)
         print('self.mean_in', self.mean_in.shape)
         print('self.std_in', self.std_in.shape)
         fh.close()
@@ -89,14 +89,14 @@ class DataLoader:
     def accessData(self, s, l, ithFileReader):
         fh = self.fileReader[ithFileReader]
 
-        QAP      = fh['QAP'][:,s:s+l]       # QAP    kg/kg   30   Specific humidity (after physics)
-        TAP      = fh['TAP'][:,s:s+l]       # TAP    K       30   Temperature (after physics)
-        OMEGA    = fh['OMEGA'][:,s:s+l]     # OMEGA  Pa/s    30   Vertical velocity (pressure)
-        PS       = fh['PS'][s:s+l][None]    # PS     Pa      1    Surface pressure
-        SHFLX    = fh['SHFLX'][s:s+l][None] # SHFLX  W/m2    1    Surface sensible heat flux
-        LHFLX    = fh['LHFLX'][s:s+l][None] # LHFLX  W/m2    1    Surface latent heat flux
+        QAP      = fh['QAP'][:,s:s+l].T       # QAP    kg/kg   30   Specific humidity (after physics)
+        TAP      = fh['TAP'][:,s:s+l].T       # TAP    K       30   Temperature (after physics)
+        OMEGA    = fh['OMEGA'][:,s:s+l].T     # OMEGA  Pa/s    30   Vertical velocity (pressure)
+        PS       = fh['PS'][s:s+l][None].T    # PS     Pa      1    Surface pressure
+        SHFLX    = fh['SHFLX'][s:s+l][None].T # SHFLX  W/m2    1    Surface sensible heat flux
+        LHFLX    = fh['LHFLX'][s:s+l][None].T # LHFLX  W/m2    1    Surface latent heat flux
 
-        y_data   = fh['SPDT'][:,s:s+l]      # SPDT   K/s     30   dT/dt
+        y_data   = fh['SPDT'][:,s:s+l].T      # SPDT   K/s     30   dT/dt
 
 #        print('PS.shape', PS.shape)
 #        print('PS.shape[None,:]', PS.shape)
@@ -107,12 +107,11 @@ class DataLoader:
 #        print('LHFLX.shape', LHFLX.shape)
 #        print('y_data.shape', y_data.shape)
 
-        inX = np.concatenate([PS, QAP, TAP, OMEGA, SHFLX, LHFLX], axis=0)
-        inX = np.transpose(inX)
+        inX = np.concatenate([PS, QAP, TAP, OMEGA, SHFLX, LHFLX], axis=1)
+#        inX = np.transpose(inX)
 #        print('inX.shape', inX.shape)
 
         inX    = (inX - self.mean_in) / self.std_in
-        y_data = np.transpose(y_data)
 
         return inX, y_data
 
