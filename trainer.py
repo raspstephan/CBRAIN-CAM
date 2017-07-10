@@ -123,17 +123,14 @@ class Trainer(object):
         print('x:',x)
         print('y:',y)
 
-        net = tf.reshape(x, x.get_shape().as_list()+[1, 1])
-        print('net', net)
+        net = x
         nLayPrev = self.data_loader.n_input
         iLay = 0
         for nLay in self.config.hidden.split(','):
             iLay += 1
             nLay = int(nLay)
-            net = slim.conv2d(net, nLay, [3, 1])#nn_layer(net, nLayPrev, nLay, 'layer'+str(iLay))
+            net = nn_layer(net, nLayPrev, nLay, 'layer'+str(iLay))
             nLayPrev = nLay
-            print('net', net)
-        net = tf.reshape(slim.conv2d(net, nLayPrev, [93, 1], padding='VALID'), [-1, nLayPrev])
         pred = nn_layer(net, nLayPrev, self.data_loader.n_output, 'layerout', act=tf.identity)
 
         # Add ops to save and restore all the variables.

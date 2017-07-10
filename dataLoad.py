@@ -89,14 +89,14 @@ class DataLoader:
     def accessData(self, s, l, ithFileReader):
         fh = self.fileReader[ithFileReader]
 
-        PS       = fh['PS'][s:s+l][None]    #  1
-        QAP      = fh['QAP'][:,s:s+l]       # 30
-        TAP      = fh['TAP'][:,s:s+l]       # 30
-        OMEGA    = fh['OMEGA'][:,s:s+l]     # 30
-        SHFLX    = fh['SHFLX'][s:s+l][None] #  1
-        LHFLX    = fh['LHFLX'][s:s+l][None] #  1
+        QAP      = fh['QAP'][:,s:s+l]       # QAP    kg/kg   30   Specific humidity (after physics)
+        TAP      = fh['TAP'][:,s:s+l]       # TAP    K       30   Temperature (after physics)
+        OMEGA    = fh['OMEGA'][:,s:s+l]     # OMEGA  Pa/s    30   Vertical velocity (pressure)
+        PS       = fh['PS'][s:s+l][None]    # PS     Pa      1    Surface pressure
+        SHFLX    = fh['SHFLX'][s:s+l][None] # SHFLX  W/m2    1    Surface sensible heat flux
+        LHFLX    = fh['LHFLX'][s:s+l][None] # LHFLX  W/m2    1    Surface latent heat flux
 
-        y_data   = fh['SPDT'][:,s:s+l]      # 30
+        y_data   = fh['SPDT'][:,s:s+l]      # SPDT   K/s     30   dT/dt
 
 #        print('PS.shape', PS.shape)
 #        print('PS.shape[None,:]', PS.shape)
