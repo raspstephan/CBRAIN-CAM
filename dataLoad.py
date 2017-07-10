@@ -96,7 +96,7 @@ class DataLoader:
         SHFLX    = fh['SHFLX'][s:s+l][None].T # SHFLX  W/m2    1    Surface sensible heat flux
         LHFLX    = fh['LHFLX'][s:s+l][None].T # LHFLX  W/m2    1    Surface latent heat flux
 
-        y_data   = fh[self.varname][:,s:s+l]      # SPDT   K/s     30   dT/dt
+        y_data   = fh[self.varname][:,s:s+l].T      # SPDT   K/s     30   dT/dt
 
 #        print('PS.shape', PS.shape)
 #        print('PS.shape[None,:]', PS.shape)
@@ -112,7 +112,7 @@ class DataLoader:
 #        print('inX.shape', inX.shape)
 
 #        inX    = (inX - self.mean_in) / self.std_in
-        y_data = np.transpose(y_data)
+#        y_data = np.transpose(y_data)
 
         return inX, y_data
 
