@@ -123,8 +123,8 @@ class Trainer(object):
     def build_model(self):
         x = self.x
         y = self.y
-        print('x:',x)
-        print('y:',y)
+        print('x:', x)
+        print('y:', y)
 
         net = tf.reshape(x, x.get_shape().as_list()+[1, 1])
         print('net', net)
@@ -138,13 +138,14 @@ class Trainer(object):
             print('net', net)
         net = tf.reshape(slim.conv2d(net, nLayPrev, [93, 1], padding='VALID'), [-1, nLayPrev])
         pred = nn_layer(net, nLayPrev, self.data_loader.n_output, 'layerout', act=tf.identity)
+        print('pred:', pred)
 
         # Add ops to save and restore all the variables.
         with tf.name_scope('loss'):
-            self.loss = tf.reduce_mean(tf.square(pred - y))
+            self.loss = tf.losses.mean_squared_error(y, pred)
 
         with tf.name_scope('logloss'):
-            self.logloss = tf.log(10**-18 + tf.reduce_mean(tf.square(pred - y))) # add a tiny bias to avoid numerical error
+            self.logloss = tf.log(1E-18 + self.loss) / tf.log(10.0) # add a tiny bias to avoid numerical error
 
         self.summary_op = tf.summary.merge([
             tf.summary.histogram("x", self.x),
