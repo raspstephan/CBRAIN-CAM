@@ -71,28 +71,31 @@ class Trainer(object):
             self.data_loader.start_threads(self.sess)
 
     def train(self):
-        trainBar = trange(self.start_step, self.max_step)
-        for step in trainBar:
-            fetch_dict = {"optim": self.optim}
-            if step % self.log_step == 0:
-                fetch_dict.update({
-                    "summary": self.summary_op,
-                    "loss": self.loss,
-                    "logloss": self.logloss
-                })
-            result = self.sess.run(fetch_dict)
+        totStep = 0
+        for ep in range(1, self.config.epoch + 1):
+            trainBar = trange(self.start_step, self.data_loader.NumBatchTrain)
+            for step in trainBar:
+                totStep += 1
+                fetch_dict = {"optim": self.optim}
+                if step % self.log_step == 0:
+                    fetch_dict.update({
+                        "summary": self.summary_op,
+                        "loss": self.loss,
+                        "logloss": self.logloss
+                    })
+                result = self.sess.run(fetch_dict)
 
-            if step % self.log_step == 0:
-                self.summary_writer.add_summary(result['summary'], step)
-                self.summary_writer.flush()
+                if step % self.log_step == 0:
+                    self.summary_writer.add_summary(result['summary'], totStep)
+                    self.summary_writer.flush()
 
-                loss = result['loss']
-                logloss = result['logloss']
-                trainBar.set_description("q:{}, L:{:.6f}, logL:{:.6f}". \
-                    format(self.data_loader.size_op.eval(session=self.sess), loss, logloss))
+                    loss = result['loss']
+                    logloss = result['logloss']
+                    trainBar.set_description("epoch:{:03d}, L:{:.4f}, logL:{:+.3f}, q:{:d}". \
+                        format(ep, loss, logloss, self.data_loader.size_op.eval(session=self.sess)))
 
-            if step % self.lr_update_step == self.lr_update_step - 1:
-                self.sess.run([self.lr_update])
+                if totStep % self.lr_update_step == self.lr_update_step - 1:
+                    self.sess.run([self.lr_update])
 
     def validate(self):
         trainBar = trange(self.start_step, 100)
