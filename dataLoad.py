@@ -111,7 +111,7 @@ class DataLoader:
         inX = np.transpose(inX)
 #        print('inX.shape', inX.shape)
 
-        inX    = (inX - self.mean_in) / self.std_in
+#        inX    = (inX - self.mean_in) / self.std_in
         y_data = np.transpose(y_data)
 
         return inX, y_data
