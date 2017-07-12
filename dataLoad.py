@@ -48,6 +48,7 @@ class DataLoader:
         print('Nsamples', self.Nsamples)
         self.n_input = self.mean_in.shape[1]
         self.n_output = fh[self.varname][:].shape[0]
+        sampX, sampY = self.accessData(0, self.nSampleFetching, fh)
         fh.close()
 
         self.NumBatch = self.Nsamples // self.config.batch_size
@@ -74,8 +75,11 @@ class DataLoader:
 
         print('n_input', self.n_input)
         print('n_output', self.n_output)
-        self.Xshape = [self.n_input]
-        self.Yshape = [self.n_output]
+        self.Xshape = list(sampX.shape[1:])
+        self.Yshape = list(sampY.shape[1:])
+        print('Xshape', self.Xshape)
+        print('Yshape', self.Yshape)
+
 
     def __enter__(self):
         return self
@@ -86,17 +90,15 @@ class DataLoader:
         except:
             pass
 
-    def accessData(self, s, l, ithFileReader):
-        fh = self.fileReader[ithFileReader]
+    def accessData(self, s, l, fileReader):
+        QAP      = fileReader['QAP'][:,s:s+l].T       # QAP    kg/kg   30   Specific humidity (after physics)
+        TAP      = fileReader['TAP'][:,s:s+l].T       # TAP    K       30   Temperature (after physics)
+        OMEGA    = fileReader['OMEGA'][:,s:s+l].T     # OMEGA  Pa/s    30   Vertical velocity (pressure)
+        PS       = fileReader['PS'][s:s+l][None].T    # PS     Pa      1    Surface pressure
+        SHFLX    = fileReader['SHFLX'][s:s+l][None].T # SHFLX  W/m2    1    Surface sensible heat flux
+        LHFLX    = fileReader['LHFLX'][s:s+l][None].T # LHFLX  W/m2    1    Surface latent heat flux
 
-        QAP      = fh['QAP'][:,s:s+l].T       # QAP    kg/kg   30   Specific humidity (after physics)
-        TAP      = fh['TAP'][:,s:s+l].T       # TAP    K       30   Temperature (after physics)
-        OMEGA    = fh['OMEGA'][:,s:s+l].T     # OMEGA  Pa/s    30   Vertical velocity (pressure)
-        PS       = fh['PS'][s:s+l][None].T    # PS     Pa      1    Surface pressure
-        SHFLX    = fh['SHFLX'][s:s+l][None].T # SHFLX  W/m2    1    Surface sensible heat flux
-        LHFLX    = fh['LHFLX'][s:s+l][None].T # LHFLX  W/m2    1    Surface latent heat flux
-
-        y_data   = fh[self.varname][:,s:s+l].T      # SPDT   K/s     30   dT/dt
+        y_data   = fileReader[self.varname][:,s:s+l][None].T      # SPDT   K/s     30   dT/dt
 
 #        print('PS.shape', PS.shape)
 #        print('PS.shape[None,:]', PS.shape)
@@ -106,8 +108,14 @@ class DataLoader:
 #        print('SHFLX.shape', SHFLX.shape)
 #        print('LHFLX.shape', LHFLX.shape)
 #        print('y_data.shape', y_data.shape)
+        chan1 = QAP
+        chan2 = TAP
+        chan3 = OMEGA
 
-        inX = np.concatenate([PS, QAP, TAP, OMEGA, SHFLX, LHFLX], axis=1)
+        chans = np.stack([chan1, chan2, chan3], axis=2)
+        #print('chans', chans.shape)
+
+        inX = chans#np.concatenate([PS, QAP, TAP, OMEGA, SHFLX, LHFLX], axis=1)
 #        inX = np.transpose(inX)
 #        print('inX.shape', inX.shape)
 
@@ -123,14 +131,14 @@ class DataLoader:
         self.posTrain += 1
         self.posTrain %= self.numFetchesTrain
 #        self.lock.release()
-        x,y = self.accessData(s, self.nSampleFetching, ithFileReader)
+        x,y = self.accessData(s, self.nSampleFetching, self.fileReader[ithFileReader])
         return x,y
 
     def sampleValid(self, ithFileReader):
         s = self.randSamplesValid[self.posValid]
         self.posValid += 1
         self.posValid %= self.numFetchesValid
-        x,y = self.accessData(s, self.nSampleFetching, ithFileReader)
+        x,y = self.accessData(s, self.nSampleFetching, self.fileReader[ithFileReader])
         return x,y
 
     def data_iterator(self, ithFileReader):
