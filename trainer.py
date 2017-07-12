@@ -125,19 +125,28 @@ class Trainer(object):
         y = self.y
         print('x:', x)
         print('y:', y)
+        numChanOut = y.get_shape().as_list()[-1]
+        print('numChanOut:', numChanOut)
 
-        net = tf.reshape(x, x.get_shape().as_list()+[1, 1])
+        net = tf.stack([x], axis=2)
         print('net', net)
         nLayPrev = self.data_loader.n_input
         iLay = 0
-        for nLay in self.config.hidden.split(','):
-            iLay += 1
-            nLay = int(nLay)
-            net = slim.conv2d(net, nLay, [3, 1])#nn_layer(net, nLayPrev, nLay, 'layer'+str(iLay))
-            nLayPrev = nLay
+        
+        with slim.arg_scope([slim.conv2d], padding='SAME'
+                      #, weights_initializer=tf.truncated_normal_initializer(stddev=0.01)
+                      #, weights_regularizer=slim.l2_regularizer(0.0005)
+                      , normalizer_fn=slim.batch_norm
+                      , normalizer_params={'is_training': self.config.is_train, 'decay': 0.9, 'updates_collections': None}):
+            for nLay in self.config.hidden.split(','):
+                iLay += 1
+                nLay = int(nLay)
+                net = slim.conv2d(net, nLay, [3, 1], activation_fn=tf.nn.elu)
+                nLayPrev = nLay
+                print('net', net)
+            net = slim.conv2d(net, numChanOut, [5, 1], activation_fn=None)
             print('net', net)
-        net = tf.reshape(slim.conv2d(net, nLayPrev, [93, 1], padding='VALID'), [-1, nLayPrev])
-        pred = nn_layer(net, nLayPrev, self.data_loader.n_output, 'layerout', act=tf.identity)
+        pred = tf.reshape(net, y.get_shape())
         print('pred:', pred)
 
         # Add ops to save and restore all the variables.
