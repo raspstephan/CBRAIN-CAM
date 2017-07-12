@@ -1,11 +1,12 @@
 #-*- coding: utf-8 -*-
 import argparse
+import configargparse
 
 def str2bool(v):
     return v.lower() in ('true', '1')
 
 arg_lists = []
-parser = argparse.ArgumentParser()
+parser = configargparse.ArgParser()
 
 def add_argument_group(name):
     arg = parser.add_argument_group(name)
@@ -42,6 +43,7 @@ train_arg.add_argument('--lambda_k', type=float, default=0.001)
 train_arg.add_argument('--use_gpu', type=str2bool, default=True)
 
 # Misc
+parser.add('-c', '--config', default='', is_config_file=True, help='config file path')
 misc_arg = add_argument_group('Misc')
 misc_arg.add_argument('--load_path', type=str, default='')
 misc_arg.add_argument('--log_step', type=int, default=50)
