@@ -113,6 +113,7 @@ class DataLoader:
 
 #        inX    = (inX - self.mean_in) / self.std_in
         y_data = np.transpose(y_data)
+        y_data *= 1e4
 
         return inX, y_data
 
