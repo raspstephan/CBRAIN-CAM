@@ -23,7 +23,6 @@ class Trainer(object):
         self.optimizer = config.optimizer
         self.batch_size = config.batch_size
         self.hidden    = config.hidden
-        self.varname   = config.varname
 
         self.step = tf.Variable(0, name='step', trainable=False)
 
@@ -49,15 +48,16 @@ class Trainer(object):
 
         self.valStr = '' if config.is_train else '_val'
         self.saver = tf.train.Saver()# if self.is_train else None
-        self.summary_writer = tf.summary.FileWriter(self.model_dir + '_' + 
-                                                    self.varname + '_' + self.hidden + '_' + self.valStr)
+        sumdir = self.model_dir + self.valStr
+        self.summary_writer = tf.summary.FileWriter(sumdir)
 
+        self.saveEverySec = 30
         sv = tf.train.Supervisor(logdir=self.model_dir,
                                 is_chief=True,
                                 saver=self.saver,
                                 summary_op=None,
                                 summary_writer=self.summary_writer,
-                                save_model_secs=300 if self.is_train else 0,
+                                save_model_secs=self.saveEverySec if self.is_train else 0,
                                 global_step=self.step,
                                 ready_for_local_init_op=None)
 

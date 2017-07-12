@@ -14,10 +14,9 @@ from folderDefs import *
 class DataLoader:
     def __init__(self, folderPath, config):
         self.config = config
-        self.filePath = folderPath+self.config.dataset
         self.batchSize = config.batch_size
         self.nSampleFetching = 1024
-        self.varname = config.varname
+        self.varname = config.dataset
         self.fileReader = []
         self.lock = threading.Lock()
         self.reload()
@@ -37,10 +36,6 @@ class DataLoader:
                 self.fileReader[i].close()
         except:
             pass
-        print("opening "+self.filePath)
-#        self.f = Dataset(nc_file, mode='r')
-#        for i in range(1):#self.maxReaders):
-#            self.fileReader += [Dataset(nc_file, mode='r')]
         print("batchSize = ", self.batchSize)
 
         fh = h5py.File(nc_file, mode='r')
@@ -53,7 +48,7 @@ class DataLoader:
         self.NumBatch = self.Nsamples // self.config.batch_size
         self.NumBatchTrain = int(self.Nsamples * self.config.frac_train) // self.batchSize
         self.indexValidation = self.NumBatchTrain * self.batchSize
-        self.NumBatchValid = (self.Nsamples * (1.0 - self.config.frac_train)) // self.config.batch_size
+        self.NumBatchValid = int(self.Nsamples * (1.0 - self.config.frac_train)) // self.config.batch_size
         print('NumBatch', self.NumBatch)
         print('NumBatchTrain', self.NumBatchTrain)
         print('indexValidation', self.indexValidation)
