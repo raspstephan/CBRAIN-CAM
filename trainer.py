@@ -142,7 +142,7 @@ class Trainer(object):
             self.loss = tf.losses.mean_squared_error(y, pred)
 
         with tf.name_scope('logloss'):
-            self.logloss = tf.log(1E-18 + self.loss) / tf.log(10.0) # add a tiny bias to avoid numerical error
+            self.logloss = tf.log(self.loss) / tf.log(10.0) # add a tiny bias to avoid numerical error
 
         self.summary_op = tf.summary.merge([
             tf.summary.histogram("x", self.x),
