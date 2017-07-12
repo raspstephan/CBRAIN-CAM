@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+print('tensorflow', tf.__version__)
 
 from trainer import Trainer
 from config import get_config
@@ -25,6 +26,7 @@ def main(config):
     else:
         setattr(config, 'batch_size', 1024)
         data_path = config.data_path
+        batch_size = config.batch_size
         do_shuffle = False
     with DataLoader(trainingDataDir, config) as data_loader:
         with tf.device("/cpu:0"):
@@ -44,7 +46,9 @@ def main(config):
 
 if __name__ == "__main__":
     config, unparsed = get_config()
-    print(Fore.RED, 'config\n', config)
+    print(Fore.GREEN, 'config\n', config)
     print(Fore.RED, 'unparsed\n', unparsed)
     print(Style.RESET_ALL)
+    if unparsed:
+        assert(False)
     main(config)
