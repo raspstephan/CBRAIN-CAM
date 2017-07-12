@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-import os
+import os, time
 from io import StringIO
 import scipy.misc
 import numpy as np
@@ -98,27 +98,28 @@ class Trainer(object):
                     self.sess.run([self.lr_update])
 
     def validate(self):
-        trainBar = trange(self.start_step, 100)
+        numSteps = 100#self.data_loader.NumBatchValid
+        trainBar = trange(self.start_step, numSteps)
         for step in trainBar:
             fetch_dict = {}
-            if step % self.log_step == 0:
+            if True:#step % self.log_step == 0:
                 fetch_dict.update({
                     "summary": self.summary_op,
                     "loss": self.loss,
-                    "logloss": self.logloss
+                    "logloss": self.logloss,
+                    "step": self.step
                 })
             result = self.sess.run(fetch_dict)
 
-            if step % self.log_step == 0:
-                self.summary_writer.add_summary(result['summary'], step)
+            if True:#step % self.log_step == 0:
+                self.summary_writer.add_summary(result['summary'], result['step'] + step)
                 self.summary_writer.flush()
 
                 loss = result['loss']
+                logloss = result['logloss']
                 trainBar.set_description("q:{}, L:{:.6f}, logL:{:.6f}". \
                     format(self.data_loader.size_op.eval(session=self.sess), loss, logloss))
-
-            if step % self.lr_update_step == self.lr_update_step - 1:
-                self.sess.run([self.lr_update])
+            time.sleep((self.saveEverySec-10) / numSteps)
 
     def build_model(self):
         x = self.x
@@ -160,7 +161,10 @@ class Trainer(object):
                 raise Exception("[!] Caution! Paper didn't use {} opimizer other than Adam".format(config.optimizer))
 
             optimizer = optimizer(self.lr)
-            self.optim = optimizer.minimize(self.loss)
+
+            slim.losses.add_loss(self.loss)
+            total_loss = slim.losses.get_total_loss()
+            self.optim = train_op = slim.learning.create_train_op(total_loss, optimizer, global_step=self.step)#optimizer.minimize(self.loss)
 
 def variable_summaries(var):
   """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
