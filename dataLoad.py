@@ -141,7 +141,7 @@ class DataLoader:
             self.dataX = tf.placeholder(dtype=tf.float32, shape=[None]+self.Xshape)
             self.dataY = tf.placeholder(dtype=tf.float32, shape=[None]+self.Yshape)
 
-            self.capacityTrain = max(self.nSampleFetching * 32, self.batchSize * 8)
+            self.capacityTrain = max(self.nSampleFetching * 32, self.batchSize * 8) if self.config.is_train else self.batchSize
             self.queue = tf.RandomShuffleQueue(shapes=[self.Xshape, self.Yshape],
                                                dtypes=[tf.float32, tf.float32],
                                                capacity=self.capacityTrain,
