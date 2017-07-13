@@ -91,8 +91,8 @@ class Trainer(object):
 
                     loss = result['loss']
                     logloss = result['logloss']
-                    trainBar.set_description("epoch:{:03d}, L:{:.4f}, logL:{:+.3f}, q:{:d}". \
-                        format(ep, loss, logloss, self.data_loader.size_op.eval(session=self.sess)))
+                    trainBar.set_description("epoch:{:03d}, L:{:.4f}, logL:{:+.3f}, q:{:d}, lr:{:.4g}". \
+                        format(ep, loss, logloss, self.data_loader.size_op.eval(session=self.sess), self.lr.eval(session=self.sess)))
 
                 if totStep % self.lr_update_step == self.lr_update_step - 1:
                     self.sess.run([self.lr_update])
