@@ -12,7 +12,8 @@ from  dataLoad import *
 from folderDefs import *
 import subprocess
 
-validationProcess = "python main.py --is_train=false --epoch=1 --use_gpu=false --use_gpu=false --load_path={}"
+validationProcess = "python main.py --is_train=false --epoch=1 --use_gpu=false --load_path={}"
+devnull = open(os.devnull, 'wb')
 
 def main(config):
     'Preparing dirs and files'
@@ -48,7 +49,6 @@ def main(config):
             if config.run_validation:
                 processArg = validationProcess.format(config.model_name).split()
                 print(Fore.RED, processArg)
-                devnull = open(os.devnull, 'wb')
                 subprocess.Popen(processArg, stdout=devnull)#, stderr=devnull)
                 print(Style.RESET_ALL)
             trainer.train()
@@ -61,7 +61,7 @@ def main(config):
             if config.run_validation:
                 processArg = validationProcess.format(config.model_name).split()
                 print(Fore.RED, processArg)
-                subprocess.run(processArg)
+                subprocess.Popen(processArg)
                 print(Style.RESET_ALL)
 
 if __name__ == "__main__":

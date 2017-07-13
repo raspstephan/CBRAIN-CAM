@@ -80,6 +80,7 @@ def load_config(config, subset=None):
     for k,v in json_dict.items():
         if subset is None or k in subset:
             setattr(config, k, v)
+    return config
 
 def rank(array):
     return len(array.shape)
