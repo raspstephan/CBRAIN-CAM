@@ -98,8 +98,10 @@ class Trainer(object):
                     self.sess.run([self.lr_update])
 
     def validate(self):
-        numSteps = 100#self.data_loader.NumBatchValid
+        numSteps = 50#self.data_loader.NumBatchValid
         trainBar = trange(self.start_step, numSteps)
+        sleepTime = (self.saveEverySec/2) / numSteps
+        print('sleepTime', sleepTime)
         for step in trainBar:
             fetch_dict = {}
             if True:#step % self.log_step == 0:
@@ -119,7 +121,7 @@ class Trainer(object):
                 logloss = result['logloss']
                 trainBar.set_description("q:{}, L:{:.6f}, logL:{:.6f}". \
                     format(self.data_loader.size_op.eval(session=self.sess), loss, logloss))
-            time.sleep((self.saveEverySec-10) / numSteps)
+            time.sleep(sleepTime)
 
     def build_model(self):
         x = self.x
@@ -156,7 +158,7 @@ class Trainer(object):
             self.loss = tf.losses.mean_squared_error(y, pred)
 
         with tf.name_scope('logloss'):
-            self.logloss = tf.log(1E-18 + self.loss) / tf.log(10.0) # add a tiny bias to avoid numerical error
+            self.logloss = tf.log(self.loss) / tf.log(10.0) # add a tiny bias to avoid numerical error
 
         self.summary_op = tf.summary.merge([
             tf.summary.histogram("x", self.x),

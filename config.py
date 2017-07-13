@@ -41,9 +41,10 @@ train_arg.add_argument('--beta2', type=float, default=0.999)
 train_arg.add_argument('--gamma', type=float, default=0.5)
 train_arg.add_argument('--lambda_k', type=float, default=0.001)
 train_arg.add_argument('--use_gpu', type=str2bool, default=True)
+train_arg.add_argument('--run_validation', type=str2bool, default=True)
 
 # Misc
-parser.add('-c', '--config', default='', is_config_file=True, help='config file path')
+#parser.add('-c', '--config', default='', is_config_file=True, help='config file path')
 misc_arg = add_argument_group('Misc')
 misc_arg.add_argument('--load_path', type=str, default='')
 misc_arg.add_argument('--log_step', type=int, default=50)

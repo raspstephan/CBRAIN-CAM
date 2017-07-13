@@ -69,7 +69,7 @@ def save_config(config):
     with open(param_path, 'w') as fp:
         json.dump(config.__dict__, fp, indent=4, sort_keys=True)
 
-def load_config(config):
+def load_config(config, subset):
     param_path = os.path.join(config.model_dir, "params.json")
 
     print("[read] MODEL dir: %s" % config.model_dir)
@@ -78,7 +78,9 @@ def load_config(config):
     with open(param_path, 'r') as fp:
         json_dict = json.load(fp)
     for k,v in json_dict.items():
-        config.add_argument(k, v)
+        if subset is None or k in subset:
+            setattr(config, k, v)
+    return config
 
 def rank(array):
     return len(array.shape)
