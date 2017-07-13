@@ -107,7 +107,7 @@ class DataLoader:
         chan2 = TAP
         chan3 = OMEGA
 
-        chans = np.stack([chan1, chan2, chan3], axis=2)
+        chans = np.stack([chan1, chan2, chan3, chan3*0+PS, chan3*0+SHFLX, chan3*0+LHFLX], axis=2)
         #print('chans', chans.shape)
 
         inX = chans#np.concatenate([PS, QAP, TAP, OMEGA, SHFLX, LHFLX], axis=1)
