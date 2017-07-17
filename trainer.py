@@ -135,7 +135,7 @@ class Trainer(object):
         for nLay in self.config.hidden.split(','):
             iLay += 1
             nLay = int(nLay)
-            net = nn_layer(net, nLayPrev, nLay, 'layer'+str(iLay))
+            net = nn_layer(net, nLayPrev, nLay, 'layer'+str(iLay), act=tf.sigmoid)
             nLayPrev = nLay
         pred = nn_layer(net, nLayPrev, self.data_loader.n_output, 'layerout', act=tf.identity)
         print('pred:', pred)
@@ -185,7 +185,7 @@ def weight_variable(shape):
   return tf.Variable(initial)
 
 def bias_variable(shape):
-  initial = tf.constant(1., shape=shape)
+  initial = tf.truncated_normal(shape, stddev=1.)
   return tf.Variable(initial)
 
 def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.nn.sigmoid):
