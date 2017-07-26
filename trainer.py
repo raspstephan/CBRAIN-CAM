@@ -139,7 +139,7 @@ class Trainer(object):
         for nLay in self.config.hidden.split(','):
             iLay += 1
             nLay = int(nLay)
-            net = nn_layer(net, nLayPrev, nLay, 'layer'+str(iLay), act=tf.sigmoid)
+            net = nn_layer(net, nLayPrev, nLay, 'layer'+str(iLay))
             nLayPrev = nLay
         pred = nn_layer(net, nLayPrev, self.data_loader.n_output, 'layerout', act=tf.identity)
         print('pred:', pred)
@@ -152,7 +152,8 @@ class Trainer(object):
             self.logloss = tf.log(self.loss) / tf.log(10.0) # add a tiny bias to avoid numerical error
 
         with tf.name_scope('Rsquared'):
-            self.Rsquared = 1. - tf.mean(tf.square(y-pred))/tf.mean(tf.square(y))
+            avgY = tf.reduce_mean(y, axis=0, keep_dims=True) # axis=0 c'est l'axe des samples
+            self.Rsquared = 1 -  tf.losses.mean_squared_error(y, pred) /  tf.losses.mean_squared_error(y, avgY)
 
         self.summary_op = tf.summary.merge([
             tf.summary.histogram("x", self.x),
