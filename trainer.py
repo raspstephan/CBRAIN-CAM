@@ -81,7 +81,8 @@ class Trainer(object):
                     fetch_dict.update({
                         "summary": self.summary_op,
                         "loss": self.loss,
-                        "logloss": self.logloss
+                        "logloss": self.logloss,
+                        "Rsquared": self.Rsquared
                     })
                 result = self.sess.run(fetch_dict)
 
@@ -91,8 +92,9 @@ class Trainer(object):
 
                     loss = result['loss']
                     logloss = result['logloss']
-                    trainBar.set_description("epoch:{:03d}, L:{:.4f}, logL:{:+.3f}, q:{:d}, lr:{:.4g}". \
-                        format(ep, loss, logloss, self.data_loader.size_op.eval(session=self.sess), self.lr.eval(session=self.sess)))
+                    Rsquared = result['Rsquared']
+                    trainBar.set_description("epoch:{:03d}, L:{:.4f}, logL:{:+.3f}, R2:{:+.3f}, q:{:d}, lr:{:.4g}". \
+                        format(ep, loss, logloss, Rsquared, self.data_loader.size_op.eval(session=self.sess), self.lr.eval(session=self.sess)))
 
                 if totStep % self.lr_update_step == self.lr_update_step - 1:
                     self.sess.run([self.lr_update])
@@ -109,6 +111,7 @@ class Trainer(object):
                     "summary": self.summary_op,
                     "loss": self.loss,
                     "logloss": self.logloss,
+                    "Rsquared": self.Rsquared,
                     "step": self.step
                 })
             result = self.sess.run(fetch_dict)
@@ -119,8 +122,9 @@ class Trainer(object):
 
                 loss = result['loss']
                 logloss = result['logloss']
-                trainBar.set_description("q:{}, L:{:.6f}, logL:{:.6f}". \
-                    format(self.data_loader.size_op.eval(session=self.sess), loss, logloss))
+                Rsquared = result['Rsquared']
+                trainBar.set_description("q:{}, L:{:.6f}, logL:{:.6f}, R2:{:+.3f}". \
+                    format(self.data_loader.size_op.eval(session=self.sess), loss, logloss, Rsquared))
             time.sleep(sleepTime)
 
     def build_model(self):
@@ -160,11 +164,16 @@ class Trainer(object):
         with tf.name_scope('logloss'):
             self.logloss = tf.log(self.loss) / tf.log(10.0) # add a tiny bias to avoid numerical error
 
+        with tf.name_scope('Rsquared'):
+            avgY = tf.reduce_mean(y, axis=0, keep_dims=True) # axis=0 c'est l'axe des samples
+            self.Rsquared = 1 -  tf.losses.mean_squared_error(y, pred) /  tf.losses.mean_squared_error(y,tf.ones_like(y) * avgY)
+
         self.summary_op = tf.summary.merge([
             tf.summary.histogram("x", self.x),
             tf.summary.histogram("y", self.y),
             tf.summary.scalar("loss/loss", self.loss),
             tf.summary.scalar("loss/logloss", self.logloss),
+            tf.summary.scalar("loss/Rsquared", self.Rsquared),
         ])
 
         if self.is_train:
@@ -198,10 +207,10 @@ def weight_variable(shape):
   return tf.Variable(initial)
 
 def bias_variable(shape):
-  initial = tf.constant(1., shape=shape)
+  initial = tf.truncated_normal(shape, stddev=1.)
   return tf.Variable(initial)
 
-def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.nn.sigmoid):
+def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.sigmoid):
   # Adding a name scope ensures logical grouping of the layers in the graph.
   with tf.name_scope(layer_name):
     # This Variable will hold the state of the weights for the layer
