@@ -42,7 +42,7 @@ class DataLoader:
         self.Nsamples = fh['PS'][:].shape[0]
         print('Nsamples', self.Nsamples)
         self.n_input = self.mean_in.shape[1]
-        self.n_output = fh[self.varname][:].shape[0]
+        self.n_output = fh[self.varname][9:29].shape[0] # remove first 9 indices
         fh.close()
 
         self.NumBatch = self.Nsamples // self.config.batch_size
@@ -91,7 +91,8 @@ class DataLoader:
         SHFLX    = fh['SHFLX'][s:s+l][None] # SHFLX  W/m2    1    Surface sensible heat flux
         LHFLX    = fh['LHFLX'][s:s+l][None] # LHFLX  W/m2    1    Surface latent heat flux
 
-        y_data   = fh[self.varname][:,s:s+l]      # SPDT   K/s     30   dT/dt
+        # problem with indices below 10:30 (low pressure stratosphere)
+        y_data   = fh[self.varname][9:29,s:s+l]      # SPDT   K/s     30   dT/dt
 
 #        print('PS.shape', PS.shape)
 #        print('PS.shape[None,:]', PS.shape)
