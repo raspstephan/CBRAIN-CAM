@@ -25,8 +25,8 @@ class DataLoader:
         # need to retrieve mean and standard deviation of the full dataset first
         print("Reading Netcdf for Normalization")
         fh = h5py.File(nc_norm_file, mode='r')
-        self.mean_in   = fh['mean'][:][None]   # (93, 1)
-        self.std_in    = fh['std'][:][None]    # (93, 1)
+        self.mean_in   = fh['mean'][9:29,39:59,69:93][None]   # (93, 1)
+        self.std_in    = fh['std'][9:29,39:59,69:93][None]    # (93, 1)
         print('self.mean_in', self.mean_in.shape)
         print('self.std_in', self.std_in.shape)
         fh.close()
@@ -84,9 +84,9 @@ class DataLoader:
     def accessData(self, s, l, ithFileReader):
         fh = self.fileReader[ithFileReader]
 
-        QAP      = fh['QAP'][:,s:s+l]       # QAP    kg/kg   30   Specific humidity (after physics)
-        TAP      = fh['TAP'][:,s:s+l]       # TAP    K       30   Temperature (after physics)
-        OMEGA    = fh['OMEGA'][:,s:s+l]     # OMEGA  Pa/s    30   Vertical velocity (pressure)
+        QAP      = fh['QAP'][9:29,s:s+l]       # QAP    kg/kg   30   Specific humidity (after physics)
+        TAP      = fh['TAP'][9:29,s:s+l]       # TAP    K       30   Temperature (after physics)
+        OMEGA    = fh['OMEGA'][9:29,s:s+l]     # OMEGA  Pa/s    30   Vertical velocity (pressure)
         PS       = fh['PS'][s:s+l][None]    # PS     Pa      1    Surface pressure
         SHFLX    = fh['SHFLX'][s:s+l][None] # SHFLX  W/m2    1    Surface sensible heat flux
         LHFLX    = fh['LHFLX'][s:s+l][None] # LHFLX  W/m2    1    Surface latent heat flux
@@ -107,7 +107,8 @@ class DataLoader:
         inX = np.transpose(inX)
 #        print('inX.shape', inX.shape)
 
-#        inX    = (inX - self.mean_in) / self.std_in
+        # add back normalization
+        inX    = (inX - self.mean_in) / self.std_in
         y_data = np.transpose(y_data)
         y_data *= 1e4
 
