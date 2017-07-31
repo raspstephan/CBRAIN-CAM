@@ -23,13 +23,32 @@ class DataLoader:
 
     def reload(self, finishedEpoch = 0):
         # need to retrieve mean and standard deviation of the full dataset first
-        print("Reading Netcdf for Normalization")
-        fh = h5py.File(nc_norm_file, mode='r')
-        self.mean_in   = fh['mean'][9:29,39:59,69:93][None]   # (93, 1)
-        self.std_in    = fh['std'][9:29,39:59,69:93][None]    # (93, 1)
-        print('self.mean_in', self.mean_in.shape)
-        print('self.std_in', self.std_in.shape)
+        print("Reading Netcdfs mean and std for Normalization")
+        fh = h5py.File(nc_mean_file, mode='r')
+        self.mean_QAP   = fh['QAP'][:][None]
+        self.mean_TAP   = fh['TAP'][:][None]
+        self.mean_OMEGA = fh['OMEGA'][:][None]
+        self.mean_UBSP  = fh['UBSP'][:][None]
+        self.mean_VBSP  = fh['VBSP'][:][None]
+        self.mean_PS    = fh['PS'][:][None]
+        self.mean_SHFLX = fh['SHFLX'][:][None]
+        self.mean_LHFLX = fh['LHFLX'][:][None]
+        self.mean_dTdt_adiabatic = fh['dTdt_adiabatic'][:][None]
+        self.mean_dQdt_adiabatic = fh['dQdt_adiabatic'][:][None]
         fh.close()
+        fh = h5py.File(nc_std_file, mode='r')
+        self.std_QAP   = fh['QAP'][:][None]
+        self.std_TAP   = fh['TAP'][:][None]
+        self.std_OMEGA = fh['OMEGA'][:][None]
+        self.std_UBSP  = fh['UBSP'][:][None]
+        self.std_VBSP  = fh['VBSP'][:][None]
+        self.std_PS    = fh['PS'][:][None]
+        self.std_SHFLX = fh['SHFLX'][:][None]
+        self.std_LHFLX = fh['LHFLX'][:][None]
+        self.std_dTdt_adiabatic = fh['dTdt_adiabatic'][:][None]
+        self.std_dQdt_adiabatic = fh['dQdt_adiabatic'][:][None]
+        fh.close()
+
         print("End Reading Netcdf for Normalization")
         try:
             for i in range(len(self.fileReader)):
@@ -40,9 +59,13 @@ class DataLoader:
 
         fh = h5py.File(nc_file, mode='r')
         self.Nsamples = fh['PS'][:].shape[0]
-        print('Nsamples', self.Nsamples)
-        self.n_input = self.mean_in.shape[1]
-        self.n_output = fh[self.varname][9:29].shape[0] # remove first 9 indices
+        print('Nsamples =', self.Nsamples)
+        Nlevels      = self.mean_QAP.shape[0]
+        print('Nlevels = ', Nlevels)
+        self.n_input = 7*Nlevels + 3  # number of levels plus three surface data (PS, SHFLX, LHFLX)
+        self.n_output = fh[self.varname][:].shape[0] # remove first 9 indices
+        print('n_input = ', self.n_input)
+        print('n_output = ', self.n_output)
         fh.close()
 
         self.NumBatch = self.Nsamples // self.config.batch_size
@@ -84,15 +107,32 @@ class DataLoader:
     def accessData(self, s, l, ithFileReader):
         fh = self.fileReader[ithFileReader]
 
-        QAP      = fh['QAP'][9:29,s:s+l]       # QAP    kg/kg   30   Specific humidity (after physics)
-        TAP      = fh['TAP'][9:29,s:s+l]       # TAP    K       30   Temperature (after physics)
-        OMEGA    = fh['OMEGA'][9:29,s:s+l]     # OMEGA  Pa/s    30   Vertical velocity (pressure)
+        QAP      = fh['QAP'][:,s:s+l]       # QAP    kg/kg   30   Specific humidity (after physics)
+        TAP      = fh['TAP'][:,s:s+l]       # TAP    K       30   Temperature (after physics)
+        OMEGA    = fh['OMEGA'][:,s:s+l]     # OMEGA  Pa/s    30   Vertical velocity (pressure)
+        UBSP     = fh['UBSP'][:,s:s+l]      # UBSP  m/s   30   Meridional wind
+        VBSP     = fh['VBSP'][:,s:s+l]      # VBSP  m/s   30   Meridional wind
+        dTdt_adiabatic     = fh['dTdt_adiabatic'][:,s:s+l]      # VBSP  m/s   30   Meridional wind
+        dQdt_adiabatic     = fh['dQdt_adiabatic'][:,s:s+l]      # VBSP  m/s   30   Meridional wind
         PS       = fh['PS'][s:s+l][None]    # PS     Pa      1    Surface pressure
         SHFLX    = fh['SHFLX'][s:s+l][None] # SHFLX  W/m2    1    Surface sensible heat flux
         LHFLX    = fh['LHFLX'][s:s+l][None] # LHFLX  W/m2    1    Surface latent heat flux
 
-        # problem with indices below 10:30 (low pressure stratosphere)
-        y_data   = fh[self.varname][9:29,s:s+l]      # SPDT   K/s     30   dT/dt
+
+        # normalize data
+        QAP      = (QAP - self.mean_QAP) / self.std_QAP
+        TAP      = (TAP - self.mean_TAP) / self.std_TAP
+        OMEGA    = (OMEGA - self.mean_OMEGA) / self.std_OMEGA
+        UBSP     = (UBSP - self.mean_UBSP) / self.std_UBSP
+        VBSP     = (VBSP - self.mean_VBSP) / self.std_VBSP
+        dTdt_adiabatic     = (dTdt_adiabatic - self.mean_dTdt_adiabatic) / self.std_dTdt_adiabatic
+        dQdt_adiabatic     = (dQdt_adiabatic - self.mean_dQdt_adiabatic) / self.std_dQdt_adiabatic
+        PS       = (PS - self.mean_PS) / self.std_PS
+        SHFLX    = (SHFLX - self.mean_SHFLX) / self.std_SHFLX
+        LHFLX    = (LHFLX - self.mean_LHFLX) / self.std_LHFLX
+
+        # output data
+        y_data   = fh[self.varname][:,s:s+l]      # SPDT   K/s     30   dT/dt
 
 #        print('PS.shape', PS.shape)
 #        print('PS.shape[None,:]', PS.shape)
@@ -103,12 +143,11 @@ class DataLoader:
 #        print('LHFLX.shape', LHFLX.shape)
 #        print('y_data.shape', y_data.shape)
 
-        inX = np.concatenate([PS, QAP, TAP, OMEGA, SHFLX, LHFLX], axis=0)
+        inX = np.concatenate([PS, QAP, TAP, OMEGA, UBSP, VBSP, dTdt_adiabatic, dQdt_adiabatic, SHFLX, LHFLX], axis=0)
         inX = np.transpose(inX)
 #        print('inX.shape', inX.shape)
 
-        # add back normalization
-        inX    = (inX - self.mean_in) / self.std_in
+#        inX    = (inX - self.mean_in) / self.std_in
         y_data = np.transpose(y_data)
         y_data *= 1e4
 
