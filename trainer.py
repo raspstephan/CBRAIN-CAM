@@ -153,7 +153,7 @@ class Trainer(object):
 
         with tf.name_scope('Rsquared'):
             avgY = tf.reduce_mean(y, axis=0, keep_dims=True) # axis=0 c'est l'axe des samples
-            self.Rsquared = 1 -  tf.losses.mean_squared_error(y, pred) /  tf.losses.mean_squared_error(y,tf.ones_like(y) * avgY)
+            self.Rsquared = 1. -  tf.divide(tf.losses.mean_squared_error(y, pred),tf.losses.mean_squared_error(y,tf.ones_like(y) * avgY))
 
         self.summary_op = tf.summary.merge([
             tf.summary.histogram("x", self.x),
@@ -197,7 +197,7 @@ def bias_variable(shape):
   initial = tf.truncated_normal(shape, stddev=1.)
   return tf.Variable(initial)
 
-def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.sigmoid):
+def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.nn.relu):
   # Adding a name scope ensures logical grouping of the layers in the graph.
   with tf.name_scope(layer_name):
     # This Variable will hold the state of the weights for the layer
