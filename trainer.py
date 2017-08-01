@@ -20,9 +20,9 @@ class Trainer(object):
         print('self.x', self.x)
         print('self.y', self.y)
 
-        self.optimizer = config.optimizer
+        self.optimizer  = config.optimizer
         self.batch_size = config.batch_size
-        self.hidden    = config.hidden
+        self.hidden     = config.hidden
 
         self.step = tf.Variable(0, name='step', trainable=False)
 
@@ -41,6 +41,7 @@ class Trainer(object):
         self.max_step = config.max_step
         self.save_step = config.save_step
         self.lr_update_step = config.lr_update_step
+        self.dropout_rate = config.dropout_rate
 
         self.is_train = config.is_train
         with tf.device("/gpu:0" if self.use_gpu else "/cpu:0"):
@@ -139,9 +140,9 @@ class Trainer(object):
         for nLay in self.config.hidden.split(','):
             iLay += 1
             nLay = int(nLay)
-            net = nn_layer(net, nLayPrev, nLay, 'layer'+str(iLay))
+            net = nn_layer(net, nLayPrev, nLay, self.dropout_rate, 'layer'+str(iLay))
             nLayPrev = nLay
-        pred = nn_layer(net, nLayPrev, self.data_loader.n_output, 'layerout', act=tf.identity)
+        pred = nn_layer(net, nLayPrev, self.data_loader.n_output, 0., 'layerout', act=tf.identity)
         print('pred:', pred)
 
         # Add ops to save and restore all the variables.
@@ -197,7 +198,7 @@ def bias_variable(shape):
   initial = tf.truncated_normal(shape, stddev=1.)
   return tf.Variable(initial)
 
-def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.nn.relu):
+def nn_layer(input_tensor, input_dim, output_dim, layer_name, dropout_rate, act=tf.nn.relu):
   # Adding a name scope ensures logical grouping of the layers in the graph.
   with tf.name_scope(layer_name):
     # This Variable will hold the state of the weights for the layer
@@ -211,7 +212,11 @@ def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.nn.relu):
       preactivate = tf.matmul(input_tensor, weights) + biases
       tf.summary.histogram('pre_activations', preactivate)
     activations = act(preactivate, name='activation')
+    # apply a dropout
     tf.summary.histogram('activations', activations)
+    if dropout_rate>1.e-6
+        activations = tf.nn.dropout(activations, dropout_rate)
+        tf.summary.histogram('dropout', activations)
     print('layer_name', layer_name)
     print('input_tensor', input_tensor)
     print('input_dim', input_dim, ' output_dim', output_dim)
