@@ -198,7 +198,7 @@ def bias_variable(shape):
   initial = tf.truncated_normal(shape, stddev=1.)
   return tf.Variable(initial)
 
-def nn_layer(input_tensor, input_dim, output_dim, layer_name, dropout_rate, act=tf.nn.relu):
+def nn_layer(input_tensor, input_dim, output_dim, dropout_rate, layer_name,  act=tf.nn.relu):
   # Adding a name scope ensures logical grouping of the layers in the graph.
   with tf.name_scope(layer_name):
     # This Variable will hold the state of the weights for the layer
@@ -214,7 +214,7 @@ def nn_layer(input_tensor, input_dim, output_dim, layer_name, dropout_rate, act=
     activations = act(preactivate, name='activation')
     # apply a dropout
     tf.summary.histogram('activations', activations)
-    if dropout_rate>1.e-6
+    if dropout_rate>1.e-6:
         activations = tf.nn.dropout(activations, dropout_rate)
         tf.summary.histogram('dropout', activations)
     print('layer_name', layer_name)

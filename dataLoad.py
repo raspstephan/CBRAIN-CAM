@@ -25,31 +25,31 @@ class DataLoader:
         # need to retrieve mean and standard deviation of the full dataset first
         print("Reading Netcdfs mean and std for Normalization")
         fh = h5py.File(nc_mean_file, mode='r')
-        self.mean_QAP   = fh['QAP'][:][None]
-        self.mean_TAP   = fh['TAP'][:][None]
-        self.mean_OMEGA = fh['OMEGA'][:][None]
-        self.mean_UBSP  = fh['UBSP'][:][None]
-        self.mean_VBSP  = fh['VBSP'][:][None]
-        self.mean_PS    = fh['PS'][:][None]
-        self.mean_SHFLX = fh['SHFLX'][:][None]
-        self.mean_LHFLX = fh['LHFLX'][:][None]
-        self.mean_dTdt_adiabatic = fh['dTdt_adiabatic'][:][None]
-        self.mean_dQdt_adiabatic = fh['dQdt_adiabatic'][:][None]
+        self.mean_QAP   = np.transpose(fh['QAP'][:][None])
+        self.mean_TAP   = np.transpose(fh['TAP'][:][None])
+        self.mean_OMEGA = np.transpose(fh['OMEGA'][:][None])
+        self.mean_UBSP  = np.transpose(fh['UBSP'][:][None])
+        self.mean_VBSP  = np.transpose(fh['VBSP'][:][None])
+        self.mean_PS    = fh['PS'][()]
+        self.mean_SHFLX = fh['SHFLX'][()]
+        self.mean_LHFLX = fh['LHFLX'][()]
+        self.mean_dTdt_adiabatic = np.transpose(fh['dTdt_adiabatic'][:][None])
+        self.mean_dQdt_adiabatic = np.transpose(fh['dQdt_adiabatic'][:][None])
         fh.close()
         fh = h5py.File(nc_std_file, mode='r')
-        self.std_QAP   = fh['QAP'][:][None]
-        self.std_TAP   = fh['TAP'][:][None]
-        self.std_OMEGA = fh['OMEGA'][:][None]
-        self.std_UBSP  = fh['UBSP'][:][None]
-        self.std_VBSP  = fh['VBSP'][:][None]
-        self.std_PS    = fh['PS'][:][None]
-        self.std_SHFLX = fh['SHFLX'][:][None]
-        self.std_LHFLX = fh['LHFLX'][:][None]
-        self.std_dTdt_adiabatic = fh['dTdt_adiabatic'][:][None]
-        self.std_dQdt_adiabatic = fh['dQdt_adiabatic'][:][None]
+        self.std_QAP   = np.transpose(fh['QAP'][:][None])
+        self.std_TAP   = np.transpose(fh['TAP'][:][None])
+        self.std_OMEGA = np.transpose(fh['OMEGA'][:][None])
+        self.std_UBSP  = np.transpose(fh['UBSP'][:][None])
+        self.std_VBSP  = np.transpose(fh['VBSP'][:][None])
+        self.std_PS    = fh['PS'][()]
+        self.std_SHFLX = fh['SHFLX'][()]
+        self.std_LHFLX = fh['LHFLX'][()]
+        self.std_dTdt_adiabatic = np.transpose(fh['dTdt_adiabatic'][:][None])
+        self.std_dQdt_adiabatic = np.transpose(fh['dQdt_adiabatic'][:][None])
         fh.close()
-
-        print("End Reading Netcdf for Normalization")
+ 
+        print("End Reading Netcdfs for Normalization")
         try:
             for i in range(len(self.fileReader)):
                 self.fileReader[i].close()
@@ -72,10 +72,10 @@ class DataLoader:
         self.NumBatchTrain = int(self.Nsamples * self.config.frac_train) // self.batchSize
         self.indexValidation = self.NumBatchTrain * self.batchSize
         self.NumBatchValid = int(self.Nsamples * (1.0 - self.config.frac_train)) // self.config.batch_size
-        print('NumBatch', self.NumBatch)
-        print('NumBatchTrain', self.NumBatchTrain)
-        print('indexValidation', self.indexValidation)
-        print('NumBatchValid', self.NumBatchValid)
+        print('NumBatch=', self.NumBatch)
+        print('NumBatchTrain=', self.NumBatchTrain)
+        print('indexValidation=', self.indexValidation)
+        print('NumBatchValid=', self.NumBatchValid)
 
         self.samplesTrain = range(0, self.indexValidation, self.nSampleFetching)
         self.randSamplesTrain = list(self.samplesTrain)
@@ -90,8 +90,8 @@ class DataLoader:
         self.posTrain = 0
         self.posValid = 0
 
-        print('n_input', self.n_input)
-        print('n_output', self.n_output)
+        print('n_input=', self.n_input)
+        print('n_output=', self.n_output)
         self.Xshape = [self.n_input]
         self.Yshape = [self.n_output]
 
@@ -143,7 +143,7 @@ class DataLoader:
 #        print('LHFLX.shape', LHFLX.shape)
 #        print('y_data.shape', y_data.shape)
 
-        inX = np.concatenate([PS, QAP, TAP, OMEGA, UBSP, VBSP, dTdt_adiabatic, dQdt_adiabatic, SHFLX, LHFLX], axis=0)
+        inX = np.concatenate([PS, SHFLX, LHFLX, QAP, TAP, OMEGA, dTdt_adiabatic, dQdt_adiabatic, UBSP, VBSP], axis=0)
         inX = np.transpose(inX)
 #        print('inX.shape', inX.shape)
 
