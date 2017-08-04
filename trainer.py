@@ -23,7 +23,7 @@ class Trainer(object):
         self.optimizer  = config.optimizer
         self.batch_size = config.batch_size
         self.hidden     = config.hidden
-
+        
         self.step = tf.Variable(0, name='step', trainable=False)
 
         self.lr = tf.Variable(config.lr, name='lr')
@@ -42,6 +42,7 @@ class Trainer(object):
         self.save_step = config.save_step
         self.lr_update_step = config.lr_update_step
         self.dropout_rate = config.dropout_rate
+        self.act        = config.act
 
         self.is_train = config.is_train
         with tf.device("/gpu:0" if self.use_gpu else "/cpu:0"):
@@ -140,7 +141,10 @@ class Trainer(object):
         for nLay in self.config.hidden.split(','):
             iLay += 1
             nLay = int(nLay)
-            net = nn_layer(net, nLayPrev, nLay, self.dropout_rate, 'layer'+str(iLay))
+            if(self.act==0): # differnt types of activation functions
+                net = nn_layer(net, nLayPrev, nLay, self.dropout_rate, 'layer'+str(iLay),act=tf.nn.relu)
+            else:
+                net = nn_layer(net, nLayPrev, nLay, self.dropout_rate, 'layer'+str(iLay),act=tf.nn.sigmoid)
             nLayPrev = nLay
         pred = nn_layer(net, nLayPrev, self.data_loader.n_output, 0., 'layerout', act=tf.identity)
         print('pred:', pred)
@@ -198,7 +202,7 @@ def bias_variable(shape):
   initial = tf.truncated_normal(shape, stddev=1.)
   return tf.Variable(initial)
 
-def nn_layer(input_tensor, input_dim, output_dim, dropout_rate, layer_name,  act=tf.nn.relu):
+def nn_layer(input_tensor, input_dim, output_dim, dropout_rate, layer_name,  act):
   # Adding a name scope ensures logical grouping of the layers in the graph.
   with tf.name_scope(layer_name):
     # This Variable will hold the state of the weights for the layer
