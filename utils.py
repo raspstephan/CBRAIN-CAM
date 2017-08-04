@@ -41,6 +41,7 @@ def prepare_dirs_and_logger(config):
         print(4)
         config.model_name = "{}_{}_{}".format(config.dataset, get_time(), ','.join(config.hidden.split(',')))
         config.model_name = config.model_name + '_dropout_' + str(config.dropout_rate)
+        config.model_name = config.model_name + '_activation_' + str(config.act)
     
 #    config.log_dir   = config.log_dir + '/' + config.varname + '/' + config.hidden
 #    config.data_dir  = config.data_dir + '/' + config.varname + '/' + config.hidden
