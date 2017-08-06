@@ -17,8 +17,8 @@ def logdir():
 def prepare_dirs_and_logger(config):
      
     # add specific information to log directory
-    config.log_dir  = config.log_dir   + '/dropout_' + str(config.dropout_rate)  + '_activation_' + str(config.act) #+ str(config.addon)
-    config.data_dir = config.data_dir  + '/dropout_' + str(config.dropout_rate)  + '_activation_' + str(config.act) #+ str(config.addon)
+    #config.log_dir  = config.log_dir   + '/dropout_' + str(config.dropout_rate)  + '_activation_' + str(config.act) #+ str(config.addon)
+    #config.data_dir = config.data_dir  + '/dropout_' + str(config.dropout_rate)  + '_activation_' + str(config.act) #+ str(config.addon)
 
     formatter = logging.Formatter("%(asctime)s:%(levelname)s::%(message)s")
     logger = logging.getLogger()

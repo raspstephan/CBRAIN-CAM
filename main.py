@@ -12,7 +12,7 @@ from  dataLoad import *
 from folderDefs import *
 import subprocess, threading, time
 
-validationProcess = "python main.py --is_train=false --use_gpu=false --load_path={}"
+validationProcess = "python main.py --is_train=false --epoch=1 --use_gpu=false --load_path={}"
 devnull = open(os.devnull, 'wb')
 
 def main(config):
@@ -30,7 +30,7 @@ def main(config):
     else:
         if config.load_path:
             # automatically reloads the correct arguments for the network
-            config = load_config(config, ['hidden'])
+            config = load_config(config, ['hidden', 'dropout_rate', 'act'])
             print(Fore.RED, 'config\n', config)
             print(Style.RESET_ALL)
         setattr(config, 'batch_size', 1024)
@@ -55,7 +55,7 @@ def main(config):
                         for i in range(trainer.saveEverySec):
                             if isTraining:
                                time.sleep(1)
-                        validationProcesslocal = validationProcess + ' --dataset=' + config.dataset
+                        validationProcesslocal = validationProcess# + ' --dataset=' + config.dataset
                         processArg = validationProcesslocal.format(config.model_name).split()
                         print(Fore.RED, processArg)
                         print(Style.RESET_ALL)
