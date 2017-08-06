@@ -37,6 +37,7 @@ def main(config):
         data_path = config.data_path
         batch_size = config.batch_size
         do_shuffle = False
+    save_config(config)
     with DataLoader(trainingDataDir, config) as data_loader:
         with tf.device("/cpu:0"):
             data_loader.prepareQueue()

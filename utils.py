@@ -32,19 +32,19 @@ def prepare_dirs_and_logger(config):
     logger.addHandler(handler)
 
     if config.load_path:
-        if config.load_path.startswith(config.log_dir):
-            print(1)
-            config.model_dir = config.load_path
-        else:
-            if config.load_path.startswith(config.dataset):
-                print(2)
-                config.model_name = config.load_path
-            else:
-                print(3)
-                config.model_name = "{}_{}".format(config.dataset, config.load_path)
+        #if config.load_path.startswith(config.log_dir):
+        #    print(1)
+        #    config.model_dir = config.load_path
+        #else:
+        #    if config.load_path.startswith(config.dataset):
+        #        print(2)
+        config.model_name = config.load_path
+        #    else:
+        #        print(3)
+        #        config.model_name = "{}_{}".format(config.dataset, config.load_path)
     else:
         print(4)
-        config.model_name = "{}_{}_{}".format(config.dataset, get_time(), ','.join(config.hidden.split(',')))
+        config.model_name = get_time() + '_dr_' + str(config.dropout_rate)  + '_ac_' + str(config.act)#"{}_{}_{}".format(config.dataset, get_time(), ','.join(config.hidden.split(',')))
         
 
     if not hasattr(config, 'model_dir'):
