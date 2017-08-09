@@ -112,8 +112,8 @@ class DataLoader:
         OMEGA    = fh['OMEGA'][:,s:s+l]     # OMEGA  Pa/s    30   Vertical velocity (pressure)
         UBSP     = fh['UBSP'][:,s:s+l]      # UBSP  m/s   30   Meridional wind
         VBSP     = fh['VBSP'][:,s:s+l]      # VBSP  m/s   30   Meridional wind
-        dTdt_adiabatic     = fh['dTdt_adiabatic'][:,s:s+l]      # VBSP  m/s   30   Meridional wind
-        dQdt_adiabatic     = fh['dQdt_adiabatic'][:,s:s+l]      # VBSP  m/s   30   Meridional wind
+        dTdt_adiabatic     = fh['dTdt_adiabatic'][:,s:s+l]      # Adiabatic T tendencies  K/s  30
+        dQdt_adiabatic     = fh['dQdt_adiabatic'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
         PS       = fh['PS'][s:s+l][None]    # PS     Pa      1    Surface pressure
         SHFLX    = fh['SHFLX'][s:s+l][None] # SHFLX  W/m2    1    Surface sensible heat flux
         LHFLX    = fh['LHFLX'][s:s+l][None] # LHFLX  W/m2    1    Surface latent heat flux
@@ -149,7 +149,7 @@ class DataLoader:
 
 #        inX    = (inX - self.mean_in) / self.std_in
         y_data = np.transpose(y_data)
-        y_data *= 1e4
+        y_data *= 1e8 # jsut to increase magnitude of SPDT and SPDQ for better convergence
 
         return inX, y_data
 
