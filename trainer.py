@@ -78,7 +78,7 @@ class Trainer(object):
             trainBar = trange(self.start_step, self.data_loader.NumBatchTrain)
             for step in trainBar:
                 totStep += 1
-                fetch_dict = {"optim": self.optim}
+                fetch_dict = {"optim": self.optim} # train
                 if step % self.log_step == 0:
                     fetch_dict.update({
                         "summary": self.summary_op,
@@ -107,7 +107,7 @@ class Trainer(object):
         sleepTime = (self.saveEverySec/2) / numSteps
         print('sleepTime', sleepTime)
         for step in trainBar:
-            fetch_dict = {}
+            fetch_dict = {} # does not train
             if True:#step % self.log_step == 0:
                 fetch_dict.update({
                     "summary": self.summary_op,

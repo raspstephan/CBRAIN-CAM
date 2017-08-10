@@ -17,12 +17,11 @@ net_arg = add_argument_group('Network')
 #net_arg.add_argument('--input_scale_size', type=int, default=64, help='input image will be resized with the given value as width and height')
 #net_arg.add_argument('--conv_hidden_num', type=int, default=128, choices=[64, 128,16,32],help='n in the paper')
 net_arg.add_argument('--hidden',  type=str, default='5,5', help='comma separated list of hidden layer units')
-#net_arg.add_argument('--varname', type=str, default='SPDT', help='names of trained variable')
 
 # Data
 data_arg = add_argument_group('Data')
 data_arg.add_argument('--dataset', type=str, default='SPDT', help='names of trained variable')
-data_arg.add_argument('--batch_size', type=int, default=2048)
+data_arg.add_argument('--batch_size', type=int, default=1024)
 data_arg.add_argument('--frac_train', type=float, default=0.8)
 data_arg.add_argument('--local', type=str2bool, default=False)
 data_arg.add_argument('--epoch', type=int, default=8)
@@ -55,6 +54,7 @@ misc_arg.add_argument('--log_dir', type=str, default='logs')
 misc_arg.add_argument('--data_dir', type=str, default='data')
 misc_arg.add_argument('--random_seed', type=int, default=123)
 misc_arg.add_argument('--act', type=int, default=0) # 0->tf.nn.relu, 1->tf.nn.sigmoid
+misc_arg.add_argument('--file_specifier', type=str, default='') # to add specific name to file for copmarison of different sensitivitie
 
 def get_config():
     config, unparsed = parser.parse_known_args()
