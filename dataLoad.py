@@ -162,7 +162,7 @@ class DataLoader:
 
 #        inX    = (inX - self.mean_in) / self.std_in
         y_data = np.transpose(y_data)
-        y_data *= 1e8 # jsut to increase magnitude of SPDT and SPDQ for better convergence
+        y_data *= 1e10 # jsut to increase magnitude of SPDT and SPDQ for better convergence
 
         return inX, y_data
 

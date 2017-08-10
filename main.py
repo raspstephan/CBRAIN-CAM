@@ -12,7 +12,7 @@ from  dataLoad import *
 from folderDefs import *
 import subprocess, threading, time
 
-validationProcess = "python main.py --is_train=false --epoch=1 --use_gpu=false --load_path={}"
+validationProcess = "python main.py --is_train=false --use_gpu=false --load_path={}"
 devnull = open(os.devnull, 'wb')
 
 def main(config):
