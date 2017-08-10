@@ -55,7 +55,8 @@ def main(config):
                         for i in range(trainer.saveEverySec):
                             if isTraining:
                                time.sleep(1)
-                        processArg = validationProcess.format(config.model_name).split()
+                        validationProcesslocal = validationProcess + ' --dataset=' + config.dataset
+                        processArg = validationProcesslocal.format(config.model_name).split()
                         print(Fore.RED, processArg)
                         print(Style.RESET_ALL)
                         subprocess.run(processArg, stdout=devnull)#, stderr=devnull)
