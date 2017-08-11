@@ -17,15 +17,9 @@ def logdir():
 def prepare_dirs_and_logger(config):
      
     # add specific information to log directory
-    config.log_dir = config.log_dir + '/dropout_' + str(config.dropout_rate)
-    config.log_dir = config.log_dir + '_activation_' + str(config.act)
-    if len(config.file_specifier)>0:
-        config.log_dir = config.log_dir + '_' + config.file_specifier
-    config.data_dir = config.data_dir + '/dropout_' + str(config.dropout_rate)
-    config.data_dir = config.data_dir + '_activation_' + str(config.act)
-    if len(config.file_specifier)>0:
-        config.data_dir = config.data_dir + '_' + config.file_specifier
-    
+    config.log_dir  = config.log_dir   + '/dropout_' + str(config.dropout_rate)  + '_activation_' + str(config.act) #+ str(config.addon)
+    config.data_dir = config.data_dir  + '/dropout_' + str(config.dropout_rate)  + '_activation_' + str(config.act) #+ str(config.addon)
+
     formatter = logging.Formatter("%(asctime)s:%(levelname)s::%(message)s")
     logger = logging.getLogger()
 
@@ -52,9 +46,6 @@ def prepare_dirs_and_logger(config):
         print(4)
         config.model_name = "{}_{}_{}".format(config.dataset, get_time(), ','.join(config.hidden.split(',')))
         
-
-#    config.log_dir   = config.log_dir + '/' + config.varname + '/' + config.hidden
-#    config.data_dir  = config.data_dir + '/' + config.varname + '/' + config.hidden
 
     if not hasattr(config, 'model_dir'):
         config.model_dir = os.path.join(config.log_dir, config.model_name)

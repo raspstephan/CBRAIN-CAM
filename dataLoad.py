@@ -33,9 +33,9 @@ class DataLoader:
         #self.mean_PS    = fh['PS'][()]
         self.mean_SHFLX = fh['SHFLX'][()]
         self.mean_LHFLX = fh['LHFLX'][()]
-        #self.mean_dTdt_adiabatic = np.transpose(fh['dTdt_adiabatic'][:][None])
-        #self.mean_dQdt_adiabatic = np.transpose(fh['dQdt_adiabatic'][:][None])
-        self.mean_GRAD_UQ_H = np.transpose(fh['GRAD_UQ_H'][:][None])
+        self.mean_dTdt_adiabatic = np.transpose(fh['dTdt_adiabatic'][:][None])
+        self.mean_dQdt_adiabatic = np.transpose(fh['dQdt_adiabatic'][:][None])
+        #self.mean_GRAD_UQ_H = np.transpose(fh['GRAD_UQ_H'][:][None])
         #self.mean_QRS = np.transpose(fh['QRS'][:][None])
         #self.mean_QRL = np.transpose(fh['QRL'][:][None])
         fh.close()
@@ -48,9 +48,9 @@ class DataLoader:
         #self.std_PS    = fh['PS'][()]
         self.std_SHFLX = fh['SHFLX'][()]
         self.std_LHFLX = fh['LHFLX'][()]
-        #self.std_dTdt_adiabatic = np.transpose(fh['dTdt_adiabatic'][:][None])
-        #self.std_dQdt_adiabatic = np.transpose(fh['dQdt_adiabatic'][:][None])
-        self.std_GRAD_UQ_H = np.transpose(fh['GRAD_UQ_H'][:][None])
+        self.std_dTdt_adiabatic = np.transpose(fh['dTdt_adiabatic'][:][None])
+        self.std_dQdt_adiabatic = np.transpose(fh['dQdt_adiabatic'][:][None])
+        #self.std_GRAD_UQ_H = np.transpose(fh['GRAD_UQ_H'][:][None])
         #self.std_QRS = np.transpose(fh['QRS'][:][None])
         #self.std_QRL = np.transpose(fh['QRL'][:][None])
         fh.close()
@@ -68,7 +68,7 @@ class DataLoader:
         print('Nsamples =', self.Nsamples)
         Nlevels      = self.mean_QAP.shape[0]
         print('Nlevels = ', Nlevels)
-        self.n_input = 4*Nlevels + 2  # number of levels plus three surface data (PS, SHFLX, LHFLX)
+        self.n_input = 5*Nlevels + 2  # number of levels plus three surface data (PS, SHFLX, LHFLX)
         self.n_output = fh[self.varname][:].shape[0] # remove first 9 indices
         print('n_input = ', self.n_input)
         print('n_output = ', self.n_output)
@@ -118,9 +118,9 @@ class DataLoader:
         OMEGA    = fh['OMEGA'][:,s:s+l]     # OMEGA  Pa/s    30   Vertical velocity (pressure)
         #UBSP     = fh['UBSP'][:,s:s+l]      # UBSP  m/s   30   Meridional wind
         #VBSP     = fh['VBSP'][:,s:s+l]      # VBSP  m/s   30   Meridional wind
-        #dTdt_adiabatic     = fh['dTdt_adiabatic'][:,s:s+l]      # Adiabatic T tendencies  K/s  30
-        #dQdt_adiabatic     = fh['dQdt_adiabatic'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
-        GRAD_UQ_H= fh['GRAD_UQ_H'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
+        dTdt_adiabatic     = fh['dTdt_adiabatic'][:,s:s+l]      # Adiabatic T tendencies  K/s  30
+        dQdt_adiabatic     = fh['dQdt_adiabatic'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
+        #GRAD_UQ_H= fh['GRAD_UQ_H'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
         #QRS      = fh['QRS'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
         #QRL      = fh['QRL'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
         #PS       = fh['PS'][s:s+l][None]    # PS     Pa      1    Surface pressure
@@ -133,11 +133,11 @@ class DataLoader:
         OMEGA    = (OMEGA - self.mean_OMEGA) / self.std_OMEGA
         #UBSP     = (UBSP - self.mean_UBSP) / self.std_UBSP
         #VBSP     = (VBSP - self.mean_VBSP) / self.std_VBSP
-        #dTdt_adiabatic     = (dTdt_adiabatic - self.mean_dTdt_adiabatic) / self.std_dTdt_adiabatic
-        #dQdt_adiabatic     = (dQdt_adiabatic - self.mean_dQdt_adiabatic) / self.std_dQdt_adiabatic
+        dTdt_adiabatic     = (dTdt_adiabatic - self.mean_dTdt_adiabatic) / self.std_dTdt_adiabatic
+        dQdt_adiabatic     = (dQdt_adiabatic - self.mean_dQdt_adiabatic) / self.std_dQdt_adiabatic
         #QRS     = (QRS - self.mean_QRS) / self.std_QRS
         #QRL     = (QRL - self.mean_QRL) / self.std_QRL
-        GRAD_UQ_H     = (GRAD_UQ_H - self.mean_GRAD_UQ_H) / self.std_GRAD_UQ_H
+        #GRAD_UQ_H     = (GRAD_UQ_H - self.mean_GRAD_UQ_H) / self.std_GRAD_UQ_H
         #PS       = (PS - self.mean_PS) / self.std_PS
         SHFLX    = (SHFLX - self.mean_SHFLX) / self.std_SHFLX
         LHFLX    = (LHFLX - self.mean_LHFLX) / self.std_LHFLX
@@ -156,13 +156,13 @@ class DataLoader:
 
 #inX = np.concatenate([PS, SHFLX, LHFLX, QAP, TAP, OMEGA, dTdt_adiabatic, dQdt_adiabatic, QRS, QRL, GRAD_UQ_H, UBSP, VBSP], axis=0)
 #inX = np.concatenate([PS, SHFLX, LHFLX, QAP, TAP, OMEGA, dTdt_adiabatic, dQdt_adiabatic, QRS, QRL, GRAD_UQ_H], axis=0)
-        inX = np.concatenate([SHFLX, LHFLX, QAP, TAP, OMEGA, GRAD_UQ_H], axis=0)
+        inX = np.concatenate([SHFLX, LHFLX, QAP, TAP, OMEGA, dTdt_adiabatic, dQdt_adiabatic], axis=0)
         inX = np.transpose(inX)
 #        print('inX.shape', inX.shape)
 
 #        inX    = (inX - self.mean_in) / self.std_in
         y_data = np.transpose(y_data)
-        y_data *= 1e10 # jsut to increase magnitude of SPDT and SPDQ for better convergence
+        y_data *= 1.e10 # jsut to increase magnitude of SPDT and SPDQ for better convergence
 
         return inX, y_data
 

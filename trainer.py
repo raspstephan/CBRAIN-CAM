@@ -43,7 +43,7 @@ class Trainer(object):
         self.lr_update_step = config.lr_update_step
         self.dropout_rate = config.dropout_rate
         self.act        = config.act
-
+        
         self.is_train = config.is_train
         with tf.device("/gpu:0" if self.use_gpu else "/cpu:0"):
             self.build_model()
