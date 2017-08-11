@@ -41,7 +41,7 @@ class Trainer(object):
         self.max_step = config.max_step
         self.save_step = config.save_step
         self.lr_update_step = config.lr_update_step
-        self.dropout_rate = config.dropout_rate
+        self.keep_dropout_rate = config.keep_dropout_rate
         self.act        = config.act
         
         self.is_train = config.is_train
@@ -142,11 +142,11 @@ class Trainer(object):
             iLay += 1
             nLay = int(nLay)
             if(self.act==0): # differnt types of activation functions
-                net = nn_layer(net, nLayPrev, nLay, self.dropout_rate, 'layer'+str(iLay),act=tf.nn.relu)
+                net = nn_layer(net, nLayPrev, nLay, self.keep_dropout_rate, 'layer'+str(iLay),act=tf.nn.relu)
             else:
-                net = nn_layer(net, nLayPrev, nLay, self.dropout_rate, 'layer'+str(iLay),act=tf.nn.sigmoid)
+                net = nn_layer(net, nLayPrev, nLay, self.keep_dropout_rate, 'layer'+str(iLay),act=tf.nn.sigmoid)
             nLayPrev = nLay
-        pred = nn_layer(net, nLayPrev, self.data_loader.n_output, 0., 'layerout', act=tf.identity)
+        pred = nn_layer(net, nLayPrev, self.data_loader.n_output, 1., 'layerout', act=tf.identity)
         print('pred:', pred)
 
         # Add ops to save and restore all the variables.
@@ -202,7 +202,7 @@ def bias_variable(shape):
   initial = tf.truncated_normal(shape, stddev=1.)
   return tf.Variable(initial)
 
-def nn_layer(input_tensor, input_dim, output_dim, dropout_rate, layer_name,  act):
+def nn_layer(input_tensor, input_dim, output_dim, keep_dropout_rate, layer_name,  act):
   # Adding a name scope ensures logical grouping of the layers in the graph.
   with tf.name_scope(layer_name):
     # This Variable will hold the state of the weights for the layer
@@ -218,8 +218,8 @@ def nn_layer(input_tensor, input_dim, output_dim, dropout_rate, layer_name,  act
     activations = act(preactivate, name='activation')
     # apply a dropout
     tf.summary.histogram('activations', activations)
-    if dropout_rate>1.e-6:
-        activations = tf.nn.dropout(activations, dropout_rate)
+    if keep_dropout_rate<0.9999:
+        activations = tf.nn.dropout(activations, keep_dropout_rate)
         tf.summary.histogram('dropout', activations)
     print('layer_name', layer_name)
     print('input_tensor', input_tensor)
