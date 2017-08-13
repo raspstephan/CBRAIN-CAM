@@ -54,7 +54,7 @@ misc_arg.add_argument('--log_dir', type=str, default='logs')
 misc_arg.add_argument('--data_dir', type=str, default='data')
 misc_arg.add_argument('--random_seed', type=int, default=123)
 misc_arg.add_argument('--act', type=int, default=0) # 0->tf.nn.relu, 1->tf.nn.sigmoid
-#misc_arg.add_argument('--addon', type=str, default='')
+misc_arg.add_argument('--addon', type=str, default='')
 
 def get_config():
     config, unparsed = parser.parse_known_args()
