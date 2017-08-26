@@ -8,6 +8,7 @@ from glob import glob
 from tqdm import trange
 from itertools import chain
 from collections import deque
+from beholder.beholder import Beholder
 
 from models import *
 
@@ -48,8 +49,8 @@ class Trainer(object):
 
         self.valStr = '' if config.is_train else '_val'
         self.saver = tf.train.Saver()# if self.is_train else None
-        sumdir = self.model_dir + self.valStr
-        self.summary_writer = tf.summary.FileWriter(sumdir)
+        self.sumdir = self.model_dir + self.valStr
+        self.summary_writer = tf.summary.FileWriter(self.sumdir)
 
         self.saveEverySec = 30
         sv = tf.train.Supervisor(logdir=self.model_dir,
@@ -69,8 +70,13 @@ class Trainer(object):
         # start our custom queue runner's threads
         if True:#self.is_train:
             self.data_loader.start_threads(self.sess)
+        # dirty way to bypass graph finilization error
+        g = tf.get_default_graph()
+        g._finalized = False
 
     def train(self):
+        visualizer = Beholder(session=self.sess, logdir='logs')
+
         totStep = 0
         for ep in range(1, self.config.epoch + 1):
             trainBar = trange(self.start_step, self.data_loader.NumBatchTrain)
@@ -96,6 +102,11 @@ class Trainer(object):
                     trainBar.set_description("epoch:{:03d}, L:{:.4f}, logL:{:+.3f}, R2:{:+.3f}, q:{:d}, lr:{:.4g}". \
                         format(ep, loss, logloss, Rsquared, self.data_loader.size_op.eval(session=self.sess), self.lr.eval(session=self.sess)))
 
+                visualizer.update()
+                #evaluated_tensors = self.sess.run([self.x])
+                #example_frame = np.random.randint(1, 255, (100, 100))
+                #visualizer.update(arrays=evaluated_tensors, frame=example_frame)
+                
                 if totStep % self.lr_update_step == self.lr_update_step - 1:
                     self.sess.run([self.lr_update])
 
