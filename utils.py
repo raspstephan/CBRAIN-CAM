@@ -44,7 +44,7 @@ def prepare_dirs_and_logger(config):
         #        config.model_name = "{}_{}".format(config.dataset, config.load_path)
     else:
         print(4)
-        config.model_name = str(config.dataset) + '_' + get_time() + '_kdr_' + str(config.keep_dropout_rate)  + '_ac_' + str(config.act) + config.addon#"{}_{}_{}".format(config.dataset, get_time(), ','.join(config.hidden.split(',')))
+        config.model_name = str(config.dataset) + '_layers_' + config.hidden + '_' + get_time() + '_kdr_' + str(config.keep_dropout_rate)  + '_ac_' + str(config.act) + config.addon#"{}_{}_{}".format(config.dataset, get_time(), ','.join(config.hidden.split(',')))
         
 
     if not hasattr(config, 'model_dir'):

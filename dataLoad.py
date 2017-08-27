@@ -55,6 +55,10 @@ class DataLoader:
         #self.std_QRL = np.transpose(fh['QRL'][:][None])
         fh.close()
  
+        fh = h5py.File(nc_max_file, mode='r') # normalize outputs to be between -1 and 1
+        self.max_ydata = fh[self.varname][()]
+        fh.close()
+        
         print("End Reading Netcdfs for Normalization")
         try:
             for i in range(len(self.fileReader)):
@@ -143,7 +147,7 @@ class DataLoader:
         LHFLX    = (LHFLX - self.mean_LHFLX) / self.std_LHFLX
 
         # output data
-        y_data   = fh[self.varname][:,s:s+l]      # SPDT   K/s     30   dT/dt
+        y_data   = fh[self.varname][:,s:s+l] / self.max_ydata     # SPDT   K/s     30   dT/dt, normalized
 
 #        print('PS.shape', PS.shape)
 #        print('PS.shape[None,:]', PS.shape)
@@ -163,7 +167,7 @@ class DataLoader:
 
 #        inX    = (inX - self.mean_in) / self.std_in
         y_data = np.transpose(y_data)
-        y_data *= 1.e10 # jsut to increase magnitude of SPDT and SPDQ for better convergence
+        #y_data *= 1.e10 # jsut to increase magnitude of SPDT and SPDQ for better convergence
 
         return inX, y_data
 
