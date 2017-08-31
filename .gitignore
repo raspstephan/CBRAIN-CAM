@@ -1,0 +1,6 @@
+/__pycache__/
+/TRAINS/
+*.nc
+/folderDefs.py
+/logs/
+/.DS_Store
