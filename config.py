@@ -27,6 +27,7 @@ data_arg.add_argument('--batch_size', type=int, default=2048)
 data_arg.add_argument('--frac_train', type=float, default=0.8)
 data_arg.add_argument('--local', type=str2bool, default=False)
 data_arg.add_argument('--epoch', type=int, default=8)
+data_arg.add_argument('--randomize', type=str2bool, default=True)
 
 # Training / test parameters
 train_arg = add_argument_group('Training')

@@ -57,10 +57,12 @@ class DataLoader:
 
         self.samplesTrain = range(0, self.indexValidation, self.nSampleFetching)
         self.randSamplesTrain = list(self.samplesTrain)
-        random.shuffle(self.randSamplesTrain)
+        if self.config.randomize:
+            random.shuffle(self.randSamplesTrain)
         self.samplesValid = range(self.indexValidation, self.Nsamples, self.nSampleFetching)
         self.randSamplesValid = list(self.samplesValid)
-        random.shuffle(self.randSamplesValid)
+        if self.config.randomize:
+            random.shuffle(self.randSamplesValid)
         self.numFetchesTrain = len(self.randSamplesTrain)
         self.numFetchesValid = len(self.randSamplesValid)
         print('randSamplesTrain', self.randSamplesTrain[:16], self.numFetchesTrain)
@@ -107,7 +109,7 @@ class DataLoader:
         chan2 = TAP
         chan3 = OMEGA
 
-        chans = np.stack([chan1, chan2, chan3, chan3*0+PS, chan3*0+SHFLX, chan3*0+LHFLX], axis=2)
+        chans = np.stack([chan1*1e3, chan2*1e-2, chan3*1e2, chan3*0+PS*1e-4, chan3*0+SHFLX*1e-1, chan3*0+LHFLX*1e-1], axis=2)
         #print('chans', chans.shape)
 
         inX = chans#np.concatenate([PS, QAP, TAP, OMEGA, SHFLX, LHFLX], axis=1)
@@ -149,10 +151,16 @@ class DataLoader:
             self.dataY = tf.placeholder(dtype=tf.float32, shape=[None]+self.Yshape)
 
             self.capacityTrain = max(self.nSampleFetching * 32, self.batchSize * 8) if self.config.is_train else self.batchSize
-            self.queue = tf.RandomShuffleQueue(shapes=[self.Xshape, self.Yshape],
+            if self.config.randomize:
+                self.queue = tf.RandomShuffleQueue(shapes=[self.Xshape, self.Yshape],
                                                dtypes=[tf.float32, tf.float32],
                                                capacity=self.capacityTrain,
                                                min_after_dequeue=self.capacityTrain // 2
+                                               )
+            else:
+                self.queue = tf.FIFOQueue(shapes=[self.Xshape, self.Yshape],
+                                               dtypes=[tf.float32, tf.float32],
+                                               capacity=self.capacityTrain
                                                )
             self.enqueue_op = self.queue.enqueue_many([self.dataX, self.dataY])
             self.size_op = self.queue.size()
