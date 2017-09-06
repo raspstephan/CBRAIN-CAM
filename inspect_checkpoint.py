@@ -52,7 +52,9 @@ def print_tensors_in_checkpoint_file(file_name, tensor_name, all_tensors):
       print(reader.debug_string().decode("utf-8"))
     else:
       print("tensor_name: ", tensor_name)
-      print(reader.get_tensor(tensor_name))
+      print(reader.get_tensor(tensor_name)) 
+      tensor_name_out = tensor_name.replace('/','_') # added Pierre to save matrices into a file
+      np.savetxt( tensor_name_out, reader.get_tensor(tensor_name), delimiter=' ', newline=' ] ; ... \n [ ', fmt='%1.8e') 
   except Exception as e:  # pylint: disable=broad-except
     print(str(e))
     if "corrupted compressed block contents" in str(e):
