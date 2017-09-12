@@ -24,40 +24,31 @@ class DataLoader:
     def reload(self, finishedEpoch = 0):
         # need to retrieve mean and standard deviation of the full dataset first
         print("Reading Netcdfs mean and std for Normalization")
+        self.mean = {}
+        self.std = {}
+        self.max = {}
         with h5py.File(nc_mean_file, mode='r') as fh:
-            print('nc_mean_file', [k for k in fh.keys()])
-            self.mean_QAP   = np.transpose(fh['QAP'][:][None])
-            self.mean_TAP   = np.transpose(fh['TAP'][:][None])
-            self.mean_OMEGA = np.transpose(fh['OMEGA'][:][None])
-            #self.mean_UBSP  = np.transpose(fh['UBSP'][:][None])
-            #self.mean_VBSP  = np.transpose(fh['VBSP'][:][None])
-            #self.mean_PS    = fh['PS'][()]
-            self.mean_SHFLX = fh['SHFLX'][()]
-            self.mean_LHFLX = fh['LHFLX'][()]
-            #self.mean_dTdt_adiabatic = np.transpose(fh['dTdt_adiabatic'][:][None])
-            #self.mean_dQdt_adiabatic = np.transpose(fh['dQdt_adiabatic'][:][None])
-            self.mean_GRAD_UQ_H = np.transpose(fh['GRAD_UQ_H'][:][None])
-            #self.mean_QRS = np.transpose(fh['QRS'][:][None])
-            #self.mean_QRL = np.transpose(fh['QRL'][:][None])
+            for k in fh.keys():
+                try:
+                    self.mean[k] = fh[k][:]
+                except:
+                    self.mean[k] = np.array(fh[k])[None]
+                print('nc_mean_file: ', k, self.mean[k].shape)
         with h5py.File(nc_std_file, mode='r') as fh:
-            print('nc_std_file', [k for k in fh.keys()])
-            self.std_QAP   = np.transpose(fh['QAP'][:][None])
-            self.std_TAP   = np.transpose(fh['TAP'][:][None])
-            self.std_OMEGA = np.transpose(fh['OMEGA'][:][None])
-            #self.std_UBSP  = np.transpose(fh['UBSP'][:][None])
-            #self.std_VBSP  = np.transpose(fh['VBSP'][:][None])
-            #self.std_PS    = fh['PS'][()]
-            self.std_SHFLX = fh['SHFLX'][()]
-            self.std_LHFLX = fh['LHFLX'][()]
-            #self.std_dTdt_adiabatic = np.transpose(fh['dTdt_adiabatic'][:][None])
-            #self.std_dQdt_adiabatic = np.transpose(fh['dQdt_adiabatic'][:][None])
-            self.std_GRAD_UQ_H = np.transpose(fh['GRAD_UQ_H'][:][None])
-            #self.std_QRS = np.transpose(fh['QRS'][:][None])
-            #self.std_QRL = np.transpose(fh['QRL'][:][None])
+            for k in fh.keys():
+                try:
+                    self.std[k] = fh[k][:]
+                except:
+                    self.std[k] = np.array(fh[k])[None]
+                print('nc_std_file: ', k, self.std[k].shape)
  
         with h5py.File(nc_max_file, mode='r') as fh: # normalize outputs to be between -1 and 1
-            print('nc_max_file', [k for k in fh.keys()])
-            self.max_ydata = fh[self.varname][()]
+            for k in fh.keys():
+                try:
+                    self.max[k] = fh[k][:]
+                except:
+                    self.max[k] = np.array(fh[k])[None]
+                print('nc_max_file: ', k, self.max[k].shape)
         
         print("End Reading Netcdfs for Normalization")
         try:
