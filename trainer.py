@@ -149,7 +149,7 @@ class Trainer(object):
         self.visuarrs += tf.unstack(signLog(self.y, 1), axis=-1)
 
 
-        net = tf.stack([x], axis=2)
+        net = tf.contrib.layers.flatten(x)
         print('net', net)
         nLayPrev = self.data_loader.n_input
         iLay = 0

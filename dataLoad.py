@@ -19,6 +19,7 @@ class DataLoader:
         self.varname = config.dataset
         self.fileReader = []
         self.lock = threading.Lock()
+        self.inputNames = ['QAP', 'TAP', 'OMEGA', 'GRAD_UQ_H', 'SHFLX', 'LHFLX']
         self.reload()
 
     def reload(self, finishedEpoch = 0):
@@ -30,25 +31,25 @@ class DataLoader:
         with h5py.File(nc_mean_file, mode='r') as fh:
             for k in fh.keys():
                 try:
-                    self.mean[k] = fh[k][:]
+                    self.mean[k] = fh[k][None,:]
                 except:
                     self.mean[k] = np.array(fh[k])[None]
-                print('nc_mean_file: ', k, self.mean[k].shape)
+                print('nc_mean_file: ', k, self.mean[k].shape)#, self.mean[k])
         with h5py.File(nc_std_file, mode='r') as fh:
             for k in fh.keys():
                 try:
-                    self.std[k] = fh[k][:]
+                    self.std[k] = fh[k][None,:]
                 except:
                     self.std[k] = np.array(fh[k])[None]
-                print('nc_std_file: ', k, self.std[k].shape)
+                print('nc_std_file: ', k, self.std[k].shape)#, self.std[k])
  
         with h5py.File(nc_max_file, mode='r') as fh: # normalize outputs to be between -1 and 1
             for k in fh.keys():
                 try:
-                    self.max[k] = fh[k][:]
+                    self.max[k] = fh[k][None,:]
                 except:
                     self.max[k] = np.array(fh[k])[None]
-                print('nc_max_file: ', k, self.max[k].shape)
+                print('nc_max_file: ', k, self.max[k].shape)#, self.max[k])
         
         print("End Reading Netcdfs for Normalization")
         try:
@@ -59,11 +60,14 @@ class DataLoader:
         print("batchSize = ", self.batchSize)
 
         with h5py.File(nc_file, mode='r') as fh:
-            self.Nsamples = fh['PS'][:].shape[0]
+            for k in fh.keys():
+                print('nc_file: ', k, fh[k].shape)
+            self.Nsamples = fh['PS'].shape[0]
             print('Nsamples =', self.Nsamples)
-            Nlevels      = self.mean_QAP.shape[0]
-            print('Nlevels = ', Nlevels)
-            self.n_input = 4*Nlevels + 2  # number of levels plus three surface data (PS, SHFLX, LHFLX)
+            self.Nlevels      = self.mean['QAP'].shape[1]
+            print('Nlevels = ', self.Nlevels)
+            sampX, sampY = self.accessData(0, self.nSampleFetching, fh)
+            self.n_input = 4*self.Nlevels + 2  # number of levels plus three surface data (PS, SHFLX, LHFLX)
             self.n_output = fh[self.varname][:].shape[0] # remove first 9 indices
             print('n_input = ', self.n_input)
             print('n_output = ', self.n_output)
@@ -107,70 +111,62 @@ class DataLoader:
             pass
 
     def accessData(self, s, l, fileReader):
-        QAP      = fileReader['QAP'][:,s:s+l].T       # QAP    kg/kg   30   Specific humidity (after physics)
-        TAP      = fileReader['TAP'][:,s:s+l].T       # TAP    K       30   Temperature (after physics)
-        OMEGA    = fileReader['OMEGA'][:,s:s+l].T     # OMEGA  Pa/s    30   Vertical velocity (pressure)
-        PS       = fileReader['PS'][s:s+l][None].T    # PS     Pa      1    Surface pressure
-        SHFLX    = fileReader['SHFLX'][s:s+l][None].T # SHFLX  W/m2    1    Surface sensible heat flux
-        LHFLX    = fileReader['LHFLX'][s:s+l][None].T # LHFLX  W/m2    1    Surface latent heat flux
+        self.inputs = []
+        for k in self.inputNames:#fileReader.keys():
+            #print('nc_file: ', k, fileReader[k].shape)
+            try:
+                arr = fileReader[k][:,s:s+l].T
+            except:
+                arr = np.array(fileReader[k][s:s+l])[None,:].T
 
-        QAP      = fh['QAP'][:,s:s+l]       # QAP    kg/kg   30   Specific humidity (after physics)
-        TAP      = fh['TAP'][:,s:s+l]       # TAP    K       30   Temperature (after physics)
-        OMEGA    = fh['OMEGA'][:,s:s+l]     # OMEGA  Pa/s    30   Vertical velocity (pressure)
+        #QAP      = fh['QAP'][:,s:s+l]       # QAP    kg/kg   30   Specific humidity (after physics)
+        #TAP      = fh['TAP'][:,s:s+l]       # TAP    K       30   Temperature (after physics)
+        #OMEGA    = fh['OMEGA'][:,s:s+l]     # OMEGA  Pa/s    30   Vertical velocity (pressure)
         #UBSP     = fh['UBSP'][:,s:s+l]      # UBSP  m/s   30   Meridional wind
         #VBSP     = fh['VBSP'][:,s:s+l]      # VBSP  m/s   30   Meridional wind
         #dTdt_adiabatic     = fh['dTdt_adiabatic'][:,s:s+l]      # Adiabatic T tendencies  K/s  30
         #dQdt_adiabatic     = fh['dQdt_adiabatic'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
-        GRAD_UQ_H= fh['GRAD_UQ_H'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
+        #GRAD_UQ_H= fh['GRAD_UQ_H'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
         #QRS      = fh['QRS'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
         #QRL      = fh['QRL'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
         #PS       = fh['PS'][s:s+l][None]    # PS     Pa      1    Surface pressure
-        SHFLX    = fh['SHFLX'][s:s+l][None] # SHFLX  W/m2    1    Surface sensible heat flux
-        LHFLX    = fh['LHFLX'][s:s+l][None] # LHFLX  W/m2    1    Surface latent heat flux
+        #SHFLX    = fh['SHFLX'][s:s+l][None] # SHFLX  W/m2    1    Surface sensible heat flux
+        #LHFLX    = fh['LHFLX'][s:s+l][None] # LHFLX  W/m2    1    Surface latent heat flux
 
-        # normalize data
-        QAP      = (QAP - self.mean_QAP) / self.std_QAP
-        TAP      = (TAP - self.mean_TAP) / self.std_TAP
-        OMEGA    = (OMEGA - self.mean_OMEGA) / self.std_OMEGA
+            # normalize data
+            if self.config.normalize:
+                arr -= self.mean[k]
+                arr /= self.std[k]
+            if s == 0:
+                print('nc_file: ', k, arr.shape)
+
+        #QAP      = (QAP - self.mean_QAP) / self.std_QAP
+        #TAP      = (TAP - self.mean_TAP) / self.std_TAP
+        #OMEGA    = (OMEGA - self.mean_OMEGA) / self.std_OMEGA
         #UBSP     = (UBSP - self.mean_UBSP) / self.std_UBSP
         #VBSP     = (VBSP - self.mean_VBSP) / self.std_VBSP
         #dTdt_adiabatic     = (dTdt_adiabatic - self.mean_dTdt_adiabatic) / self.std_dTdt_adiabatic
         #dQdt_adiabatic     = (dQdt_adiabatic - self.mean_dQdt_adiabatic) / self.std_dQdt_adiabatic
         #QRS     = (QRS - self.mean_QRS) / self.std_QRS
         #QRL     = (QRL - self.mean_QRL) / self.std_QRL
-        GRAD_UQ_H     = (GRAD_UQ_H - self.mean_GRAD_UQ_H) / self.std_GRAD_UQ_H
+        #GRAD_UQ_H     = (GRAD_UQ_H - self.mean_GRAD_UQ_H) / self.std_GRAD_UQ_H
         #PS       = (PS - self.mean_PS) / self.std_PS
-        SHFLX    = (SHFLX - self.mean_SHFLX) / self.std_SHFLX
-        LHFLX    = (LHFLX - self.mean_LHFLX) / self.std_LHFLX
+        #SHFLX    = (SHFLX - self.mean_SHFLX) / self.std_SHFLX
+        #LHFLX    = (LHFLX - self.mean_LHFLX) / self.std_LHFLX
+            if arr.shape[-1] == 1:
+                arr = np.tile(arr, (1,self.Nlevels))
+                #print('nc_file: ', k, arr.shape)
+            self.inputs += [arr]
+        # input data
+        inX = np.stack(self.inputs, axis=1)
 
         # output data
-        y_data   = fileReader[self.varname][:,s:s+l][None].T      # SPDT   K/s     30   dT/dt
+        y_data   = fileReader[self.varname][:,s:s+l].T      # SPDT   K/s     30   dT/dt
 
-#        print('PS.shape', PS.shape)
-#        print('PS.shape[None,:]', PS.shape)
-#        print('QAP.shape', QAP.shape)
-#        print('TAP.shape', TAP.shape)
-#        print('OMEGA.shape', OMEGA.shape)
-#        print('SHFLX.shape', SHFLX.shape)
-#        print('LHFLX.shape', LHFLX.shape)
-#        print('y_data.shape', y_data.shape)
-        chan1 = QAP
-        chan2 = TAP
-        chan3 = OMEGA
+        if s == 0:
+            print('y_data.shape', y_data.shape)
+            print('inX.shape', inX.shape)
 
-        chans = np.stack([chan1*1e3, chan2*1e-2, chan3*1e2, chan3*0+PS*1e-4, chan3*0+SHFLX*1e-1, chan3*0+LHFLX*1e-1], axis=2)
-        #print('chans', chans.shape)
-
-
-#inX = np.concatenate([PS, SHFLX, LHFLX, QAP, TAP, OMEGA, dTdt_adiabatic, dQdt_adiabatic, QRS, QRL, GRAD_UQ_H, UBSP, VBSP], axis=0)
-#inX = np.concatenate([PS, SHFLX, LHFLX, QAP, TAP, OMEGA, dTdt_adiabatic, dQdt_adiabatic, QRS, QRL, GRAD_UQ_H], axis=0)
-#inX = np.concatenate([SHFLX, LHFLX, QAP, TAP, OMEGA, dTdt_adiabatic, dQdt_adiabatic], axis=0)
-        inX = np.concatenate([SHFLX, LHFLX, QAP, TAP, OMEGA, GRAD_UQ_H], axis=0)
-        inX = np.transpose(inX)
-#        print('inX.shape', inX.shape)
-
-#        inX    = (inX - self.mean_in) / self.std_in
-        y_data = np.transpose(y_data)
         #y_data *= 1.e10 # jsut to increase magnitude of SPDT and SPDQ for better convergence
 
         return inX, y_data
