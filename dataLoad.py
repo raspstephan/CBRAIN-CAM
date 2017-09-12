@@ -69,6 +69,8 @@ class DataLoader:
             sampX, sampY = self.accessData(0, self.nSampleFetching, fh)
             self.n_input = 4*self.Nlevels + 2  # number of levels plus three surface data (PS, SHFLX, LHFLX)
             self.n_output = fh[self.varname][:].shape[0] # remove first 9 indices
+            print('sampX = ', sampX.shape)
+            print('sampY = ', sampY.shape)
             print('n_input = ', self.n_input)
             print('n_output = ', self.n_output)
 
@@ -111,28 +113,13 @@ class DataLoader:
             pass
 
     def accessData(self, s, l, fileReader):
-        self.inputs = []
+        inputs = []
         for k in self.inputNames:#fileReader.keys():
             #print('nc_file: ', k, fileReader[k].shape)
             try:
                 arr = fileReader[k][:,s:s+l].T
             except:
                 arr = np.array(fileReader[k][s:s+l])[None,:].T
-
-        #QAP      = fh['QAP'][:,s:s+l]       # QAP    kg/kg   30   Specific humidity (after physics)
-        #TAP      = fh['TAP'][:,s:s+l]       # TAP    K       30   Temperature (after physics)
-        #OMEGA    = fh['OMEGA'][:,s:s+l]     # OMEGA  Pa/s    30   Vertical velocity (pressure)
-        #UBSP     = fh['UBSP'][:,s:s+l]      # UBSP  m/s   30   Meridional wind
-        #VBSP     = fh['VBSP'][:,s:s+l]      # VBSP  m/s   30   Meridional wind
-        #dTdt_adiabatic     = fh['dTdt_adiabatic'][:,s:s+l]      # Adiabatic T tendencies  K/s  30
-        #dQdt_adiabatic     = fh['dQdt_adiabatic'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
-        #GRAD_UQ_H= fh['GRAD_UQ_H'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
-        #QRS      = fh['QRS'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
-        #QRL      = fh['QRL'][:,s:s+l]      # Adiabatic q tendencies  kg/kg/s  30
-        #PS       = fh['PS'][s:s+l][None]    # PS     Pa      1    Surface pressure
-        #SHFLX    = fh['SHFLX'][s:s+l][None] # SHFLX  W/m2    1    Surface sensible heat flux
-        #LHFLX    = fh['LHFLX'][s:s+l][None] # LHFLX  W/m2    1    Surface latent heat flux
-
             # normalize data
             if self.config.normalize:
                 arr -= self.mean[k]
@@ -140,25 +127,12 @@ class DataLoader:
             if s == 0:
                 print('nc_file: ', k, arr.shape)
 
-        #QAP      = (QAP - self.mean_QAP) / self.std_QAP
-        #TAP      = (TAP - self.mean_TAP) / self.std_TAP
-        #OMEGA    = (OMEGA - self.mean_OMEGA) / self.std_OMEGA
-        #UBSP     = (UBSP - self.mean_UBSP) / self.std_UBSP
-        #VBSP     = (VBSP - self.mean_VBSP) / self.std_VBSP
-        #dTdt_adiabatic     = (dTdt_adiabatic - self.mean_dTdt_adiabatic) / self.std_dTdt_adiabatic
-        #dQdt_adiabatic     = (dQdt_adiabatic - self.mean_dQdt_adiabatic) / self.std_dQdt_adiabatic
-        #QRS     = (QRS - self.mean_QRS) / self.std_QRS
-        #QRL     = (QRL - self.mean_QRL) / self.std_QRL
-        #GRAD_UQ_H     = (GRAD_UQ_H - self.mean_GRAD_UQ_H) / self.std_GRAD_UQ_H
-        #PS       = (PS - self.mean_PS) / self.std_PS
-        #SHFLX    = (SHFLX - self.mean_SHFLX) / self.std_SHFLX
-        #LHFLX    = (LHFLX - self.mean_LHFLX) / self.std_LHFLX
-            if arr.shape[-1] == 1:
+            if self.config.convo and arr.shape[-1] == 1:
                 arr = np.tile(arr, (1,self.Nlevels))
                 #print('nc_file: ', k, arr.shape)
-            self.inputs += [arr]
+            inputs += [arr]
         # input data
-        inX = np.stack(self.inputs, axis=1)
+        inX = np.stack(inputs, axis=1) if self.config.convo else np.concatenate(inputs, axis=1)
 
         # output data
         y_data   = fileReader[self.varname][:,s:s+l].T      # SPDT   K/s     30   dT/dt
@@ -166,8 +140,6 @@ class DataLoader:
         if s == 0:
             print('y_data.shape', y_data.shape)
             print('inX.shape', inX.shape)
-
-        #y_data *= 1.e10 # jsut to increase magnitude of SPDT and SPDQ for better convergence
 
         return inX, y_data
 
