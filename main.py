@@ -30,13 +30,14 @@ def main(config):
     else:
         if config.load_path:
             # automatically reloads the correct arguments for the network
-            config = load_config(config, ['hidden'])
+            config = load_config(config, ['dataset', 'hidden', 'keep_dropout_rate', 'act', 'addon', 'normalize', 'convo'])
             print(Fore.RED, 'config\n', config)
             print(Style.RESET_ALL)
         setattr(config, 'batch_size', 1024)
         data_path = config.data_path
         batch_size = config.batch_size
         do_shuffle = False
+    save_config(config)
     with DataLoader(trainingDataDir, config) as data_loader:
         with tf.device("/cpu:0"):
             data_loader.prepareQueue()
@@ -55,7 +56,8 @@ def main(config):
                         for i in range(trainer.saveEverySec):
                             if isTraining:
                                time.sleep(1)
-                        processArg = validationProcess.format(config.model_name).split()
+                        validationProcesslocal = validationProcess# + ' --dataset=' + config.dataset
+                        processArg = validationProcesslocal.format(config.model_name).split()
                         print(Fore.RED, processArg)
                         print(Style.RESET_ALL)
                         subprocess.run(processArg, stdout=devnull)#, stderr=devnull)

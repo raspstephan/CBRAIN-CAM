@@ -15,6 +15,11 @@ def logdir():
     return trainingLogDir + str_time
 
 def prepare_dirs_and_logger(config):
+     
+    # add specific information to log directory
+    #config.log_dir  = config.log_dir   + '/dropout_' + str(config.dropout_rate)  + '_activation_' + str(config.act) #+ str(config.addon)
+    #config.data_dir = config.data_dir  + '/dropout_' + str(config.dropout_rate)  + '_activation_' + str(config.act) #+ str(config.addon)
+
     formatter = logging.Formatter("%(asctime)s:%(levelname)s::%(message)s")
     logger = logging.getLogger()
 
@@ -27,22 +32,20 @@ def prepare_dirs_and_logger(config):
     logger.addHandler(handler)
 
     if config.load_path:
-        if config.load_path.startswith(config.log_dir):
-            print(1)
-            config.model_dir = config.load_path
-        else:
-            if config.load_path.startswith(config.dataset):
-                print(2)
-                config.model_name = config.load_path
-            else:
-                print(3)
-                config.model_name = "{}_{}".format(config.dataset, config.load_path)
+        #if config.load_path.startswith(config.log_dir):
+        #    print(1)
+        #    config.model_dir = config.load_path
+        #else:
+        #    if config.load_path.startswith(config.dataset):
+        #        print(2)
+        config.model_name = config.load_path
+        #    else:
+        #        print(3)
+        #        config.model_name = "{}_{}".format(config.dataset, config.load_path)
     else:
         print(4)
-        config.model_name = "{}_{}_{}".format(config.dataset, get_time(), ','.join(config.hidden.split(',')))
-    
-#    config.log_dir   = config.log_dir + '/' + config.varname + '/' + config.hidden
-#    config.data_dir  = config.data_dir + '/' + config.varname + '/' + config.hidden
+        config.model_name = str(config.dataset) + '_layers_' + config.hidden + '_' + get_time() + '_kdr_' + str(config.keep_dropout_rate)  + '_ac_' + str(config.act) + config.addon#"{}_{}_{}".format(config.dataset, get_time(), ','.join(config.hidden.split(',')))
+        
 
     if not hasattr(config, 'model_dir'):
         config.model_dir = os.path.join(config.log_dir, config.model_name)

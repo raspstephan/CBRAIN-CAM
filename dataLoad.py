@@ -19,18 +19,39 @@ class DataLoader:
         self.varname = config.dataset
         self.fileReader = []
         self.lock = threading.Lock()
+        self.inputNames = ['QAP', 'TAP', 'OMEGA', 'GRAD_UQ_H', 'SHFLX', 'LHFLX']
         self.reload()
 
     def reload(self, finishedEpoch = 0):
         # need to retrieve mean and standard deviation of the full dataset first
-        print("Reading Netcdf for Normalization")
-        fh = h5py.File(nc_norm_file, mode='r')
-        self.mean_in   = fh['mean'][:][None]   # (93, 1)
-        self.std_in    = fh['std'][:][None]    # (93, 1)
-        print('self.mean_in', self.mean_in.shape)
-        print('self.std_in', self.std_in.shape)
-        fh.close()
-        print("End Reading Netcdf for Normalization")
+        print("Reading Netcdfs mean and std for Normalization")
+        self.mean = {}
+        self.std = {}
+        self.max = {}
+        with h5py.File(nc_mean_file, mode='r') as fh:
+            for k in fh.keys():
+                try:
+                    self.mean[k] = fh[k][None,:]
+                except:
+                    self.mean[k] = np.array(fh[k])[None]
+                print('nc_mean_file: ', k, self.mean[k].shape)#, self.mean[k])
+        with h5py.File(nc_std_file, mode='r') as fh:
+            for k in fh.keys():
+                try:
+                    self.std[k] = fh[k][None,:]
+                except:
+                    self.std[k] = np.array(fh[k])[None]
+                print('nc_std_file: ', k, self.std[k].shape)#, self.std[k])
+ 
+        with h5py.File(nc_max_file, mode='r') as fh: # normalize outputs to be between -1 and 1
+            for k in fh.keys():
+                try:
+                    self.max[k] = fh[k][None,:]
+                except:
+                    self.max[k] = np.array(fh[k])[None]
+                print('nc_max_file: ', k, self.max[k].shape)#, self.max[k])
+        
+        print("End Reading Netcdfs for Normalization")
         try:
             for i in range(len(self.fileReader)):
                 self.fileReader[i].close()
@@ -38,22 +59,29 @@ class DataLoader:
             pass
         print("batchSize = ", self.batchSize)
 
-        fh = h5py.File(nc_file, mode='r')
-        self.Nsamples = fh['PS'][:].shape[0]
-        print('Nsamples', self.Nsamples)
-        self.n_input = self.mean_in.shape[1]
-        self.n_output = fh[self.varname][:].shape[0]
-        sampX, sampY = self.accessData(0, self.nSampleFetching, fh)
-        fh.close()
+        with h5py.File(nc_file, mode='r') as fh:
+            for k in fh.keys():
+                print('nc_file: ', k, fh[k].shape)
+            self.Nsamples = fh['PS'].shape[0]
+            print('Nsamples =', self.Nsamples)
+            self.Nlevels      = self.mean['QAP'].shape[1]
+            print('Nlevels = ', self.Nlevels)
+            sampX, sampY = self.accessData(0, self.nSampleFetching, fh)
+            self.n_input = 4*self.Nlevels + 2  # number of levels plus three surface data (PS, SHFLX, LHFLX)
+            self.n_output = fh[self.varname][:].shape[0] # remove first 9 indices
+            print('sampX = ', sampX.shape)
+            print('sampY = ', sampY.shape)
+            print('n_input = ', self.n_input)
+            print('n_output = ', self.n_output)
 
         self.NumBatch = self.Nsamples // self.config.batch_size
         self.NumBatchTrain = int(self.Nsamples * self.config.frac_train) // self.batchSize
         self.indexValidation = self.NumBatchTrain * self.batchSize
         self.NumBatchValid = int(self.Nsamples * (1.0 - self.config.frac_train)) // self.config.batch_size
-        print('NumBatch', self.NumBatch)
-        print('NumBatchTrain', self.NumBatchTrain)
-        print('indexValidation', self.indexValidation)
-        print('NumBatchValid', self.NumBatchValid)
+        print('NumBatch=', self.NumBatch)
+        print('NumBatchTrain=', self.NumBatchTrain)
+        print('indexValidation=', self.indexValidation)
+        print('NumBatchValid=', self.NumBatchValid)
 
         self.samplesTrain = range(0, self.indexValidation, self.nSampleFetching)
         self.randSamplesTrain = list(self.samplesTrain)
@@ -70,13 +98,10 @@ class DataLoader:
         self.posTrain = 0
         self.posValid = 0
 
-        print('n_input', self.n_input)
-        print('n_output', self.n_output)
         self.Xshape = list(sampX.shape[1:])
         self.Yshape = list(sampY.shape[1:])
         print('Xshape', self.Xshape)
         print('Yshape', self.Yshape)
-
 
     def __enter__(self):
         return self
@@ -88,36 +113,33 @@ class DataLoader:
             pass
 
     def accessData(self, s, l, fileReader):
-        QAP      = fileReader['QAP'][:,s:s+l].T       # QAP    kg/kg   30   Specific humidity (after physics)
-        TAP      = fileReader['TAP'][:,s:s+l].T       # TAP    K       30   Temperature (after physics)
-        OMEGA    = fileReader['OMEGA'][:,s:s+l].T     # OMEGA  Pa/s    30   Vertical velocity (pressure)
-        PS       = fileReader['PS'][s:s+l][None].T    # PS     Pa      1    Surface pressure
-        SHFLX    = fileReader['SHFLX'][s:s+l][None].T # SHFLX  W/m2    1    Surface sensible heat flux
-        LHFLX    = fileReader['LHFLX'][s:s+l][None].T # LHFLX  W/m2    1    Surface latent heat flux
+        inputs = []
+        for k in self.inputNames:#fileReader.keys():
+            #print('nc_file: ', k, fileReader[k].shape)
+            try:
+                arr = fileReader[k][:,s:s+l].T
+            except:
+                arr = np.array(fileReader[k][s:s+l])[None,:].T
+            # normalize data
+            if self.config.normalize:
+                arr -= self.mean[k]
+                arr /= self.std[k]
+            if s == 0:
+                print('nc_file: ', k, arr.shape)
 
-        y_data   = fileReader[self.varname][:,s:s+l][None].T      # SPDT   K/s     30   dT/dt
+            if self.config.convo and arr.shape[-1] == 1:
+                arr = np.tile(arr, (1,self.Nlevels))
+                #print('nc_file: ', k, arr.shape)
+            inputs += [arr]
+        # input data
+        inX = np.stack(inputs, axis=1) if self.config.convo else np.concatenate(inputs, axis=1)
 
-#        print('PS.shape', PS.shape)
-#        print('PS.shape[None,:]', PS.shape)
-#        print('QAP.shape', QAP.shape)
-#        print('TAP.shape', TAP.shape)
-#        print('OMEGA.shape', OMEGA.shape)
-#        print('SHFLX.shape', SHFLX.shape)
-#        print('LHFLX.shape', LHFLX.shape)
-#        print('y_data.shape', y_data.shape)
-        chan1 = QAP
-        chan2 = TAP
-        chan3 = OMEGA
+        # output data
+        y_data   = fileReader[self.varname][:,s:s+l].T      # SPDT   K/s     30   dT/dt
 
-        chans = np.stack([chan1*1e3, chan2*1e-2, chan3*1e2, chan3*0+PS*1e-4, chan3*0+SHFLX*1e-1, chan3*0+LHFLX*1e-1], axis=2)
-        #print('chans', chans.shape)
-
-        inX = chans#np.concatenate([PS, QAP, TAP, OMEGA, SHFLX, LHFLX], axis=1)
-#        inX = np.transpose(inX)
-#        print('inX.shape', inX.shape)
-
-#        inX    = (inX - self.mean_in) / self.std_in
-        y_data *= 1e4
+        if s == 0:
+            print('y_data.shape', y_data.shape)
+            print('inX.shape', inX.shape)
 
         return inX, y_data
 

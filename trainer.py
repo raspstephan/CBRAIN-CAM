@@ -8,7 +8,6 @@ from glob import glob
 from tqdm import trange
 from itertools import chain
 from collections import deque
-from beholder.beholder import Beholder
 
 from models import *
 
@@ -26,9 +25,9 @@ class Trainer(object):
         print('self.x', self.x)
         print('self.y', self.y)
 
-        self.optimizer = config.optimizer
+        self.optimizer  = config.optimizer
         self.batch_size = config.batch_size
-        self.hidden    = config.hidden
+        self.hidden     = config.hidden
 
         self.step = tf.Variable(0, name='step', trainable=False)
 
@@ -47,7 +46,9 @@ class Trainer(object):
         self.max_step = config.max_step
         self.save_step = config.save_step
         self.lr_update_step = config.lr_update_step
-
+        self.keep_dropout_rate = config.keep_dropout_rate
+        self.act        = config.act
+        
         self.is_train = config.is_train
         with tf.device("/gpu:0" if self.use_gpu else "/cpu:0"):
             self.build_model()
@@ -80,14 +81,12 @@ class Trainer(object):
         g._finalized = False
 
     def train(self):
-        visualizer = Beholder(session=self.sess, logdir='logs')
-
         totStep = 0
         for ep in range(1, self.config.epoch + 1):
             trainBar = trange(self.start_step, self.data_loader.NumBatchTrain)
             for step in trainBar:
                 totStep += 1
-                fetch_dict = {"optim": self.optim}
+                fetch_dict = {"optim": self.optim} # train
                 if step % self.log_step == 0:
                     fetch_dict.update({
                         "summary": self.summary_op,
@@ -106,15 +105,7 @@ class Trainer(object):
                     Rsquared = result['Rsquared']
                     trainBar.set_description("epoch:{:03d}, L:{:.4f}, logL:{:+.3f}, R2:{:+.3f}, q:{:d}, lr:{:.4g}". \
                         format(ep, loss, logloss, Rsquared, self.data_loader.size_op.eval(session=self.sess), self.lr.eval(session=self.sess)))
-                #x = np.stack([np.transpose(self.sess.run(self.x), [2,1,0])], axis=0)
-                #y = np.stack([np.transpose(self.sess.run(self.y), [2,1,0])], axis=0)
-                visuarrs = self.sess.run(self.visuarrs)
-                visualizer.update(arrays=visuarrs, frame=np.concatenate(visuarrs, axis=1))
 
-                #evaluated_tensors = self.sess.run([self.x])
-                #example_frame = np.random.randint(1, 255, (100, 100))
-                #visualizer.update(arrays=evaluated_tensors, frame=example_frame)
-                
                 if totStep % self.lr_update_step == self.lr_update_step - 1:
                     self.sess.run([self.lr_update])
 
@@ -124,7 +115,7 @@ class Trainer(object):
         sleepTime = (self.saveEverySec/2) / numSteps
         print('sleepTime', sleepTime)
         for step in trainBar:
-            fetch_dict = {}
+            fetch_dict = {} # does not train
             if True:#step % self.log_step == 0:
                 fetch_dict.update({
                     "summary": self.summary_op,
@@ -158,38 +149,31 @@ class Trainer(object):
         self.visuarrs += tf.unstack(signLog(self.y, 1), axis=-1)
 
 
-        net = tf.stack([x], axis=2)
+        net = tf.contrib.layers.flatten(x)
         print('net', net)
         nLayPrev = self.data_loader.n_input
         iLay = 0
-        
-        with slim.arg_scope([slim.conv2d], padding='SAME'
-                      #, weights_initializer=tf.truncated_normal_initializer(stddev=0.01)
-                      #, weights_regularizer=slim.l2_regularizer(0.0005)
-                      , normalizer_fn=slim.batch_norm
-                      , normalizer_params={'is_training': self.config.is_train}#, 'decay': 0.9, 'updates_collections': None}
-                      ):
-            for nLay in self.config.hidden.split(','):
-                iLay += 1
-                nLay = int(nLay)
-                net = slim.conv2d(net, nLay, [3, 1], activation_fn=tf.nn.elu)
-                nLayPrev = nLay
-                print('net', net)
-            net = slim.conv2d(net, numChanOut, [5, 1], activation_fn=None)
-            print('net', net)
-        self.pred = tf.reshape(net, y.get_shape())
-        print('self.pred:', self.pred)
+        for nLay in self.config.hidden.split(','):
+            iLay += 1
+            nLay = int(nLay)
+            if(self.act==0): # differnt types of activation functions
+                net = nn_layer(net, nLayPrev, nLay, self.keep_dropout_rate, 'layer'+str(iLay),act=tf.nn.relu)
+            else:
+                net = nn_layer(net, nLayPrev, nLay, self.keep_dropout_rate, 'layer'+str(iLay),act=tf.nn.sigmoid)
+            nLayPrev = nLay
+        pred = nn_layer(net, nLayPrev, self.data_loader.n_output, 1., 'layerout', act=tf.identity)
+        print('pred:', pred)
 
         # Add ops to save and restore all the variables.
         with tf.name_scope('loss'):
-            self.loss = tf.losses.mean_squared_error(y, self.pred)
+            self.loss = tf.losses.mean_squared_error(y, pred)
 
         with tf.name_scope('logloss'):
-            self.logloss = tf.log(self.loss) / tf.log(10.0) # add a tiny bias to avoid numerical error
+            self.logloss = tf.log(self.loss+1.e-20) / tf.log(10.0) # add a tiny bias to avoid numerical error
 
         with tf.name_scope('Rsquared'):
             avgY = tf.reduce_mean(y, axis=0, keep_dims=True) # axis=0 c'est l'axe des samples
-            self.Rsquared = 1 -  tf.losses.mean_squared_error(y, self.pred) /  tf.losses.mean_squared_error(y,tf.ones_like(y) * avgY)
+            self.Rsquared = 1. -  tf.divide(tf.losses.mean_squared_error(y, pred),tf.losses.mean_squared_error(y,tf.ones_like(y) * avgY))
 
         self.summary_op = tf.summary.merge([
             tf.summary.histogram("x", self.x),
@@ -237,7 +221,7 @@ def bias_variable(shape):
   initial = tf.truncated_normal(shape, stddev=1.)
   return tf.Variable(initial)
 
-def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.sigmoid):
+def nn_layer(input_tensor, input_dim, output_dim, keep_dropout_rate, layer_name,  act):
   # Adding a name scope ensures logical grouping of the layers in the graph.
   with tf.name_scope(layer_name):
     # This Variable will hold the state of the weights for the layer
@@ -251,7 +235,11 @@ def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.sigmoid):
       preactivate = tf.matmul(input_tensor, weights) + biases
       tf.summary.histogram('pre_activations', preactivate)
     activations = act(preactivate, name='activation')
+    # apply a dropout
     tf.summary.histogram('activations', activations)
+    if keep_dropout_rate<0.9999:
+        activations = tf.nn.dropout(activations, keep_dropout_rate)
+        tf.summary.histogram('dropout', activations)
     print('layer_name', layer_name)
     print('input_tensor', input_tensor)
     print('input_dim', input_dim, ' output_dim', output_dim)
