@@ -11,6 +11,11 @@ from collections import deque
 
 from models import *
 
+def signLog(a, linearRegion=1):
+    a /= linearRegion
+    return tf.asinh(a/2)/tf.log(10.0)
+    return (tf.log(tf.nn.relu(a)+1) - tf.log(tf.nn.relu(-a)+1)) / np.log(10.0)
+
 class Trainer(object):
     def __init__(self, config, data_loader):
         self.config = config
@@ -23,10 +28,10 @@ class Trainer(object):
         self.optimizer  = config.optimizer
         self.batch_size = config.batch_size
         self.hidden     = config.hidden
-        
+
         self.step = tf.Variable(0, name='step', trainable=False)
 
-        self.lr = tf.Variable(config.lr, name='lr')
+        self.lr = tf.Variable(config.lr, name='lr', trainable=False)
         self.lr_update = tf.assign(self.lr, tf.maximum(self.lr * 0.5, config.lr_lower_boundary), name='lr_update')
 
         self.model_dir = config.model_dir
@@ -50,8 +55,8 @@ class Trainer(object):
 
         self.valStr = '' if config.is_train else '_val'
         self.saver = tf.train.Saver()# if self.is_train else None
-        sumdir = self.model_dir + self.valStr
-        self.summary_writer = tf.summary.FileWriter(sumdir)
+        self.sumdir = self.model_dir + self.valStr
+        self.summary_writer = tf.summary.FileWriter(self.sumdir)
 
         self.saveEverySec = 30
         sv = tf.train.Supervisor(logdir=self.model_dir,
@@ -71,6 +76,9 @@ class Trainer(object):
         # start our custom queue runner's threads
         if True:#self.is_train:
             self.data_loader.start_threads(self.sess)
+        # dirty way to bypass graph finilization error
+        g = tf.get_default_graph()
+        g._finalized = False
 
     def train(self):
         totStep = 0
@@ -134,8 +142,15 @@ class Trainer(object):
         y = self.y
         print('x:', x)
         print('y:', y)
+        numChanOut = y.get_shape().as_list()[-1]
+        print('numChanOut:', numChanOut)
+        self.visuarrs = []
+        self.visuarrs += tf.unstack(signLog(self.x, 1), axis=-1)
+        self.visuarrs += tf.unstack(signLog(self.y, 1), axis=-1)
 
-        net = x
+
+        net = tf.stack([x], axis=2)
+        print('net', net)
         nLayPrev = self.data_loader.n_input
         iLay = 0
         for nLay in self.config.hidden.split(','):
@@ -180,7 +195,11 @@ class Trainer(object):
 
             slim.losses.add_loss(self.loss)
             total_loss = slim.losses.get_total_loss()
-            self.optim = train_op = slim.learning.create_train_op(total_loss, optimizer, global_step=self.step)#optimizer.minimize(self.loss)
+            train_op = slim.learning.create_train_op(total_loss, optimizer, global_step=self.step)#optimizer.minimize(self.loss)
+            
+            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+            with tf.control_dependencies(update_ops):
+                self.optim = train_op
 
 def variable_summaries(var):
   """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""

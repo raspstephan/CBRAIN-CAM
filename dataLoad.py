@@ -88,10 +88,12 @@ class DataLoader:
 
         self.samplesTrain = range(0, self.indexValidation, self.nSampleFetching)
         self.randSamplesTrain = list(self.samplesTrain)
-        random.shuffle(self.randSamplesTrain)
+        if self.config.randomize:
+            random.shuffle(self.randSamplesTrain)
         self.samplesValid = range(self.indexValidation, self.Nsamples, self.nSampleFetching)
         self.randSamplesValid = list(self.samplesValid)
-        random.shuffle(self.randSamplesValid)
+        if self.config.randomize:
+            random.shuffle(self.randSamplesValid)
         self.numFetchesTrain = len(self.randSamplesTrain)
         self.numFetchesValid = len(self.randSamplesValid)
         print('randSamplesTrain', self.randSamplesTrain[:16], self.numFetchesTrain)
@@ -99,10 +101,10 @@ class DataLoader:
         self.posTrain = 0
         self.posValid = 0
 
-        print('n_input=', self.n_input)
-        print('n_output=', self.n_output)
-        self.Xshape = [self.n_input]
-        self.Yshape = [self.n_output]
+        self.Xshape = list(sampX.shape[1:])
+        self.Yshape = list(sampY.shape[1:])
+        print('Xshape', self.Xshape)
+        print('Yshape', self.Yshape)
 
     def __enter__(self):
         return self
@@ -113,8 +115,13 @@ class DataLoader:
         except:
             pass
 
-    def accessData(self, s, l, ithFileReader):
-        fh = self.fileReader[ithFileReader]
+    def accessData(self, s, l, fileReader):
+        QAP      = fileReader['QAP'][:,s:s+l].T       # QAP    kg/kg   30   Specific humidity (after physics)
+        TAP      = fileReader['TAP'][:,s:s+l].T       # TAP    K       30   Temperature (after physics)
+        OMEGA    = fileReader['OMEGA'][:,s:s+l].T     # OMEGA  Pa/s    30   Vertical velocity (pressure)
+        PS       = fileReader['PS'][s:s+l][None].T    # PS     Pa      1    Surface pressure
+        SHFLX    = fileReader['SHFLX'][s:s+l][None].T # SHFLX  W/m2    1    Surface sensible heat flux
+        LHFLX    = fileReader['LHFLX'][s:s+l][None].T # LHFLX  W/m2    1    Surface latent heat flux
 
         QAP      = fh['QAP'][:,s:s+l]       # QAP    kg/kg   30   Specific humidity (after physics)
         TAP      = fh['TAP'][:,s:s+l]       # TAP    K       30   Temperature (after physics)
@@ -146,7 +153,7 @@ class DataLoader:
         LHFLX    = (LHFLX - self.mean_LHFLX) / self.std_LHFLX
 
         # output data
-        y_data   = fh[self.varname][:,s:s+l] / self.max_ydata     # SPDT   K/s     30   dT/dt, normalized
+        y_data   = fileReader[self.varname][:,s:s+l][None].T      # SPDT   K/s     30   dT/dt
 
 #        print('PS.shape', PS.shape)
 #        print('PS.shape[None,:]', PS.shape)
@@ -156,6 +163,13 @@ class DataLoader:
 #        print('SHFLX.shape', SHFLX.shape)
 #        print('LHFLX.shape', LHFLX.shape)
 #        print('y_data.shape', y_data.shape)
+        chan1 = QAP
+        chan2 = TAP
+        chan3 = OMEGA
+
+        chans = np.stack([chan1*1e3, chan2*1e-2, chan3*1e2, chan3*0+PS*1e-4, chan3*0+SHFLX*1e-1, chan3*0+LHFLX*1e-1], axis=2)
+        #print('chans', chans.shape)
+
 
 #inX = np.concatenate([PS, SHFLX, LHFLX, QAP, TAP, OMEGA, dTdt_adiabatic, dQdt_adiabatic, QRS, QRL, GRAD_UQ_H, UBSP, VBSP], axis=0)
 #inX = np.concatenate([PS, SHFLX, LHFLX, QAP, TAP, OMEGA, dTdt_adiabatic, dQdt_adiabatic, QRS, QRL, GRAD_UQ_H], axis=0)
@@ -177,14 +191,14 @@ class DataLoader:
         self.posTrain += 1
         self.posTrain %= self.numFetchesTrain
 #        self.lock.release()
-        x,y = self.accessData(s, self.nSampleFetching, ithFileReader)
+        x,y = self.accessData(s, self.nSampleFetching, self.fileReader[ithFileReader])
         return x,y
 
     def sampleValid(self, ithFileReader):
         s = self.randSamplesValid[self.posValid]
         self.posValid += 1
         self.posValid %= self.numFetchesValid
-        x,y = self.accessData(s, self.nSampleFetching, ithFileReader)
+        x,y = self.accessData(s, self.nSampleFetching, self.fileReader[ithFileReader])
         return x,y
 
     def data_iterator(self, ithFileReader):
@@ -200,10 +214,16 @@ class DataLoader:
             self.dataY = tf.placeholder(dtype=tf.float32, shape=[None]+self.Yshape)
 
             self.capacityTrain = max(self.nSampleFetching * 32, self.batchSize * 8) if self.config.is_train else self.batchSize
-            self.queue = tf.RandomShuffleQueue(shapes=[self.Xshape, self.Yshape],
+            if self.config.randomize:
+                self.queue = tf.RandomShuffleQueue(shapes=[self.Xshape, self.Yshape],
                                                dtypes=[tf.float32, tf.float32],
                                                capacity=self.capacityTrain,
                                                min_after_dequeue=self.capacityTrain // 2
+                                               )
+            else:
+                self.queue = tf.FIFOQueue(shapes=[self.Xshape, self.Yshape],
+                                               dtypes=[tf.float32, tf.float32],
+                                               capacity=self.capacityTrain
                                                )
             self.enqueue_op = self.queue.enqueue_many([self.dataX, self.dataY])
             self.size_op = self.queue.size()
