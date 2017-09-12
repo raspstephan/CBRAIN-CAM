@@ -24,40 +24,40 @@ class DataLoader:
     def reload(self, finishedEpoch = 0):
         # need to retrieve mean and standard deviation of the full dataset first
         print("Reading Netcdfs mean and std for Normalization")
-        fh = h5py.File(nc_mean_file, mode='r')
-        self.mean_QAP   = np.transpose(fh['QAP'][:][None])
-        self.mean_TAP   = np.transpose(fh['TAP'][:][None])
-        self.mean_OMEGA = np.transpose(fh['OMEGA'][:][None])
-        #self.mean_UBSP  = np.transpose(fh['UBSP'][:][None])
-        #self.mean_VBSP  = np.transpose(fh['VBSP'][:][None])
-        #self.mean_PS    = fh['PS'][()]
-        self.mean_SHFLX = fh['SHFLX'][()]
-        self.mean_LHFLX = fh['LHFLX'][()]
-        #self.mean_dTdt_adiabatic = np.transpose(fh['dTdt_adiabatic'][:][None])
-        #self.mean_dQdt_adiabatic = np.transpose(fh['dQdt_adiabatic'][:][None])
-        self.mean_GRAD_UQ_H = np.transpose(fh['GRAD_UQ_H'][:][None])
-        #self.mean_QRS = np.transpose(fh['QRS'][:][None])
-        #self.mean_QRL = np.transpose(fh['QRL'][:][None])
-        fh.close()
-        fh = h5py.File(nc_std_file, mode='r')
-        self.std_QAP   = np.transpose(fh['QAP'][:][None])
-        self.std_TAP   = np.transpose(fh['TAP'][:][None])
-        self.std_OMEGA = np.transpose(fh['OMEGA'][:][None])
-        #self.std_UBSP  = np.transpose(fh['UBSP'][:][None])
-        #self.std_VBSP  = np.transpose(fh['VBSP'][:][None])
-        #self.std_PS    = fh['PS'][()]
-        self.std_SHFLX = fh['SHFLX'][()]
-        self.std_LHFLX = fh['LHFLX'][()]
-        #self.std_dTdt_adiabatic = np.transpose(fh['dTdt_adiabatic'][:][None])
-        #self.std_dQdt_adiabatic = np.transpose(fh['dQdt_adiabatic'][:][None])
-        self.std_GRAD_UQ_H = np.transpose(fh['GRAD_UQ_H'][:][None])
-        #self.std_QRS = np.transpose(fh['QRS'][:][None])
-        #self.std_QRL = np.transpose(fh['QRL'][:][None])
-        fh.close()
+        with h5py.File(nc_mean_file, mode='r') as fh:
+            print('nc_mean_file', [k for k in fh.keys()])
+            self.mean_QAP   = np.transpose(fh['QAP'][:][None])
+            self.mean_TAP   = np.transpose(fh['TAP'][:][None])
+            self.mean_OMEGA = np.transpose(fh['OMEGA'][:][None])
+            #self.mean_UBSP  = np.transpose(fh['UBSP'][:][None])
+            #self.mean_VBSP  = np.transpose(fh['VBSP'][:][None])
+            #self.mean_PS    = fh['PS'][()]
+            self.mean_SHFLX = fh['SHFLX'][()]
+            self.mean_LHFLX = fh['LHFLX'][()]
+            #self.mean_dTdt_adiabatic = np.transpose(fh['dTdt_adiabatic'][:][None])
+            #self.mean_dQdt_adiabatic = np.transpose(fh['dQdt_adiabatic'][:][None])
+            self.mean_GRAD_UQ_H = np.transpose(fh['GRAD_UQ_H'][:][None])
+            #self.mean_QRS = np.transpose(fh['QRS'][:][None])
+            #self.mean_QRL = np.transpose(fh['QRL'][:][None])
+        with h5py.File(nc_std_file, mode='r') as fh:
+            print('nc_std_file', [k for k in fh.keys()])
+            self.std_QAP   = np.transpose(fh['QAP'][:][None])
+            self.std_TAP   = np.transpose(fh['TAP'][:][None])
+            self.std_OMEGA = np.transpose(fh['OMEGA'][:][None])
+            #self.std_UBSP  = np.transpose(fh['UBSP'][:][None])
+            #self.std_VBSP  = np.transpose(fh['VBSP'][:][None])
+            #self.std_PS    = fh['PS'][()]
+            self.std_SHFLX = fh['SHFLX'][()]
+            self.std_LHFLX = fh['LHFLX'][()]
+            #self.std_dTdt_adiabatic = np.transpose(fh['dTdt_adiabatic'][:][None])
+            #self.std_dQdt_adiabatic = np.transpose(fh['dQdt_adiabatic'][:][None])
+            self.std_GRAD_UQ_H = np.transpose(fh['GRAD_UQ_H'][:][None])
+            #self.std_QRS = np.transpose(fh['QRS'][:][None])
+            #self.std_QRL = np.transpose(fh['QRL'][:][None])
  
-        fh = h5py.File(nc_max_file, mode='r') # normalize outputs to be between -1 and 1
-        self.max_ydata = fh[self.varname][()]
-        fh.close()
+        with h5py.File(nc_max_file, mode='r') as fh: # normalize outputs to be between -1 and 1
+            print('nc_max_file', [k for k in fh.keys()])
+            self.max_ydata = fh[self.varname][()]
         
         print("End Reading Netcdfs for Normalization")
         try:
@@ -67,16 +67,15 @@ class DataLoader:
             pass
         print("batchSize = ", self.batchSize)
 
-        fh = h5py.File(nc_file, mode='r')
-        self.Nsamples = fh['PS'][:].shape[0]
-        print('Nsamples =', self.Nsamples)
-        Nlevels      = self.mean_QAP.shape[0]
-        print('Nlevels = ', Nlevels)
-        self.n_input = 4*Nlevels + 2  # number of levels plus three surface data (PS, SHFLX, LHFLX)
-        self.n_output = fh[self.varname][:].shape[0] # remove first 9 indices
-        print('n_input = ', self.n_input)
-        print('n_output = ', self.n_output)
-        fh.close()
+        with h5py.File(nc_file, mode='r') as fh:
+            self.Nsamples = fh['PS'][:].shape[0]
+            print('Nsamples =', self.Nsamples)
+            Nlevels      = self.mean_QAP.shape[0]
+            print('Nlevels = ', Nlevels)
+            self.n_input = 4*Nlevels + 2  # number of levels plus three surface data (PS, SHFLX, LHFLX)
+            self.n_output = fh[self.varname][:].shape[0] # remove first 9 indices
+            print('n_input = ', self.n_input)
+            print('n_output = ', self.n_output)
 
         self.NumBatch = self.Nsamples // self.config.batch_size
         self.NumBatchTrain = int(self.Nsamples * self.config.frac_train) // self.batchSize
