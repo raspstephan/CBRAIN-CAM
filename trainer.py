@@ -9,6 +9,9 @@ from tqdm import trange
 from itertools import chain
 from collections import deque
 
+from yellowfin import YFOptimizer
+from beholder.beholder import Beholder
+
 from models import *
 
 def signLog(a, linearRegion=1):
@@ -50,8 +53,20 @@ class Trainer(object):
         self.act        = config.act
         
         self.is_train = config.is_train
-        with tf.device("/gpu:0" if self.use_gpu else "/cpu:0"):
+        #with tf.device("/gpu:0" if self.use_gpu else "/cpu:0"):
+        if self.config.convo:
+            self.build_model_convo()
+        else:
             self.build_model()
+
+        self.visuarrs = []
+        self.visuarrs += [self.x]#tf.unstack(signLog(self.x, 1), axis=-1)
+        self.visuarrs += [self.y]#tf.unstack(signLog(self.y, 1), axis=-1)
+        self.visuarrs += tf.unstack(signLog(self.x[:,:,0], 1), axis=-1)
+        self.visuarrs += tf.unstack(signLog(self.y[:,:,0], 1), axis=-1)
+        self.visuarrs += tf.unstack(signLog(self.pred[:,:,0], 1), axis=-1)
+
+        self.build_trainop()
 
         self.valStr = '' if config.is_train else '_val'
         self.saver = tf.train.Saver()# if self.is_train else None
@@ -81,6 +96,7 @@ class Trainer(object):
         g._finalized = False
 
     def train(self):
+        visualizer = Beholder(session=self.sess, logdir='logs')
         totStep = 0
         for ep in range(1, self.config.epoch + 1):
             trainBar = trange(self.start_step, self.data_loader.NumBatchTrain)
@@ -105,6 +121,9 @@ class Trainer(object):
                     Rsquared = result['Rsquared']
                     trainBar.set_description("epoch:{:03d}, L:{:.4f}, logL:{:+.3f}, R2:{:+.3f}, q:{:d}, lr:{:.4g}". \
                         format(ep, loss, logloss, Rsquared, self.data_loader.size_op.eval(session=self.sess), self.lr.eval(session=self.sess)))
+
+                visuarrs = self.sess.run(self.visuarrs)
+                visualizer.update(arrays=visuarrs)#, frame=np.concatenate(visuarrs, axis=1))
 
                 if totStep % self.lr_update_step == self.lr_update_step - 1:
                     self.sess.run([self.lr_update])
@@ -139,15 +158,7 @@ class Trainer(object):
 
     def build_model(self):
         x = self.x
-        y = self.y
         print('x:', x)
-        print('y:', y)
-        numChanOut = y.get_shape().as_list()[-1]
-        print('numChanOut:', numChanOut)
-        self.visuarrs = []
-        self.visuarrs += tf.unstack(signLog(self.x, 1), axis=-1)
-        self.visuarrs += tf.unstack(signLog(self.y, 1), axis=-1)
-
 
         net = tf.contrib.layers.flatten(x)
         print('net', net)
@@ -161,19 +172,46 @@ class Trainer(object):
             else:
                 net = nn_layer(net, nLayPrev, nLay, self.keep_dropout_rate, 'layer'+str(iLay),act=tf.nn.sigmoid)
             nLayPrev = nLay
-        pred = nn_layer(net, nLayPrev, self.data_loader.n_output, 1., 'layerout', act=tf.identity)
-        print('pred:', pred)
+
+        self.pred = nn_layer(net, nLayPrev, self.data_loader.n_output, 1., 'layerout', act=tf.identity)
+
+    def build_model_convo(self):
+        x = self.x
+        print('x:', x)
+
+        x = ZeroPadding2D((1,0))(x)
+        print('x:', x)
+        x = LocallyConnected2D(128, (3,1), padding='valid')(x)
+        print('x:', x)
+        x = ZeroPadding2D((1,0))(x)
+        print('x:', x)
+        x = LocallyConnected2D(1, (3,1), padding='valid')(x)
+        print('x:', x)
+
+        self.pred = x#tf.reshape(x, self.y.get_shape())
+
+    def build_trainop(self):
+        y = self.y
+        print('y:', y)
+        numChanOut = y.get_shape().as_list()[-1]
+        print('numChanOut:', numChanOut)
+
+        print('self.pred:', self.pred)
 
         # Add ops to save and restore all the variables.
         with tf.name_scope('loss'):
-            self.loss = tf.losses.mean_squared_error(y, pred)
+            self.loss = tf.losses.mean_squared_error(y, self.pred)
 
         with tf.name_scope('logloss'):
             self.logloss = tf.log(self.loss+1.e-20) / tf.log(10.0) # add a tiny bias to avoid numerical error
 
         with tf.name_scope('Rsquared'):
             avgY = tf.reduce_mean(y, axis=0, keep_dims=True) # axis=0 c'est l'axe des samples
-            self.Rsquared = 1. -  tf.divide(tf.losses.mean_squared_error(y, pred),tf.losses.mean_squared_error(y,tf.ones_like(y) * avgY))
+            print('avgY', avgY)
+            self.Rsquared = 1. -  tf.divide(
+                                        tf.losses.mean_squared_error(y, self.pred), 
+                                        tf.losses.mean_squared_error(y, avgY * tf.ones_like(y)))
+            print('self.Rsquared', self.Rsquared)
 
         self.summary_op = tf.summary.merge([
             tf.summary.histogram("x", self.x),
@@ -188,6 +226,8 @@ class Trainer(object):
                 optimizer = tf.train.AdamOptimizer
             elif self.optimizer == 'sgd':
                 optimizer = tf.train.GradientDescentOptimizer
+            elif self.optimizer == 'yf':
+                optimizer = YFOptimizer
             else:
                 raise Exception("[!] Caution! Paper didn't use {} opimizer other than Adam".format(config.optimizer))
 
