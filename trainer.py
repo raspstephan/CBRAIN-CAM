@@ -59,12 +59,13 @@ class Trainer(object):
         else:
             self.build_model()
 
+        Xhb1c = tf.transpose(self.x[:,::-1,0,:], [1,0,2])
+        Yhb1c = tf.transpose(self.y[:,::-1,0,:], [1,0,2])
+        Phb1c = tf.transpose(self.pred[:,:,0,:], [1,0,2])
         self.visuarrs = []
-        self.visuarrs += [self.x]#tf.unstack(signLog(self.x, 1), axis=-1)
-        self.visuarrs += [self.y]#tf.unstack(signLog(self.y, 1), axis=-1)
-        self.visuarrs += tf.unstack(signLog(self.x[:,:,0], 1), axis=-1)
-        self.visuarrs += tf.unstack(signLog(self.y[:,:,0], 1), axis=-1)
-        self.visuarrs += tf.unstack(signLog(self.pred[:,:,0], 1), axis=-1)
+        self.visuarrs += tf.unstack(Xhb1c, axis=-1)[:-2]
+        self.visuarrs += tf.unstack(Yhb1c, axis=-1)
+        #self.visuarrs += tf.unstack(Phb1c, axis=-1)
 
         self.build_trainop()
 
@@ -73,7 +74,7 @@ class Trainer(object):
         self.sumdir = self.model_dir + self.valStr
         self.summary_writer = tf.summary.FileWriter(self.sumdir)
 
-        self.saveEverySec = 30
+        self.saveEverySec = 300
         sv = tf.train.Supervisor(logdir=self.model_dir,
                                 is_chief=True,
                                 saver=self.saver,
@@ -100,9 +101,11 @@ class Trainer(object):
         totStep = 0
         for ep in range(1, self.config.epoch + 1):
             trainBar = trange(self.start_step, self.data_loader.NumBatchTrain)
+            #for i in range(22):self.sess.run(self.visuarrs)
             for step in trainBar:
                 totStep += 1
-                fetch_dict = {"optim": self.optim} # train
+                fetch_dict = {"optim": self.optim,
+                        "visuarrs": self.visuarrs} # train
                 if step % self.log_step == 0:
                     fetch_dict.update({
                         "summary": self.summary_op,
@@ -122,8 +125,10 @@ class Trainer(object):
                     trainBar.set_description("epoch:{:03d}, L:{:.4f}, logL:{:+.3f}, R2:{:+.3f}, q:{:d}, lr:{:.4g}". \
                         format(ep, loss, logloss, Rsquared, self.data_loader.size_op.eval(session=self.sess), self.lr.eval(session=self.sess)))
 
-                visuarrs = self.sess.run(self.visuarrs)
+                visuarrs = result['visuarrs']#self.sess.run(self.visuarrs)
                 visualizer.update(arrays=visuarrs)#, frame=np.concatenate(visuarrs, axis=1))
+                for i in range(63+0*step//100):self.sess.run(self.visuarrs)
+                #time.sleep(0.1)
 
                 if totStep % self.lr_update_step == self.lr_update_step - 1:
                     self.sess.run([self.lr_update])
