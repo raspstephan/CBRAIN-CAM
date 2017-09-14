@@ -61,7 +61,7 @@ class DataLoader:
 
         with h5py.File(nc_file, mode='r') as fh:
             for k in fh.keys():
-                print('nc_file: ', k, fh[k].shape)
+                print('nc_file: ', k, fh[k].shape)#, fh[k][0], ' --> ', fh[k][-1])
             self.Nsamples = fh['PS'].shape[0]
             print('Nsamples =', self.Nsamples)
             self.Nlevels      = self.mean['QAP'].shape[1]
@@ -136,7 +136,7 @@ class DataLoader:
         # input output data
         if self.config.convo:
             inX = np.stack(inputs, axis=-1) #[b,z,1,c]
-            y_data   = fileReader[self.varname][:,s:s+l].T[:,:,None,None]      # SPDT   K/s     30   dT/dt
+            y_data   = fileReader[self.varname][:,s:s+l].T[:,::-1,None,None]      # SPDT   K/s     30   dT/dt
         else: # make a soup of numbers
             inX = np.concatenate(inputs, axis=-1) #[b,cc]
             y_data   = fileReader[self.varname][:,s:s+l].T      # SPDT   K/s     30   dT/dt
