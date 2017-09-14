@@ -1,11 +1,12 @@
 #-*- coding: utf-8 -*-
 import argparse
+import configargparse
 
 def str2bool(v):
     return v.lower() in ('true', '1')
 
 arg_lists = []
-parser = argparse.ArgumentParser()
+parser = configargparse.ArgParser()
 
 def add_argument_group(name):
     arg = parser.add_argument_group(name)
@@ -25,6 +26,9 @@ data_arg.add_argument('--batch_size', type=int, default=1024)
 data_arg.add_argument('--frac_train', type=float, default=0.8)
 data_arg.add_argument('--local', type=str2bool, default=False)
 data_arg.add_argument('--epoch', type=int, default=8)
+data_arg.add_argument('--randomize', type=str2bool, default=True)
+data_arg.add_argument('--normalize', type=str2bool, default=True)
+data_arg.add_argument('--convo', type=str2bool, default=False)
 
 # Training / test parameters
 train_arg = add_argument_group('Training')
