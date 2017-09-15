@@ -15,11 +15,13 @@ slim = tf.contrib.slim
 import keras.backend as K
 from keras.layers import (Input, Dense, Reshape, Flatten, Lambda, merge,
                           Dropout, BatchNormalization, Activation, Embedding)
-from keras.layers.advanced_activations import LeakyReLU
+from keras.layers.advanced_activations import LeakyReLU, ELU
 from keras.layers.convolutional import (UpSampling2D, Conv2D, ZeroPadding2D,
                                         AveragePooling2D)
 from keras.layers.local import LocallyConnected2D
 
 from keras.models import Model, Sequential
+from keras.losses import mean_absolute_percentage_error, mean_squared_logarithmic_error
+
 from keras.optimizers import Adam
 

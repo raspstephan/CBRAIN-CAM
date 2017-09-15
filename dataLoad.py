@@ -15,7 +15,7 @@ class DataLoader:
     def __init__(self, folderPath, config):
         self.config = config
         self.batchSize = config.batch_size
-        self.nSampleFetching = 1024
+        self.nSampleFetching = 1028#1024 * 4
         self.varname = config.dataset
         self.fileReader = []
         self.lock = threading.Lock()
@@ -136,7 +136,7 @@ class DataLoader:
         # input output data
         if self.config.convo:
             inX = np.stack(inputs, axis=-1) #[b,z,1,c]
-            y_data   = fileReader[self.varname][:,s:s+l].T[:,::-1,None,None]      # SPDT   K/s     30   dT/dt
+            y_data   = fileReader[self.varname][:,s:s+l].T[:,:,None,None]      # SPDT   K/s     30   dT/dt
         else: # make a soup of numbers
             inX = np.concatenate(inputs, axis=-1) #[b,cc]
             y_data   = fileReader[self.varname][:,s:s+l].T      # SPDT   K/s     30   dT/dt

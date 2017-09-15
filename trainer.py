@@ -59,15 +59,17 @@ class Trainer(object):
         else:
             self.build_model()
 
+        self.build_trainop()
+
         Xhb1c = tf.transpose(self.x[:,::-1,0,:], [1,0,2])
         Yhb1c = tf.transpose(self.y[:,::-1,0,:], [1,0,2])
-        Phb1c = tf.transpose(self.pred[:,:,0,:], [1,0,2])
+        Phb1c = tf.transpose(self.pred[:,::-1,0,:], [1,0,2])
+        Lhb1c = tf.transpose(self.losses[:,::-1,:], [1,0,2])
         self.visuarrs = []
-        self.visuarrs += tf.unstack(Xhb1c, axis=-1)[:-2]
+        self.visuarrs += tf.unstack(Xhb1c, axis=-1)
         self.visuarrs += tf.unstack(Yhb1c, axis=-1)
-        #self.visuarrs += tf.unstack(Phb1c, axis=-1)
-
-        self.build_trainop()
+        self.visuarrs += tf.unstack(Phb1c, axis=-1)
+        self.visuarrs += tf.unstack(Lhb1c, axis=-1)
 
         self.valStr = '' if config.is_train else '_val'
         self.saver = tf.train.Saver()# if self.is_train else None
@@ -101,7 +103,7 @@ class Trainer(object):
         totStep = 0
         for ep in range(1, self.config.epoch + 1):
             trainBar = trange(self.start_step, self.data_loader.NumBatchTrain)
-            #for i in range(22):self.sess.run(self.visuarrs)
+            for i in range(70):self.sess.run(self.visuarrs)
             for step in trainBar:
                 totStep += 1
                 fetch_dict = {"optim": self.optim,
@@ -127,7 +129,10 @@ class Trainer(object):
 
                 visuarrs = result['visuarrs']#self.sess.run(self.visuarrs)
                 visualizer.update(arrays=visuarrs)#, frame=np.concatenate(visuarrs, axis=1))
-                for i in range(63+0*step//100):self.sess.run(self.visuarrs)
+                for i in range(63+0*step//1000):
+                    self.sess.run(self.x)
+                #if step % 100 == 0:
+                #    self.sess.run(self.visuarrs)
                 #time.sleep(0.1)
 
                 if totStep % self.lr_update_step == self.lr_update_step - 1:
@@ -184,13 +189,17 @@ class Trainer(object):
         x = self.x
         print('x:', x)
 
+        x = Conv2D(16, (3,1), padding='same', data_format='channels_last')(x)
+        x = LeakyReLU()(x)
+        for i in range(4):
+            x = ZeroPadding2D((1,0))(x)
+            print('x:', x)
+            x = Conv2D(16, (3,1), padding='valid', data_format='channels_last')(x)
+            x = LeakyReLU()(x)
+        print('x:', x)
         x = ZeroPadding2D((1,0))(x)
         print('x:', x)
-        x = LocallyConnected2D(128, (3,1), padding='valid')(x)
-        print('x:', x)
-        x = ZeroPadding2D((1,0))(x)
-        print('x:', x)
-        x = LocallyConnected2D(1, (3,1), padding='valid')(x)
+        x = Conv2D(1, (3,1), padding='valid', data_format='channels_last')(x)
         print('x:', x)
 
         self.pred = x#tf.reshape(x, self.y.get_shape())
@@ -200,12 +209,13 @@ class Trainer(object):
         print('y:', y)
         numChanOut = y.get_shape().as_list()[-1]
         print('numChanOut:', numChanOut)
-
         print('self.pred:', self.pred)
 
         # Add ops to save and restore all the variables.
         with tf.name_scope('loss'):
-            self.loss = tf.losses.mean_squared_error(y, self.pred)
+            self.losses = mean_squared_logarithmic_error(y, self.pred)
+        print('self.loss:', self.losses)
+        self.loss = tf.reduce_mean(self.losses)
 
         with tf.name_scope('logloss'):
             self.logloss = tf.log(self.loss+1.e-20) / tf.log(10.0) # add a tiny bias to avoid numerical error
