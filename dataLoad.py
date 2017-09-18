@@ -135,7 +135,10 @@ class DataLoader:
         inX = np.stack(inputs, axis=1) if self.config.convo else np.concatenate(inputs, axis=1)
 
         # output data
-        y_data   = fileReader[self.varname][:,s:s+l].T      # SPDT   K/s     30   dT/dt
+        try:
+            y_data = fileReader[k][:,s:s+l].T
+        except:
+            y_data = np.array(fileReader[k][s:s+l])[None,:].T
 
         if s == 0:
             print('y_data.shape', y_data.shape)
