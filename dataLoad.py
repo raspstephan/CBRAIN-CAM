@@ -19,7 +19,7 @@ class DataLoader:
         self.varname = config.dataset
         self.fileReader = []
         self.lock = threading.Lock()
-        self.inputNames = ['QAP', 'TAP', 'OMEGA', 'GRAD_UQ_H', 'SHFLX', 'LHFLX']
+        self.inputNames = config.input_names
         self.reload()
 
     def reload(self, finishedEpoch = 0):
@@ -43,13 +43,13 @@ class DataLoader:
                     self.std[k] = np.array(fh[k])[None]
                 print('nc_std_file: ', k, self.std[k].shape)#, self.std[k])
  
-        with h5py.File(nc_max_file, mode='r') as fh: # normalize outputs to be between -1 and 1
-            for k in fh.keys():
-                try:
-                    self.max[k] = fh[k][None,:]
-                except:
-                    self.max[k] = np.array(fh[k])[None]
-                print('nc_max_file: ', k, self.max[k].shape)#, self.max[k])
+        #with h5py.File(nc_max_file, mode='r') as fh: # normalize outputs to be between -1 and 1
+        #    for k in fh.keys():
+        #        try:
+        #            self.max[k] = fh[k][None,:]
+        #        except:
+        #            self.max[k] = np.array(fh[k])[None]
+        #        print('nc_max_file: ', k, self.max[k].shape)#, self.max[k])
         
         print("End Reading Netcdfs for Normalization")
         try:
@@ -67,8 +67,8 @@ class DataLoader:
             self.Nlevels      = self.mean['QAP'].shape[1]
             print('Nlevels = ', self.Nlevels)
             sampX, sampY = self.accessData(0, self.nSampleFetching, fh)
-            self.n_input = 4*self.Nlevels + 2  # number of levels plus three surface data (PS, SHFLX, LHFLX)
-            self.n_output = fh[self.varname][:].shape[0] # remove first 9 indices
+            self.n_input = sampX.shape[1] # number of inputs 
+            self.n_output = sampY.shape[1] # number of outputs 
             print('sampX = ', sampX.shape)
             print('sampY = ', sampY.shape)
             print('n_input = ', self.n_input)
@@ -135,11 +135,26 @@ class DataLoader:
         inX = np.stack(inputs, axis=1) if self.config.convo else np.concatenate(inputs, axis=1)
 
         # output data
-        try:
+        try: 
             y_data = fileReader[k][:,s:s+l].T
         except:
             y_data = np.array(fileReader[k][s:s+l])[None,:].T
-
+            
+        # remove any rows with NaNs
+        tmp = inX
+        inX = np.empty((0,tmp.shape[1]), float)
+        y_data_good = np.empty((0,1), float)
+        i     = 0
+        for row in tmp:
+            test = np.isnan(row).any()
+            if(not test):
+                inX = np.vstack([inX, row])
+                y_data_good = np.vstack([y_data_good, y_data[i]])
+            i += 1
+        y_data = y_data_good
+        #inX = np.transpose(inX)
+        print('inX.shape', inX.shape)
+        
         if s == 0:
             print('y_data.shape', y_data.shape)
             print('inX.shape', inX.shape)

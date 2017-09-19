@@ -25,10 +25,12 @@ data_arg.add_argument('--dataset', type=str, default='SPDT', help='names of trai
 data_arg.add_argument('--batch_size', type=int, default=1024)
 data_arg.add_argument('--frac_train', type=float, default=0.8)
 data_arg.add_argument('--local', type=str2bool, default=False)
-data_arg.add_argument('--epoch', type=int, default=8)
+data_arg.add_argument('--epoch', type=int, default=200)
 data_arg.add_argument('--randomize', type=str2bool, default=True)
 data_arg.add_argument('--normalize', type=str2bool, default=True)
 data_arg.add_argument('--convo', type=str2bool, default=False)
+data_arg.add_argument('--input_names', type=str, default=['TAP', 'QAP', 'OMEGA', 'SHFLX', 'LHFLX'])
+
 
 # Training / test parameters
 train_arg = add_argument_group('Training')

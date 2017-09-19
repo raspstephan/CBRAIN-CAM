@@ -172,8 +172,11 @@ class Trainer(object):
             self.logloss = tf.log(self.loss+1.e-20) / tf.log(10.0) # add a tiny bias to avoid numerical error
 
         with tf.name_scope('Rsquared'):
-            avgY = tf.reduce_mean(y, axis=0, keep_dims=True) # axis=0 c'est l'axe des samples
-            self.Rsquared = 1. -  tf.divide(tf.losses.mean_squared_error(y, pred),tf.losses.mean_squared_error(y,tf.ones_like(y) * avgY))
+            total_error = tf.reduce_sum(tf.square(tf.subtract(y, tf.reduce_mean(y))))
+            unexplained_error = tf.reduce_sum(tf.square(tf.subtract(y, pred)))
+            self.Rsquared  = tf.subtract(1., tf.divide(unexplained_error, total_error))
+            #avgY = tf.reduce_mean(y, axis=0, keep_dims=True) # axis=0 is sample axis
+            #self.Rsquared = tf.subtract(1. ,tf.divide(tf.losses.mean_squared_error(y, pred),tf.losses.mean_squared_error(y,tf.ones_like(y) * avgY)))
 
         self.summary_op = tf.summary.merge([
             tf.summary.histogram("x", self.x),
