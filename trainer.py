@@ -9,8 +9,11 @@ from tqdm import trange
 from itertools import chain
 from collections import deque
 
-from yellowfin import YFOptimizer
-from beholder.beholder import Beholder
+try:
+	from beholder.beholder import Beholder
+	from yellowfin import YFOptimizer
+except:
+	pass
 
 from models import *
 
@@ -99,15 +102,18 @@ class Trainer(object):
         g._finalized = False
 
     def train(self):
-        visualizer = Beholder(session=self.sess, logdir='logs')
+        try:
+            visualizer = Beholder(session=self.sess, logdir='logs')
+        except:
+            pass
         totStep = 0
         for ep in range(1, self.config.epoch + 1):
             trainBar = trange(self.start_step, self.data_loader.NumBatchTrain)
-            for i in range(70):self.sess.run(self.visuarrs)
+            #for i in range(70): self.sess.run(self.visuarrs)
             for step in trainBar:
                 totStep += 1
                 fetch_dict = {"optim": self.optim,
-                        "visuarrs": self.visuarrs} # train
+                        "visuarrs": self.visuarrs}
                 if step % self.log_step == 0:
                     fetch_dict.update({
                         "summary": self.summary_op,
@@ -128,9 +134,11 @@ class Trainer(object):
                         format(ep, loss, logloss, Rsquared, self.data_loader.size_op.eval(session=self.sess), self.lr.eval(session=self.sess)))
 
                 visuarrs = result['visuarrs']#self.sess.run(self.visuarrs)
-                visualizer.update(arrays=visuarrs)#, frame=np.concatenate(visuarrs, axis=1))
-                for i in range(63+0*step//1000):
-                    self.sess.run(self.x)
+                try:
+                    visualizer.update(arrays=visuarrs)#, frame=np.concatenate(visuarrs, axis=1))
+                except:
+                    pass
+                #for i in range(63+0*step//1000): self.sess.run(self.x)
                 #if step % 100 == 0:
                 #    self.sess.run(self.visuarrs)
                 #time.sleep(0.1)
@@ -221,12 +229,16 @@ class Trainer(object):
             self.logloss = tf.log(self.loss+1.e-20) / tf.log(10.0) # add a tiny bias to avoid numerical error
 
         with tf.name_scope('Rsquared'):
-            avgY = tf.reduce_mean(y, axis=0, keep_dims=True) # axis=0 c'est l'axe des samples
+            total_error = tf.reduce_sum(tf.square(tf.subtract(y, tf.reduce_mean(y))))
+            unexplained_error = tf.reduce_sum(tf.square(tf.subtract(y, self.pred)))
+            self.Rsquared  = tf.subtract(1., tf.divide(unexplained_error, total_error))
+            print('self.Rsquared', self.Rsquared)
+            avgY = tf.reduce_mean(y, axis=0, keep_dims=True) # axis=0 is sample axis
             print('avgY', avgY)
-            self.Rsquared = 1. -  tf.divide(
+            self.OtherRsquared = 1.0 -  tf.divide(
                                         tf.losses.mean_squared_error(y, self.pred), 
                                         tf.losses.mean_squared_error(y, avgY * tf.ones_like(y)))
-            print('self.Rsquared', self.Rsquared)
+            print('self.OtherRsquared', self.OtherRsquared)
 
         self.summary_op = tf.summary.merge([
             tf.summary.histogram("x", self.x),

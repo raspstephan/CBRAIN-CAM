@@ -15,11 +15,11 @@ class DataLoader:
     def __init__(self, folderPath, config):
         self.config = config
         self.batchSize = config.batch_size
-        self.nSampleFetching = 1028#1024 * 4
+        self.nSampleFetching = 1024
         self.varname = config.dataset
         self.fileReader = []
         self.lock = threading.Lock()
-        self.inputNames = ['QAP', 'TAP', 'OMEGA', 'GRAD_UQ_H', 'SHFLX', 'LHFLX']
+        self.inputNameList = self.config.input_names.split(',')
         self.reload()
 
     def reload(self, finishedEpoch = 0):
@@ -43,13 +43,13 @@ class DataLoader:
                     self.std[k] = np.array(fh[k])[None]
                 print('nc_std_file: ', k, self.std[k].shape)#, self.std[k])
  
-        with h5py.File(nc_max_file, mode='r') as fh: # normalize outputs to be between -1 and 1
-            for k in fh.keys():
-                try:
-                    self.max[k] = fh[k][None,:]
-                except:
-                    self.max[k] = np.array(fh[k])[None]
-                print('nc_max_file: ', k, self.max[k].shape)#, self.max[k])
+        #with h5py.File(nc_max_file, mode='r') as fh: # normalize outputs to be between -1 and 1
+        #    for k in fh.keys():
+        #        try:
+        #            self.max[k] = fh[k][None,:]
+        #        except:
+        #            self.max[k] = np.array(fh[k])[None]
+        #        print('nc_max_file: ', k, self.max[k].shape)#, self.max[k])
         
         print("End Reading Netcdfs for Normalization")
         try:
@@ -61,14 +61,14 @@ class DataLoader:
 
         with h5py.File(nc_file, mode='r') as fh:
             for k in fh.keys():
-                print('nc_file: ', k, fh[k].shape)#, fh[k][0], ' --> ', fh[k][-1])
+                print('nc_file: ', k, fh[k].shape)
             self.Nsamples = fh['PS'].shape[0]
             print('Nsamples =', self.Nsamples)
             self.Nlevels      = self.mean['QAP'].shape[1]
             print('Nlevels = ', self.Nlevels)
             sampX, sampY = self.accessData(0, self.nSampleFetching, fh)
-            self.n_input = 4*self.Nlevels + 2  # number of levels plus three surface data (PS, SHFLX, LHFLX)
-            self.n_output = fh[self.varname][:].shape[0] # remove first 9 indices
+            self.n_input = sampX.shape[1] # number of inputs 
+            self.n_output = sampY.shape[1] # number of outputs 
             print('sampX = ', sampX.shape)
             print('sampY = ', sampY.shape)
             print('n_input = ', self.n_input)
@@ -114,7 +114,7 @@ class DataLoader:
 
     def accessData(self, s, l, fileReader):
         inputs = []
-        for k in self.inputNames:#fileReader.keys():
+        for k in self.inputNameList:#fileReader.keys():
             #print('nc_file: ', k, fileReader[k].shape)
             try:
                 arr = fileReader[k][:,s:s+l].T
@@ -140,6 +140,20 @@ class DataLoader:
         else: # make a soup of numbers
             inX = np.concatenate(inputs, axis=-1) #[b,cc]
             y_data   = fileReader[self.varname][:,s:s+l].T      # SPDT   K/s     30   dT/dt
+
+        if True:
+            # remove any rows with NaNs
+            tmp = inX
+            inX = np.empty((0,tmp.shape[1]), float)
+            y_data_good = np.empty((0,1), float)
+            i = 0
+            for row in tmp:
+                test = np.isnan(row).any()
+                if not test:
+                    inX = np.vstack([inX, row])
+                    y_data_good = np.vstack([y_data_good, y_data[i]])
+                i += 1
+            y_data = y_data_good
 
         if s == 0:
             print('inX.shape', inX.shape)
