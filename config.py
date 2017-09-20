@@ -21,6 +21,7 @@ net_arg.add_argument('--hidden',  type=str, default='5,5', help='comma separated
 
 # Data
 data_arg = add_argument_group('Data')
+data_arg.add_argument('--dataset', type=str, default='SPDT', help='names of predicted variable')
 data_arg.add_argument('--batch_size', type=int, default=1024)
 data_arg.add_argument('--frac_train', type=float, default=0.8)
 data_arg.add_argument('--local', type=str2bool, default=False)

@@ -114,7 +114,7 @@ class DataLoader:
 
     def accessData(self, s, l, fileReader):
         inputs = []
-        for k in self.inputNames:#fileReader.keys():
+        for k in self.inputNameList:#fileReader.keys():
             #print('nc_file: ', k, fileReader[k].shape)
             try:
                 arr = fileReader[k][:,s:s+l].T
@@ -127,37 +127,40 @@ class DataLoader:
             if s == 0:
                 print('nc_file: ', k, arr.shape)
 
-            if self.config.convo and arr.shape[-1] == 1:
-                arr = np.tile(arr, (1,self.Nlevels))
+            if self.config.convo:
+                if arr.shape[-1] == 1:
+                    arr = np.tile(arr, (1,self.Nlevels))
+                arr = arr[:,:,None] #[b,z,1]
                 #print('nc_file: ', k, arr.shape)
             inputs += [arr]
-        # input data
-        inX = np.stack(inputs, axis=1) if self.config.convo else np.concatenate(inputs, axis=1)
+        # input output data
+        if self.config.convo:
+            inX = np.stack(inputs, axis=-1) #[b,z,1,c]
+            y_data   = fileReader[self.varname][:,s:s+l].T[:,:,None,None]      # SPDT   K/s     30   dT/dt
+        else: # make a soup of numbers
+            inX = np.concatenate(inputs, axis=-1) #[b,cc]
+            y_data   = fileReader[self.varname][:,s:s+l].T      # SPDT   K/s     30   dT/dt
 
-        # output data
-        try: 
-            y_data = fileReader[k][:,s:s+l].T
-        except:
-            y_data = np.array(fileReader[k][s:s+l])[None,:].T
-            
-        # remove any rows with NaNs
-        tmp = inX
-        inX = np.empty((0,tmp.shape[1]), float)
-        y_data_good = np.empty((0,1), float)
-        i     = 0
-        for row in tmp:
-            test = np.isnan(row).any()
-            if(not test):
-                inX = np.vstack([inX, row])
-                y_data_good = np.vstack([y_data_good, y_data[i]])
-            i += 1
-        y_data = y_data_good
-        #inX = np.transpose(inX)
-        print('inX.shape', inX.shape)
-        
-        if s == 0:
-            print('y_data.shape', y_data.shape)
+        if True:
+            # remove any rows with NaNs
+            tmp = inX
+            print('tmp.shape', tmp.shape)
+            inX = np.empty((0,tmp.shape[1]), float)
             print('inX.shape', inX.shape)
+            y_data_good = np.empty((0,1), float)
+            print('y_data_good.shape', y_data_good.shape)
+            i = 0
+            for row in tmp:
+                test = np.isnan(row).any()
+                if not test:
+                    inX = np.vstack([inX, row])
+                    y_data_good = np.vstack([y_data_good, y_data[i]])
+                i += 1
+            y_data = y_data_good
+
+        if s == 0:
+            print('inX.shape', inX.shape)
+            print('y_data.shape', y_data.shape)
 
         return inX, y_data
 
