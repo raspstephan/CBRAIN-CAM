@@ -229,8 +229,11 @@ class Trainer(object):
         print('self.loss:', self.losses)
         self.loss = tf.reduce_mean(self.losses)
 
+        with tf.name_scope('regular_loss'):
+            self.regular_loss = tf.sqrt(tf.reduce_mean(tf.losses.mean_squared_error(y, self.pred)))
+            
         with tf.name_scope('logloss'):
-            self.logloss = tf.log(self.loss+1.e-20) / tf.log(10.0) # add a tiny bias to avoid numerical error
+            self.logloss = tf.log(self.regular_loss+1.e-20) / tf.log(10.0) # add a tiny bias to avoid numerical error
 
         with tf.name_scope('Rsquared'):
             total_error = tf.reduce_sum(tf.square(tf.subtract(y, tf.reduce_mean(y))))
@@ -248,7 +251,8 @@ class Trainer(object):
             tf.summary.histogram("x", self.x),
             tf.summary.histogram("y", self.y),
             tf.summary.histogram("avgY", avgY),
-            tf.summary.scalar("loss/loss", self.loss),
+            tf.summary.scalar("loss/mean_squared_logarithmic_error", self.loss),
+            tf.summary.scalar("loss/regular_loss", self.regular_loss),
             tf.summary.scalar("loss/logloss", self.logloss),
             tf.summary.scalar("loss/Rsquared", self.Rsquared),
             tf.summary.scalar("loss/OtherRsquared", self.OtherRsquared),
