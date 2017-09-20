@@ -64,22 +64,26 @@ class Trainer(object):
 
         self.build_trainop()
 
-        Xhb1c = tf.transpose(self.x[:,::-1,0,:], [1,0,2])
-        Yhb1c = tf.transpose(self.y[:,::-1,0,:], [1,0,2])
-        Phb1c = tf.transpose(self.pred[:,::-1,0,:], [1,0,2])
-        Lhb1c = tf.transpose(self.losses[:,::-1,:], [1,0,2])
+
         self.visuarrs = []
-        self.visuarrs += tf.unstack(Xhb1c, axis=-1)
-        self.visuarrs += tf.unstack(Yhb1c, axis=-1)
-        self.visuarrs += tf.unstack(Phb1c, axis=-1)
-        self.visuarrs += tf.unstack(Lhb1c, axis=-1)
+        try:
+            Xhb1c = tf.transpose(self.x[:,::-1,0,:], [1,0,2])
+            Yhb1c = tf.transpose(self.y[:,::-1,0,:], [1,0,2])
+            Phb1c = tf.transpose(self.pred[:,::-1,0,:], [1,0,2])
+            Lhb1c = tf.transpose(self.losses[:,::-1,:], [1,0,2])
+            self.visuarrs += tf.unstack(Xhb1c, axis=-1)
+            self.visuarrs += tf.unstack(Yhb1c, axis=-1)
+            self.visuarrs += tf.unstack(Phb1c, axis=-1)
+            self.visuarrs += tf.unstack(Lhb1c, axis=-1)
+        except:
+            pass
 
         self.valStr = '' if config.is_train else '_val'
         self.saver = tf.train.Saver()# if self.is_train else None
         self.sumdir = self.model_dir + self.valStr
         self.summary_writer = tf.summary.FileWriter(self.sumdir)
 
-        self.saveEverySec = 300
+        self.saveEverySec = 30
         sv = tf.train.Supervisor(logdir=self.model_dir,
                                 is_chief=True,
                                 saver=self.saver,
@@ -243,9 +247,13 @@ class Trainer(object):
         self.summary_op = tf.summary.merge([
             tf.summary.histogram("x", self.x),
             tf.summary.histogram("y", self.y),
+            tf.summary.histogram("avgY", avgY),
             tf.summary.scalar("loss/loss", self.loss),
             tf.summary.scalar("loss/logloss", self.logloss),
             tf.summary.scalar("loss/Rsquared", self.Rsquared),
+            tf.summary.scalar("loss/OtherRsquared", self.OtherRsquared),
+            tf.summary.scalar("loss/error_total", total_error),
+            tf.summary.scalar("loss/error_unexplained", unexplained_error),
         ])
 
         if self.is_train:
