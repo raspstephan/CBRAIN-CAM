@@ -7,3 +7,9 @@
 /_logs/
 /data/
 /yellowfin.py
+/config.pyc
+/dataLoad.pyc
+/folderDefs.pyc
+/models.pyc
+/trainer.pyc
+/utils.pyc
