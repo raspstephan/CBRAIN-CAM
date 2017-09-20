@@ -21,7 +21,6 @@ net_arg.add_argument('--hidden',  type=str, default='5,5', help='comma separated
 
 # Data
 data_arg = add_argument_group('Data')
-data_arg.add_argument('--dataset', type=str, default='SPDT', help='names of trained variable')
 data_arg.add_argument('--batch_size', type=int, default=1024)
 data_arg.add_argument('--frac_train', type=float, default=0.8)
 data_arg.add_argument('--local', type=str2bool, default=False)
@@ -29,7 +28,7 @@ data_arg.add_argument('--epoch', type=int, default=200)
 data_arg.add_argument('--randomize', type=str2bool, default=True)
 data_arg.add_argument('--normalize', type=str2bool, default=True)
 data_arg.add_argument('--convo', type=str2bool, default=False)
-data_arg.add_argument('--input_names', type=str, default=['TAP', 'QAP', 'OMEGA', 'SHFLX', 'LHFLX'])
+data_arg.add_argument('--input_names', type=str, default='TAP,QAP,OMEGA,SHFLX,LHFLX', help='names of input variables')
 
 
 # Training / test parameters

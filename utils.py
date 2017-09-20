@@ -44,12 +44,6 @@ def prepare_dirs_and_logger(config):
         #        config.model_name = "{}_{}".format(config.dataset, config.load_path)
     else:
         print(4)
-        input_names = str(config.input_names)
-        input_names = input_names.replace('\'','') 
-        input_names = input_names.replace('[','')
-        input_names = input_names.replace(']','')
-        input_names = input_names.replace(',','_')
-        input_names = input_names.replace(' ','')
         config.model_name = str(config.dataset) + '_layers_' + config.hidden + '_' + get_time() + '_kdr_' + str(config.keep_dropout_rate)  + '_ac_' + str(config.act) + '_variables_' + input_names + config.addon#"{}_{}_{}".format(config.dataset, get_time(), ','.join(config.hidden.split(',')))
         
 

@@ -19,7 +19,7 @@ class DataLoader:
         self.varname = config.dataset
         self.fileReader = []
         self.lock = threading.Lock()
-        self.inputNames = config.input_names
+        self.inputNameList = self.config.input_names.split(',')
         self.reload()
 
     def reload(self, finishedEpoch = 0):
