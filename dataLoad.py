@@ -144,8 +144,11 @@ class DataLoader:
         if True:
             # remove any rows with NaNs
             tmp = inX
+            print('tmp.shape', tmp.shape)
             inX = np.empty((0,tmp.shape[1]), float)
+            print('inX.shape', inX.shape)
             y_data_good = np.empty((0,1), float)
+            print('y_data_good.shape', y_data_good.shape)
             i = 0
             for row in tmp:
                 test = np.isnan(row).any()
