@@ -136,10 +136,16 @@ class DataLoader:
         # input output data
         if self.config.convo:
             inX = np.stack(inputs, axis=-1) #[b,z,1,c]
-            y_data   = fileReader[self.varname][:,s:s+l].T[:,:,None,None]      # SPDT   K/s     30   dT/dt
+            try:
+                y_data = fileReader[self.varname][:,s:s+l].T[:,:,None,None]
+            except:
+                y_data = np.array(fileReader[self.varname][s:s+l])[None,:].T[:,:,None,None]
         else: # make a soup of numbers
             inX = np.concatenate(inputs, axis=-1) #[b,cc]
-            y_data   = fileReader[self.varname][:,s:s+l].T      # SPDT   K/s     30   dT/dt
+            try:
+                y_data = fileReader[self.varname][:,s:s+l].T
+            except:
+                y_data = np.array(fileReader[self.varname][s:s+l])[None,:].T
 
         if False:
             # remove any rows with NaNs
