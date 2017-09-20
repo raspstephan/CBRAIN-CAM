@@ -141,7 +141,7 @@ class DataLoader:
             inX = np.concatenate(inputs, axis=-1) #[b,cc]
             y_data   = fileReader[self.varname][:,s:s+l].T      # SPDT   K/s     30   dT/dt
 
-        if True:
+        if False:
             # remove any rows with NaNs
             tmp = inX
             print('tmp.shape', tmp.shape)
