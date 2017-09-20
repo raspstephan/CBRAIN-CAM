@@ -62,10 +62,10 @@ class DataLoader:
         with h5py.File(nc_file, mode='r') as fh:
             for k in fh.keys():
                 print('nc_file: ', k, fh[k].shape)
-            self.Nsamples = fh['PS'].shape[0]
+            self.Nsamples = fh[k].shape[0]
             print('Nsamples =', self.Nsamples)
-            self.Nlevels      = self.mean['QAP'].shape[1]
-            print('Nlevels = ', self.Nlevels)
+            #self.Nlevels      = self.mean['QAP'].shape[1]
+            #print('Nlevels = ', self.Nlevels)
             sampX, sampY = self.accessData(0, self.nSampleFetching, fh)
             self.n_input = sampX.shape[1] # number of inputs 
             self.n_output = sampY.shape[1] # number of outputs 
