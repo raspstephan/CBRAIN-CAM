@@ -64,8 +64,8 @@ class DataLoader:
                 print('nc_file: ', k, fh[k].shape)
             self.Nsamples = fh[k].shape[0]
             print('Nsamples =', self.Nsamples)
-            #self.Nlevels      = self.mean['QAP'].shape[1]
-            #print('Nlevels = ', self.Nlevels)
+            self.Nlevels      = self.mean['QAP'].shape[1]
+            print('Nlevels = ', self.Nlevels)
             sampX, sampY = self.accessData(0, self.nSampleFetching, fh)
             self.n_input = sampX.shape[1] # number of inputs 
             self.n_output = sampY.shape[1] # number of outputs 
@@ -115,17 +115,13 @@ class DataLoader:
     def readDatasetY(self, s, l, fileReader, varnameList, convo):
         data = []
         if convo:
-            # GY: not sure if this will work, haven't tested with convo = True
             for k in varnameList:
                 try:
-                    arr = fileReader[k][:,s:s+l].T[:,:,None,None]
+                    arr = fileReader[k][:,s:s+l].T[:,:,None,None]# [b,h,1,c=1]
                 except:
                     arr = np.array(fileReader[k][s:s+l])[None,:].T[:,:,None,None]
-                if arr.shape[-1] == 1:
-                    arr = np.tile(arr, (1,self.Nlevels))
-                arr = arr[:,:,None] #[b,z,1]
                 data += [arr]
-            y_data = np.stack(data, axis=-1) #[b,z,1,c]
+            y_data = np.concatenate(data, axis=3) #[b,z,1,c]
         else:
             for k in varnameList:
                 try:

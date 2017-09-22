@@ -211,7 +211,7 @@ class Trainer(object):
         print('x:', x)
         x = ZeroPadding2D((1,0))(x)
         print('x:', x)
-        x = Conv2D(1, (3,1), padding='valid', data_format='channels_last')(x)
+        x = Conv2D(self.data_loader.Yshape[-1], (3,1), padding='valid', data_format='channels_last')(x)
         print('x:', x)
 
         self.pred = x#tf.reshape(x, self.y.get_shape())
@@ -226,7 +226,7 @@ class Trainer(object):
         # Add ops to save and restore all the variables.
         with tf.name_scope('loss'):
             self.losses = mean_squared_logarithmic_error(y, self.pred)
-        print('self.loss:', self.losses)
+        print('self.losses:', self.losses)
         self.loss = tf.reduce_mean(self.losses)
 
         with tf.name_scope('logloss'):
