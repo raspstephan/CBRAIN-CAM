@@ -16,7 +16,7 @@ class DataLoader:
         self.config = config
         self.batchSize = config.batch_size
         self.nSampleFetching = 1024
-        self.varname = config.dataset
+        self.varnameList = config.dataset.split(',')
         self.fileReader = []
         self.lock = threading.Lock()
         self.inputNameList = self.config.input_names.split(',')
@@ -64,8 +64,8 @@ class DataLoader:
                 print('nc_file: ', k, fh[k].shape)
             self.Nsamples = fh[k].shape[0]
             print('Nsamples =', self.Nsamples)
-            #self.Nlevels      = self.mean['QAP'].shape[1]
-            #print('Nlevels = ', self.Nlevels)
+            self.Nlevels      = self.mean['QAP'].shape[1]
+            print('Nlevels = ', self.Nlevels)
             sampX, sampY = self.accessData(0, self.nSampleFetching, fh)
             self.n_input = sampX.shape[1] # number of inputs 
             self.n_output = sampY.shape[1] # number of outputs 
@@ -112,6 +112,28 @@ class DataLoader:
         except:
             pass
 
+    def readDatasetY(self, s, l, fileReader, varnameList, convo):
+        data = []
+        if convo:
+            for k in varnameList:
+                try:
+                    arr = fileReader[k][:,s:s+l].T[:,:,None,None]# [b,h,1,c=1]
+                except:
+                    arr = np.array(fileReader[k][s:s+l])[None,:].T[:,:,None,None]
+                data += [arr]
+            y_data = np.concatenate(data, axis=3) #[b,z,1,c]
+        else:
+            for k in varnameList:
+                try:
+                    arr = fileReader[k][:,s:s+l].T
+                except:
+                    arr = np.array(fileReader[k][s:s+l])[None,:].T
+                data += [arr]
+            y_data = np.concatenate(data, axis=-1) #[b,cc]
+        
+        return y_data
+            
+            
     def accessData(self, s, l, fileReader):
         inputs = []
         for k in self.inputNameList:#fileReader.keys():
@@ -136,16 +158,9 @@ class DataLoader:
         # input output data
         if self.config.convo:
             inX = np.stack(inputs, axis=-1) #[b,z,1,c]
-            try:
-                y_data = fileReader[self.varname][:,s:s+l].T[:,:,None,None]
-            except:
-                y_data = np.array(fileReader[self.varname][s:s+l])[None,:].T[:,:,None,None]
         else: # make a soup of numbers
             inX = np.concatenate(inputs, axis=-1) #[b,cc]
-            try:
-                y_data = fileReader[self.varname][:,s:s+l].T
-            except:
-                y_data = np.array(fileReader[self.varname][s:s+l])[None,:].T
+        y_data = self.readDatasetY(s, l, fileReader, self.varnameList, self.config.convo)
 
         if False:
             # remove any rows with NaNs

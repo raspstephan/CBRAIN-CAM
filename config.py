@@ -21,7 +21,7 @@ net_arg.add_argument('--hidden',  type=str, default='5,5', help='comma separated
 
 # Data
 data_arg = add_argument_group('Data')
-data_arg.add_argument('--dataset', type=str, default='SPDT', help='names of predicted variable')
+data_arg.add_argument('--dataset', type=str, default='SPDT,SPDQ', help='names of predicted variable(s)')
 data_arg.add_argument('--batch_size', type=int, default=1024)
 data_arg.add_argument('--frac_train', type=float, default=0.8)
 data_arg.add_argument('--local', type=str2bool, default=False)
@@ -37,7 +37,7 @@ train_arg = add_argument_group('Training')
 train_arg.add_argument('--is_train', type=str2bool, default=True)
 train_arg.add_argument('--optimizer', type=str, default='adam')
 train_arg.add_argument('--max_step', type=int, default=1000000)
-train_arg.add_argument('--lr_update_step', type=int, default=20000, choices=[100000, 75000, 10000, 20000, 1000])
+train_arg.add_argument('--lr_update_step', type=int, default=5)
 train_arg.add_argument('--lr', type=float, default=0.001)
 train_arg.add_argument('--lr_lower_boundary', type=float, default=2e-8)
 train_arg.add_argument('--beta1', type=float, default=0.5)

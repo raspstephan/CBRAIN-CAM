@@ -147,7 +147,7 @@ class Trainer(object):
                 #    self.sess.run(self.visuarrs)
                 #time.sleep(0.1)
 
-                if totStep % self.lr_update_step == self.lr_update_step - 1:
+            if ep % self.lr_update_step == self.lr_update_step - 1:
                     self.sess.run([self.lr_update])
 
     def validate(self):
@@ -203,15 +203,16 @@ class Trainer(object):
 
         x = Conv2D(16, (3,1), padding='same', data_format='channels_last')(x)
         x = LeakyReLU()(x)
-        for i in range(4):
+        for nLay in self.config.hidden.split(','):
+            nLay = int(nLay)
             x = ZeroPadding2D((1,0))(x)
             print('x:', x)
-            x = Conv2D(16, (3,1), padding='valid', data_format='channels_last')(x)
+            x = Conv2D(nLay, (3,1), padding='valid', data_format='channels_last')(x)
             x = LeakyReLU()(x)
         print('x:', x)
         x = ZeroPadding2D((1,0))(x)
         print('x:', x)
-        x = Conv2D(1, (3,1), padding='valid', data_format='channels_last')(x)
+        x = Conv2D(self.data_loader.Yshape[-1], (3,1), padding='valid', data_format='channels_last')(x)
         print('x:', x)
 
         self.pred = x#tf.reshape(x, self.y.get_shape())
@@ -226,7 +227,7 @@ class Trainer(object):
         # Add ops to save and restore all the variables.
         with tf.name_scope('loss'):
             self.losses = mean_squared_logarithmic_error(y, self.pred)
-        print('self.loss:', self.losses)
+        print('self.losses:', self.losses)
         self.loss = tf.reduce_mean(self.losses)
 
         with tf.name_scope('regular_loss'):
