@@ -147,7 +147,7 @@ class Trainer(object):
                 #    self.sess.run(self.visuarrs)
                 #time.sleep(0.1)
 
-                if totStep % self.lr_update_step == self.lr_update_step - 1:
+            if ep % self.lr_update_step == self.lr_update_step - 1:
                     self.sess.run([self.lr_update])
 
     def validate(self):
@@ -203,10 +203,11 @@ class Trainer(object):
 
         x = Conv2D(16, (3,1), padding='same', data_format='channels_last')(x)
         x = LeakyReLU()(x)
-        for i in range(4):
+        for nLay in self.config.hidden.split(','):
+            nLay = int(nLay)
             x = ZeroPadding2D((1,0))(x)
             print('x:', x)
-            x = Conv2D(16, (3,1), padding='valid', data_format='channels_last')(x)
+            x = Conv2D(nLay, (3,1), padding='valid', data_format='channels_last')(x)
             x = LeakyReLU()(x)
         print('x:', x)
         x = ZeroPadding2D((1,0))(x)
