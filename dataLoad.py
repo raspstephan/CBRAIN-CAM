@@ -112,14 +112,25 @@ class DataLoader:
         except:
             pass
 
+    def convertUnits(self, varname, arr):
+        """Make sure SPDQ and SPDT have comparable units"""
+        if varname == "SPDT":
+            return arr*1000
+        if varname == "SPDQ":
+            return arr*2.5e6
+        return arr
+
     def readDatasetY(self, s, l, fileReader, varnameList, convo):
         data = []
+        manyvar = len(varnameList) > 1
         if convo:
             for k in varnameList:
                 try:
                     arr = fileReader[k][:,s:s+l].T[:,:,None,None]# [b,h,1,c=1]
                 except:
                     arr = np.array(fileReader[k][s:s+l])[None,:].T[:,:,None,None]
+                if manyvar:
+                    arr = self.convertUnits(k, arr)
                 data += [arr]
             y_data = np.concatenate(data, axis=3) #[b,z,1,c]
         else:
@@ -128,12 +139,13 @@ class DataLoader:
                     arr = fileReader[k][:,s:s+l].T
                 except:
                     arr = np.array(fileReader[k][s:s+l])[None,:].T
+                if manyvar:
+                    arr = self.convertUnits(k, arr)
                 data += [arr]
             y_data = np.concatenate(data, axis=-1) #[b,cc]
         
         return y_data
-            
-            
+
     def accessData(self, s, l, fileReader):
         inputs = []
         for k in self.inputNameList:#fileReader.keys():
