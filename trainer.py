@@ -177,6 +177,7 @@ class Trainer(object):
                 trainBar.set_description("q:{}, L:{:.6f}, logL:{:.6f}, R2:{:+.3f}". \
                     format(self.data_loader.size_op.eval(session=self.sess), loss, logloss, Rsquared))
             time.sleep(sleepTime)
+        exit(0)
 
     def build_model(self):
         x = self.x
@@ -227,25 +228,22 @@ class Trainer(object):
         # Add ops to save and restore all the variables.
         with tf.name_scope('loss'):
             self.losses = mean_squared_logarithmic_error(y, self.pred)
-        print('self.losses:', self.losses)
-        self.loss = tf.reduce_mean(self.losses)
+            print('self.losses:', self.losses)
+            self.loss = tf.reduce_mean(self.losses)
 
-        with tf.name_scope('regular_loss'):
-            self.regular_loss = tf.sqrt(tf.reduce_mean(tf.losses.mean_squared_error(y, self.pred)))
+            self.regular_loss = tf.sqrt(tf.reduce_mean(tf.losses.mean_squared_error(y, self.pred)), name='regular_loss')
             
-        with tf.name_scope('logloss'):
-            self.logloss = tf.log(self.regular_loss+1.e-20) / tf.log(10.0) # add a tiny bias to avoid numerical error
+            self.logloss = tf.divide(tf.log(self.regular_loss+1.e-20), tf.log(10.0), name='logloss') # add a tiny bias to avoid numerical error
 
-        with tf.name_scope('Rsquared'):
             total_error = tf.reduce_sum(tf.square(tf.subtract(y, tf.reduce_mean(y))))
             unexplained_error = tf.reduce_sum(tf.square(tf.subtract(y, self.pred)))
-            self.Rsquared  = tf.subtract(1., tf.divide(unexplained_error, total_error))
+            self.Rsquared  = tf.subtract(1., tf.divide(unexplained_error, total_error), name='Rsquared')
             print('self.Rsquared', self.Rsquared)
             avgY = tf.reduce_mean(y, axis=0, keep_dims=True) # axis=0 is sample axis
             print('avgY', avgY)
-            self.OtherRsquared = 1.0 -  tf.divide(
+            self.OtherRsquared = tf.identity(1.0 -  tf.divide(
                                         tf.losses.mean_squared_error(y, self.pred), 
-                                        tf.losses.mean_squared_error(y, avgY * tf.ones_like(y)))
+                                        tf.losses.mean_squared_error(y, avgY * tf.ones_like(y))), name='OtherRsquared')
             print('self.OtherRsquared', self.OtherRsquared)
 
         self.summary_op = tf.summary.merge([

@@ -22,6 +22,8 @@ def main(config):
 
     rng = np.random.RandomState(config.random_seed)
     tf.set_random_seed(config.random_seed)
+    random.seed(config.random_seed)
+    np.random.seed(config.random_seed)
 
     if config.is_train:
         data_path = config.data_path
@@ -30,7 +32,7 @@ def main(config):
     else:
         if config.load_path:
             # automatically reloads the correct arguments for the network
-            config = load_config(config, ['dataset', 'hidden', 'keep_dropout_rate', 'act', 'addon', 'normalize', 'convo', 'input_names'])
+            config = load_config(config, ['dataset', 'hidden', 'keep_dropout_rate', 'act', 'addon', 'normalize', 'convo', 'input_names', 'frac_train', 'randomize', 'normalize', 'random_seed'])
             print(Fore.RED, 'config\n', config)
             print(Style.RESET_ALL)
         setattr(config, 'batch_size', 1024)
@@ -60,7 +62,7 @@ def main(config):
                         processArg = validationProcesslocal.format(config.model_name).split()
                         print(Fore.RED, processArg)
                         print(Style.RESET_ALL)
-                        subprocess.run(processArg, stdout=devnull)#, stderr=devnull)
+                        subprocess.run(processArg)#, stdout=devnull)#, stderr=devnull)
                 threadValid = threading.Thread(target=loopvalidation)
                 threadValid.start()
             trainer.train()
