@@ -62,7 +62,7 @@ def main(config):
                         processArg = validationProcesslocal.format(config.model_name).split()
                         print(Fore.RED, processArg)
                         print(Style.RESET_ALL)
-                        subprocess.run(processArg)#, stdout=devnull)#, stderr=devnull)
+                        subprocess.run(processArg, stdout=devnull)#, stderr=devnull)
                 threadValid = threading.Thread(target=loopvalidation)
                 threadValid.start()
             trainer.train()
