@@ -32,10 +32,10 @@ def main(config):
     else:
         if config.load_path:
             # automatically reloads the correct arguments for the network
-            config = load_config(config, ['dataset', 'hidden', 'keep_dropout_rate', 'act', 'addon', 'normalize', 'convo', 'input_names', 'frac_train', 'randomize', 'normalize', 'random_seed'])
+            config = load_config(config, ['batch_size', 'dataset', 'hidden', 'keep_dropout_rate', 'act', 'addon', 'normalize', 'convo', 'input_names', 'frac_train', 'randomize', 'normalize', 'random_seed'])
             print(Fore.RED, 'config\n', config)
             print(Style.RESET_ALL)
-        setattr(config, 'batch_size', 1024)
+        #setattr(config, 'batch_size', 1024)
         data_path = config.data_path
         batch_size = config.batch_size
         do_shuffle = False

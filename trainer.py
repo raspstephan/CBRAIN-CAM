@@ -257,6 +257,7 @@ class Trainer(object):
             tf.summary.scalar("loss/OtherRsquared", self.OtherRsquared),
             tf.summary.scalar("loss/error_total", total_error),
             tf.summary.scalar("loss/error_unexplained", unexplained_error),
+            tf.summary.scalar("misc/lr", self.lr),
         ])
 
         if self.is_train:
