@@ -253,10 +253,11 @@ class Trainer(object):
             tf.summary.scalar("loss/mean_squared_logarithmic_error", self.loss),
             tf.summary.scalar("loss/regular_loss", self.regular_loss),
             tf.summary.scalar("loss/logloss", self.logloss),
-            tf.summary.scalar("loss/Rsquared", self.Rsquared),
-            tf.summary.scalar("loss/OtherRsquared", self.OtherRsquared),
+            tf.summary.scalar("loss/Rsquared", tf.nn.relu(self.Rsquared)),
+            tf.summary.scalar("loss/OtherRsquared", tf.nn.relu(self.OtherRsquared)),
             tf.summary.scalar("loss/error_total", total_error),
             tf.summary.scalar("loss/error_unexplained", unexplained_error),
+            tf.summary.scalar("misc/lr", self.lr),
         ])
 
         if self.is_train:
