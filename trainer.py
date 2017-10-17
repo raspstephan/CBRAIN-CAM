@@ -227,7 +227,7 @@ class Trainer(object):
 
         # Add ops to save and restore all the variables.
         with tf.name_scope('loss'):
-            self.losses = mean_squared_logarithmic_error(y, self.pred)
+            self.losses = tf.losses.mean_squared_error(y, self.pred)
             print('self.losses:', self.losses)
             self.loss = tf.reduce_mean(self.losses)
 
