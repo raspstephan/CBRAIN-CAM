@@ -146,8 +146,8 @@ class DataLoader:
             if self.config.normalize:
                 arr -= self.mean[k]
                 arr /= self.std[k]
-            if s == 0:
-                print('nc_file: ', k, arr.shape)
+            #if s == 0:
+            #    print('nc_file: ', k, arr.shape)
 
             if self.config.convo:
                 if arr.shape[-1] == 1:
@@ -179,9 +179,9 @@ class DataLoader:
                 i += 1
             y_data = y_data_good
 
-        if s == 0:
-            print('inX.shape', inX.shape)
-            print('y_data.shape', y_data.shape)
+        #if s == 0:
+        #    print('inX.shape', inX.shape)
+        #    print('y_data.shape', y_data.shape)
 
         return inX, y_data
 
