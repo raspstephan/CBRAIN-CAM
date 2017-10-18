@@ -30,6 +30,7 @@ data_arg.add_argument('--randomize', type=str2bool, default=True)
 data_arg.add_argument('--normalize', type=str2bool, default=True)
 data_arg.add_argument('--convo', type=str2bool, default=False)
 data_arg.add_argument('--input_names', type=str, default='TAP,QAP,OMEGA,SHFLX,LHFLX', help='names of input variables')
+data_arg.add_argument('--convert_units', type=str2bool, default=True, help='flag to convert SPDT and SPDQ into units of W/kg')
 
 
 # Training / test parameters
