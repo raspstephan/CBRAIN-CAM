@@ -122,14 +122,13 @@ class DataLoader:
 
     def readDatasetY(self, s, l, fileReader, varnameList, convo):
         data = []
-        manyvar = len(varnameList) > 1
         if convo:
             for k in varnameList:
                 try:
                     arr = fileReader[k][:,s:s+l].T[:,:,None,None]# [b,h,1,c=1]
                 except:
                     arr = np.array(fileReader[k][s:s+l])[None,:].T[:,:,None,None]
-                if manyvar:
+                if self.config.convert_units:
                     arr = self.convertUnits(k, arr)
                 data += [arr]
             y_data = np.concatenate(data, axis=3) #[b,z,1,c]
@@ -139,7 +138,7 @@ class DataLoader:
                     arr = fileReader[k][:,s:s+l].T
                 except:
                     arr = np.array(fileReader[k][s:s+l])[None,:].T
-                if manyvar:
+                if self.config.convert_units:
                     arr = self.convertUnits(k, arr)
                 data += [arr]
             y_data = np.concatenate(data, axis=-1) #[b,cc]
