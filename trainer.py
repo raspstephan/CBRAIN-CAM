@@ -227,8 +227,8 @@ class Trainer(object):
 
         # Add ops to save and restore all the variables.
         with tf.name_scope('loss'):
-            self.losses = tf.square(y - self.pred)
-            print('self.losses:', self.losses)
+            self.loss = tf.reduce_mean(tf.log(tf.losses.mean_squared_error(y, self.pred)), name='loss') # use log loss as main loss function
+            print('self.losses:', self.loss)
             self.loss = tf.reduce_mean(self.losses)
 
             self.regular_loss = tf.sqrt(tf.reduce_mean(tf.losses.mean_squared_error(y, self.pred)), name='regular_loss')
