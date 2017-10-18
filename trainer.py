@@ -70,7 +70,7 @@ class Trainer(object):
             Xhb1c = tf.transpose(self.x[:,::-1,0,:], [1,0,2])
             Yhb1c = tf.transpose(self.y[:,::-1,0,:], [1,0,2])
             Phb1c = tf.transpose(self.pred[:,::-1,0,:], [1,0,2])
-            Lhb1c = tf.transpose(self.losses[:,::-1,:], [1,0,2])
+            Lhb1c = tf.transpose(self.losses[:,::-1,0,:], [1,0,2])
             self.visuarrs += tf.unstack(Xhb1c, axis=-1)
             self.visuarrs += tf.unstack(Yhb1c, axis=-1)
             self.visuarrs += tf.unstack(Phb1c, axis=-1)
@@ -227,7 +227,7 @@ class Trainer(object):
 
         # Add ops to save and restore all the variables.
         with tf.name_scope('loss'):
-            self.losses = tf.losses.mean_squared_error(y, self.pred)
+            self.losses = tf.square(y - self.pred)
             print('self.losses:', self.losses)
             self.loss = tf.reduce_mean(self.losses)
 
