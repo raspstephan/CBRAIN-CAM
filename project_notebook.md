@@ -22,4 +22,29 @@ ValueError: Not a location (Invalid object id)
 ```
 Happens at the end of the epochs, training works probably still. Doesn't appear for convolution with 50 epochs
 
-- Tensorboard visualisation doesn't work 
+### October 22
+
+Running on GPU, which conda environment to use? Copy cbrain to cbrain_gpu, then conda install tensorflow-gpu.
+
+This is Pierre's latest:
+
+mpiexec python  ./main.py --run_validation=true --randomize=true --batch_size=4096 --optim=adam --lr=1e-3 --frac_train=0.8 --log_step=100 --epoch=50 --randomize=true --input_names='TAP,QAP,OMEGA,SHFLX,LHFLX,LAT,dTdt_adiabatic,dQdt_adiabatic' --hidden=32,32 --convo=false # > atoutfile
+
+Let's try running (with sample directory):
+
+python  ./main.py --run_validation=true --randomize=true --batch_size=4096 --optim=adam --lr=1e-3 --frac_train=0.8 --log_step=10 --epoch=10 --randomize=true --input_names='TAP,QAP,OMEGA,SHFLX,LHFLX,LAT,dTdt_adiabatic,dQdt_adiabatic' --hidden=32,32 --convo=false --addon sample
+
+Ok seems to work, even though I am getting the HDF5 error from above, which doesn't seem to matter.
+
+Now let's try Tensorboard: tensorboard --logdir logs/ --> Running at http://localhost:6005/
+
+Now let's run the full dataset with 50 epochs:
+
+python ./main.py --run_validation=true --randomize=true --batch_size=4096 --optim=adam --lr=1e-3 --frac_train=0.8 --log_step=100 --epoch=50 --randomize=true --input_names='TAP,QAP,OMEGA,SHFLX,LHFLX,LAT,dTdt_adiabatic,dQdt_adiabatic' --hidden=32,32 --convo=false
+
+Wait the LAT std is missing. let's fix that! Again in jupyter notebook
+
+
+Open question:
+- How does it do train/valid split, could there be a similar problem I am having with the postprocessing?
+- Why is there a data/ directory in my repo?

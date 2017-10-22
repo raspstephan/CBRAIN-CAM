@@ -53,15 +53,21 @@ train_arg.add_argument('--keep_dropout_rate', type=float, default=1.)
 #parser.add('-c', '--config', default='', is_config_file=True, help='config file path')
 misc_arg = add_argument_group('Misc')
 misc_arg.add_argument('--load_path', type=str, default='')
-misc_arg.add_argument('--log_step', type=int, default=50)
-misc_arg.add_argument('--save_step', type=int, default=5000)
-misc_arg.add_argument('--num_log_samples', type=int, default=3)
+misc_arg.add_argument('--log_step', type=int, default=50,
+                      help='How often to write out Tensorboard summaries during'
+                           ' training. Step refers to the number of batches.')
+misc_arg.add_argument('--save_step', type=int, default=5000,
+                      help='Note used.')
+misc_arg.add_argument('--num_log_samples', type=int, default=3,
+                      help='Note used.')
 misc_arg.add_argument('--log_level', type=str, default='INFO', choices=['INFO', 'DEBUG', 'WARN'])
 misc_arg.add_argument('--log_dir', type=str, default='logs')
 misc_arg.add_argument('--data_dir', type=str, default='data')
 misc_arg.add_argument('--random_seed', type=int, default=123)
-misc_arg.add_argument('--act', type=int, default=0) # 0->tf.nn.relu, 1->tf.nn.sigmoid
-misc_arg.add_argument('--addon', type=str, default='')
+misc_arg.add_argument('--act', type=int, default=0,
+                      help='Activation function: 0->relu, 1->sigmoid')
+misc_arg.add_argument('--addon', type=str, default='',
+                      help='Suffix for model name.')
 
 def get_config():
     config, unparsed = parser.parse_known_args()
