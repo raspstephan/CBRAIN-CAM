@@ -227,10 +227,12 @@ class Trainer(object):
 
         # Add ops to save and restore all the variables.
         with tf.name_scope('loss'):
-            self.losses = tf.log(tf.losses.mean_squared_error(y, self.pred))# use log loss as main loss function
+#            self.losses = tf.log(tf.square(y - self.pred) + 1e-36) / tf.log(10.0)
+            self.losses = tf.abs(y - self.pred)
+            print('self.losses:', self.losses)
             self.loss = tf.reduce_mean(self.losses, name='loss')
             print('self.loss:', self.loss)
-    
+            
             self.regular_loss = tf.sqrt(tf.reduce_mean(tf.losses.mean_squared_error(y, self.pred)), name='regular_loss')
             
             self.logloss = tf.divide(tf.log(self.regular_loss+1.e-20), tf.log(10.0), name='logloss') # add a tiny bias to avoid numerical error
@@ -250,11 +252,11 @@ class Trainer(object):
             tf.summary.histogram("x", self.x),
             tf.summary.histogram("y", self.y),
             tf.summary.histogram("avgY", avgY),
-            tf.summary.scalar("loss/logarithmic_mean_squared_error", self.loss),
+            tf.summary.scalar("loss/loss", self.loss),
             tf.summary.scalar("loss/regular_loss", self.regular_loss),
             tf.summary.scalar("loss/logloss", self.logloss),
-            tf.summary.scalar("loss/Rsquared", self.Rsquared),
-            tf.summary.scalar("loss/OtherRsquared", self.OtherRsquared),
+            tf.summary.scalar("loss/Rsquared", tf.nn.relu(self.Rsquared)),
+            tf.summary.scalar("loss/OtherRsquared", tf.nn.relu(self.OtherRsquared)),
             tf.summary.scalar("loss/error_total", total_error),
             tf.summary.scalar("loss/error_unexplained", unexplained_error),
             tf.summary.scalar("misc/lr", self.lr),

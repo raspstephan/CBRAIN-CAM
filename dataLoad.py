@@ -122,14 +122,13 @@ class DataLoader:
 
     def readDatasetY(self, s, l, fileReader, varnameList, convo):
         data = []
-        manyvar = len(varnameList) > 1
         if convo:
             for k in varnameList:
                 try:
                     arr = fileReader[k][:,s:s+l].T[:,:,None,None]# [b,h,1,c=1]
                 except:
                     arr = np.array(fileReader[k][s:s+l])[None,:].T[:,:,None,None]
-                if manyvar:
+                if self.config.convert_units:
                     arr = self.convertUnits(k, arr)
                 data += [arr]
             y_data = np.concatenate(data, axis=3) #[b,z,1,c]
@@ -139,7 +138,7 @@ class DataLoader:
                     arr = fileReader[k][:,s:s+l].T
                 except:
                     arr = np.array(fileReader[k][s:s+l])[None,:].T
-                if manyvar:
+                if self.config.convert_units:
                     arr = self.convertUnits(k, arr)
                 data += [arr]
             y_data = np.concatenate(data, axis=-1) #[b,cc]
@@ -158,8 +157,8 @@ class DataLoader:
             if self.config.normalize:
                 arr -= self.mean[k]
                 arr /= self.std[k]
-            if s == 0:
-                print('nc_file: ', k, arr.shape)
+            #if s == 0:
+            #    print('nc_file: ', k, arr.shape)
 
             if self.config.convo:
                 if arr.shape[-1] == 1:
@@ -191,9 +190,9 @@ class DataLoader:
                 i += 1
             y_data = y_data_good
 
-        if s == 0:
-            print('inX.shape', inX.shape)
-            print('y_data.shape', y_data.shape)
+        #if s == 0:
+        #    print('inX.shape', inX.shape)
+        #    print('y_data.shape', y_data.shape)
 
         return inX, y_data
 
