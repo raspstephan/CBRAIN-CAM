@@ -42,9 +42,22 @@ Now let's run the full dataset with 50 epochs:
 
 python ./main.py --run_validation=true --randomize=true --batch_size=4096 --optim=adam --lr=1e-3 --frac_train=0.8 --log_step=100 --epoch=50 --randomize=true --input_names='TAP,QAP,OMEGA,SHFLX,LHFLX,LAT,dTdt_adiabatic,dQdt_adiabatic' --hidden=32,32 --convo=false
 
-Wait the LAT std is missing. let's fix that! Again in jupyter notebook
+Wait the LAT std is missing. let's fix that! Again in jupyter notebook. Ok Now run! It worked, but again the HDF error at the end, and the validation right in the beginning???
+
+Also run the colvolution thingy:
+
+python  ./main.py --run_validation=true --randomize=true --batch_size=128 --optim=adam --lr=1e-3 --frac_train=0.8 --log_step=100 --epoch=50 --randomize=true --convo=true --input_names='TAP,QAP,OMEGA,SHFLX,LHFLX,LAT,dTdt_adiabatic,dQdt_adiabatic,QRL,QRS' --hidden=32,32 > out.txt
 
 
 Open question:
-- How does it do train/valid split, could there be a similar problem I am having with the postprocessing?
+- How does it do train/valid split, could there be a similar problem I am having with the postprocessing? And when is validation run?
+    - I am not really sure what is happening in the dataLoad script. And I also haven't figured out when the validation is run yet
+    - I think for the no convo run, the validation didn't work!
 - Why is there a data/ directory in my repo?
+- What does Initializing queue, current size = 0/32768 mean?
+- Why is ['python', 'main.py', '--is_train=false'...] Running during training?
+- Why is my R2 always 0?
+- How long does the full training work and how much memory does it take --> How many experiments can I run at the same time...
+- Why is the first epoch so much slower than the following ones?
+
+Start my own keras script in a jupyter notebook!
