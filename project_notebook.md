@@ -61,3 +61,10 @@ Open question:
 - Why is the first epoch so much slower than the following ones?
 
 Start my own keras script in a jupyter notebook!
+
+
+## October 23
+
+Today I need to write a summary!
+
+Start by finding out why train_valid split takes so freaking long.
