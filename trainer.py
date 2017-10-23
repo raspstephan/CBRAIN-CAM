@@ -202,17 +202,16 @@ class Trainer(object):
         x = self.x
         print('x:', x)
 
-#        x = Conv2D(16, (3,1), padding='same', data_format='channels_last')(x)
-#        x = LeakyReLU()(x)
         for nLay in self.config.hidden.split(','):
             nLay = int(nLay)
             x = tf.pad(x, paddings=[[0,0],[1,1],[0,0],[0,0]], mode='SYMMETRIC')
             print('x:', x)
-            x = Conv2D(nLay, (3,1), padding='valid', data_format='channels_last')(x)
+            if self.config.localConvo:
+                x = LocallyConnected2D(nLay, (3,1), data_format='channels_last')(x)
+            else:
+                x = Conv2D(nLay, (3,1), padding='valid', data_format='channels_last')(x)
             x = LeakyReLU()(x)
         print('x:', x)
-#        x = ZeroPadding2D((1,0))(x)
-#        print('x:', x)
         x = Conv2D(self.data_loader.Yshape[-1], (1,1), padding='valid', data_format='channels_last')(x)
         print('x:', x)
 
