@@ -123,7 +123,7 @@ class Trainer(object):
                         "summary": self.summary_op,
                         "loss": self.loss,
                         "logloss": self.logloss,
-                        "Rsquared": self.Rsquared
+                        "R2": self.R2
                     })
                 result = self.sess.run(fetch_dict)
 
@@ -133,9 +133,9 @@ class Trainer(object):
 
                     loss = result['loss']
                     logloss = result['logloss']
-                    Rsquared = result['Rsquared']
+                    R2 = result['R2']
                     trainBar.set_description("epoch:{:03d}, L:{:.4f}, logL:{:+.3f}, R2:{:+.3f}, q:{:d}, lr:{:.4g}". \
-                        format(ep, loss, logloss, Rsquared, self.data_loader.size_op.eval(session=self.sess), self.lr.eval(session=self.sess)))
+                        format(ep, loss, logloss, R2, self.data_loader.size_op.eval(session=self.sess), self.lr.eval(session=self.sess)))
 
                 visuarrs = result['visuarrs']#self.sess.run(self.visuarrs)
                 try:
@@ -162,7 +162,7 @@ class Trainer(object):
                     "summary": self.summary_op,
                     "loss": self.loss,
                     "logloss": self.logloss,
-                    "Rsquared": self.Rsquared,
+                    "R2": self.R2,
                     "step": self.step
                 })
             result = self.sess.run(fetch_dict)
@@ -173,9 +173,9 @@ class Trainer(object):
 
                 loss = result['loss']
                 logloss = result['logloss']
-                Rsquared = result['Rsquared']
+                R2 = result['R2']
                 trainBar.set_description("q:{}, L:{:.6f}, logL:{:.6f}, R2:{:+.3f}". \
-                    format(self.data_loader.size_op.eval(session=self.sess), loss, logloss, Rsquared))
+                    format(self.data_loader.size_op.eval(session=self.sess), loss, logloss, R2))
             time.sleep(sleepTime)
         exit(0)
 
@@ -202,18 +202,17 @@ class Trainer(object):
         x = self.x
         print('x:', x)
 
-        x = Conv2D(16, (3,1), padding='same', data_format='channels_last')(x)
-        x = LeakyReLU()(x)
         for nLay in self.config.hidden.split(','):
             nLay = int(nLay)
-            x = ZeroPadding2D((1,0))(x)
+            x = tf.pad(x, paddings=[[0,0],[1,1],[0,0],[0,0]], mode='SYMMETRIC')
             print('x:', x)
-            x = Conv2D(nLay, (3,1), padding='valid', data_format='channels_last')(x)
+            if self.config.localConvo:
+                x = LocallyConnected2D(nLay, (3,1), data_format='channels_last')(x)
+            else:
+                x = Conv2D(nLay, (3,1), padding='valid', data_format='channels_last')(x)
             x = LeakyReLU()(x)
         print('x:', x)
-        x = ZeroPadding2D((1,0))(x)
-        print('x:', x)
-        x = Conv2D(self.data_loader.Yshape[-1], (3,1), padding='valid', data_format='channels_last')(x)
+        x = Conv2D(self.data_loader.Yshape[-1], (1,1), padding='valid', data_format='channels_last')(x)
         print('x:', x)
 
         self.pred = x#tf.reshape(x, self.y.get_shape())
@@ -239,14 +238,13 @@ class Trainer(object):
 
             total_error = tf.reduce_sum(tf.square(tf.subtract(y, tf.reduce_mean(y))))
             unexplained_error = tf.reduce_sum(tf.square(tf.subtract(y, self.pred)))
-            self.Rsquared  = tf.nn.relu(tf.subtract(1., tf.divide(unexplained_error, total_error)), name='Rsquared')
-            print('self.Rsquared', self.Rsquared)
+            self.R2  = tf.subtract(1., tf.divide(unexplained_error, total_error), name='R2')
+            print('self.R2', self.R2)
             avgY = tf.reduce_mean(y, axis=0, keep_dims=True) # axis=0 is sample axis
             print('avgY', avgY)
-            self.OtherRsquared = tf.nn.relu(tf.identity(1.0 -  tf.divide(
-                                        tf.losses.mean_squared_error(y, self.pred), 
-                                        tf.losses.mean_squared_error(y, avgY * tf.ones_like(y)))), name='OtherRsquared')
-            print('self.OtherRsquared', self.OtherRsquared)
+            total_error_avgAx0 = tf.reduce_sum(tf.square(tf.subtract(y, avgY)))
+            self.R2avgAx0 = tf.subtract(1.0, tf.divide(unexplained_error, total_error_avgAx0), name='R2avgAx0')
+            print('self.R2avgAx0', self.R2avgAx0)
 
         self.summary_op = tf.summary.merge([
             tf.summary.histogram("x", self.x),
@@ -255,9 +253,10 @@ class Trainer(object):
             tf.summary.scalar("loss/loss", self.loss),
             tf.summary.scalar("loss/regular_loss", self.regular_loss),
             tf.summary.scalar("loss/logloss", self.logloss),
-            tf.summary.scalar("loss/Rsquared", tf.nn.relu(self.Rsquared)),
-            tf.summary.scalar("loss/OtherRsquared", tf.nn.relu(self.OtherRsquared)),
+            tf.summary.scalar("loss/R2", tf.nn.relu(self.R2)),
+            tf.summary.scalar("loss/R2avgAx0", tf.nn.relu(self.R2avgAx0)),
             tf.summary.scalar("loss/error_total", total_error),
+            tf.summary.scalar("loss/total_error_avgAx0", total_error_avgAx0),
             tf.summary.scalar("loss/error_unexplained", unexplained_error),
             tf.summary.scalar("misc/lr", self.lr),
         ])
