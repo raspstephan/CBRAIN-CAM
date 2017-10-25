@@ -10,6 +10,8 @@ import h5py
 class DataGenerator(object):
     """Generate batches
     https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly.html
+    Note that this function loads the entire dataset into RAM.
+    This can be quite memory intensive!
     """
 
     def __init__(self, data_dir, out_name, batch_size, feature_names,
@@ -35,6 +37,10 @@ class DataGenerator(object):
         self.mean_file = h5py.File(data_dir + 'SPCAM_mean.nc')
         self.std_file = h5py.File(data_dir + 'SPCAM_std.nc')
 
+        # Load features
+        self.features = self.__get_features()
+        self.targets = self.__get_targets()
+
         # Determine sizes
         self.n_samples = self.out_file['TAP'].shape[1]
         self.n_batches = int(self.n_samples / batch_size)
@@ -55,34 +61,35 @@ class DataGenerator(object):
             for i in range(self.n_batches):
                 if self.shuffle_mode == 'batches':
                     batch_idx = self.idxs[i]
+                    if self.convolution:
+                        x = [
+                            self.features[0][batch_idx:batch_idx + self.batch_size],
+                            self.features[1][batch_idx:batch_idx + self.batch_size]
+                        ]
+                    else:
+                        x = self.features[batch_idx:batch_idx + self.batch_size]
+                    y = self.targets[batch_idx:batch_idx + self.batch_size]
                 else:
                     batch_idx = [self.idxs[k] for k in
-                                 self.idxs[
-                                 i * self.batch_size:(i + 1) * self.batch_size]]
-                x = self.__get_features(batch_idx)
-                y = self.__get_targets(batch_idx)
+                        self.idxs[i * self.batch_size:(i + 1) * self.batch_size]]
+                    if self.convolution:
+                        x = [
+                            self.features[0][batch_idx],
+                            self.features[1][batch_idx]
+                        ]
+                    else:
+                        x = self.features[batch_idx]
+                    y = self.targets[batch_idx]
+
                 yield x, y
 
-    def __get_features(self, batch_idx):
+    def __get_features(self):
         """Load and scale the features
         """
         # Load features
         f_list = []
         for v in self.feature_names:
-            # NOTE to self: This below is much (factor 5) faster than
-            # self.out_file[v].value[:,...]
-            if self.out_file[v].ndim == 2:
-                if self.shuffle_mode == 'batches':
-                    f = self.out_file[v][:, batch_idx:batch_idx + self.batch_size].T
-                else:
-                    f = self.out_file[v].value[:, batch_idx].T
-            elif self.out_file[v].ndim == 1:
-                if self.shuffle_mode == 'batches':
-                    f = np.atleast_2d(self.out_file[v][batch_idx:batch_idx + self.batch_size]).T
-                else:
-                    f = np.atleast_2d(self.out_file[v].value[batch_idx]).T
-            else:
-                raise ValueError('Wrong feature dimensions.')
+            f = np.atleast_2d(self.out_file[v][:]).T
             # normalize
             f = (f - self.mean_file[v].value) / self.std_file[v].value
             f_list.append(f)
@@ -95,22 +102,13 @@ class DataGenerator(object):
             f_1d = np.concatenate(f_1d, axis=1)
             return [f_2d, f_1d]  # [sample, z, feature]
         else:
-            return np.concatenate(f_list,
-                                  axis=1)  # [sample, flattened features]
+            return np.concatenate(f_list, axis=1) # [sample, flattened features]
 
-    def __get_targets(self, batch_idx):
+    def __get_targets(self):
         """Load and convert the targets
         """
-        if self.shuffle_mode == 'batches':
-            targets = np.concatenate([
-                self.out_file['SPDT'][:,
-                batch_idx:batch_idx + self.batch_size] * 1000.,
-                self.out_file['SPDQ'][:,
-                batch_idx:batch_idx + self.batch_size] * 2.5e6,
-            ], axis=0)
-        else:
-            targets = np.concatenate([
-                self.out_file['SPDT'].value[:, batch_idx] * 1000.,
-                self.out_file['SPDQ'].value[:, batch_idx] * 2.5e6,
-            ], axis=0)
+        targets = np.concatenate([
+            self.out_file['SPDT'][:] * 1000.,
+            self.out_file['SPDQ'][:] * 2.5e6,
+        ], axis=0)
         return targets.T
