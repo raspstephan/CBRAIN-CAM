@@ -8,6 +8,8 @@ import keras
 from keras.models import Sequential, Model
 from keras.layers import Dense
 from keras.optimizers import Adam
+from keras.callbacks import TensorBoard
+from losses import *
 
 
 def fc_model(feature_shape, target_shape, hidden_layers, lr, loss):
@@ -35,5 +37,6 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss):
     model.add(Dense(target_shape, activation='linear'))
 
     # Compile model
-    model.compile(Adam(lr), loss=loss)
+    model.compile(Adam(lr), loss=loss, metrics=metrics)
     return model
+
