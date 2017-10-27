@@ -68,3 +68,18 @@ Start my own keras script in a jupyter notebook!
 Today I need to write a summary!
 
 Start by finding out why train_valid split takes so freaking long.
+
+
+## October 26
+
+Run reference experiments with the TF implementation.
+
+Reference 1: Fully connected model
+python  ./main.py --run_validation=true --randomize=true --batch_size=4096 --optim=adam --lr=1e-3 --frac_train=0.8 --log_step=100 --epoch=50 --randomize=true --input_names='TAP,QAP,OMEGA,SHFLX,LHFLX,LAT,dTdt_adiabatic,dQdt_adiabatic,QRL,QRS' --hidden=32,32 --convo=false --addon fc_reference
+
+Reference 2: Convolutional model
+python  ./main.py --run_validation=true --randomize=true --batch_size=128 --optim=adam --lr=1e-3 --frac_train=0.8 --log_step=100 --epoch=20 --randomize=true --convo=true --input_names='TAP,QAP,OMEGA,SHFLX,LHFLX,LAT,dTdt_adiabatic,dQdt_adiabatic,QRL,QRS' --hidden=32,32 --addon conv_reference
+
+And run keras reference runs next to it!
+
+Then go through losses and check which are different!

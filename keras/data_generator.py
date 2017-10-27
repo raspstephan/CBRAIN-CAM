@@ -104,9 +104,10 @@ class DataGenerator(object):
                 f_2d = [f for f in f_list if f.shape[1] > 1]
                 f_1d = [f for f in f_list if f.shape[1] == 1]
                 f_2d = np.stack(f_2d, axis=-1)
-                f_2d = np.reshape(
-                    f_2d, (f_2d.shape[0], f_2d.shape[1], 1, f_2d.shape[2])
-                )
+                # I do not think this is necessary!
+                # f_2d = np.reshape(
+                #     f_2d, (f_2d.shape[0], f_2d.shape[1], 1, f_2d.shape[2])
+                # )
                 f_1d = np.concatenate(f_1d, axis=1)
                 return [f_2d, f_1d]
                 # [sample, z, feature]

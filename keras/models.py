@@ -6,7 +6,7 @@ Author: Stephan Rasp
 
 import keras
 from keras.models import Sequential, Model
-from keras.layers import Dense
+from keras.layers import Dense, Conv1D, Input, Flatten, Concatenate
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
 from losses import *
@@ -37,6 +37,48 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss):
     model.add(Dense(target_shape, activation='linear'))
 
     # Compile model
+    model.compile(Adam(lr), loss=loss, metrics=metrics)
+    return model
+
+
+def conv_model(feature_shape_conv, feature_shape_1d, target_shape, feature_maps,
+               hidden_layers, lr, loss, kernel_size=3):
+    """
+    TODO
+
+
+    """
+
+    # Use the functional API
+    # First, the convolutional part
+    inp_conv = Input(shape=(feature_shape_conv[0],
+                            feature_shape_conv[1],))
+    # First convolutional layer
+    x_conv = Conv1D(feature_maps[0], kernel_size, padding='same',
+                    activation='relu')(inp_conv)
+    if len(feature_maps) > 1:
+        for fm in feature_maps[1:]:
+            x_conv = Conv1D(fm, kernel_size, padding='same',
+                            activation='relu')(x_conv)
+    x_conv = Flatten()(x_conv)
+
+    # Then the linear path
+    inp_1d = Input(shape=(feature_shape_1d,))
+
+    # Concatenate the two
+    x = Concatenate()([x_conv, inp_1d])
+
+    # Fully connected layers at the end
+    for h in hidden_layers:
+        x = Dense(h, activation='relu')(x)
+
+    # Final linear layer
+    x = Dense(target_shape, activation='linear')(x)
+
+    # Define the model
+    model = Model([inp_conv, inp_1d], x)
+
+    # Compile
     model.compile(Adam(lr), loss=loss, metrics=metrics)
     return model
 
