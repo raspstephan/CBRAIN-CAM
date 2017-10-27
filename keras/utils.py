@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import netCDF4 as nc
 from collections import OrderedDict
+from scipy.stats import binned_statistic
 
 # Basic setup
 np.random.seed(42)
@@ -59,3 +60,26 @@ def vis_features_targets(outputs, sample_idx, feature_vars, target_vars,
     plt.suptitle('Sample %i' % sample_idx, fontsize=15)
     plt.tight_layout(rect=(0, 0, 1, 0.95))
     plt.show()
+
+
+def plot_lat_z_statistic(a, lats, statistic, cmap='inferno', vmin=None, vmax=None):
+    b = binned_statistic(lats, a.T, statistic=statistic, bins=20,
+                         range=(lats.min(), lats.max()))
+    mean_lats = (b[1][1:] + b[1][:-1]) / 2.
+    mean_lats = ['%.0f' % l for l in mean_lats]
+    plt.imshow(b[0], cmap=cmap, vmin=vmin, vmax=vmax)
+    plt.xticks(range(len(mean_lats)), mean_lats)
+    plt.colorbar()
+    plt.show()
+
+
+def rmse_stat(x):
+    """
+    RMSE function for lat_z plots
+    Args:
+        x: 
+
+    Returns:
+
+    """
+    return np.sqrt(np.mean(x**2))
