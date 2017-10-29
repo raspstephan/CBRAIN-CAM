@@ -4,22 +4,16 @@ in the neural network scripts.
 Author: Stephan Rasp
 
 TODO:
-- write mean and std files
-- Create config file for input and output variables
-- Create log file
+- Train/valid split
+- Add moisture convergence
 """
 import glob
-from argparse import ArgumentParser
+from configargparse import ArgParser
 from netCDF4 import Dataset
 import os, sys
 import numpy as np
 from datetime import datetime
 from subprocess import getoutput
-
-
-in_var_list = ['TAP', 'SHFLX', 'LAT', 'dTdt_adiabatic']   # Inputs/features
-out_var_list = ['SPDT']          # Outputs/targets
-var_list = in_var_list + out_var_list
 
 
 def create_log_str():
@@ -106,7 +100,7 @@ def create_nc(inargs, sample_rg, n_infiles):
     v[:] = sample_rg.variables['lon'][:]
 
     # Create all other variables
-    for var in var_list:
+    for var in inargs.in_vars + inargs.out_vars:
         if var in sample_rg.variables.keys():
             v = rg.createVariable(var, inargs.dtype,
                                   sample_rg.variables[var].dimensions)
@@ -151,9 +145,8 @@ def add_LAT(inargs, rg):
     v[:] = lat_3d
 
 
-
 def compute_adiabatic(inargs, var, aqua_rg):
-    """
+    """Compute adiabatic tendencies.
 
     Args:
         inargs: Namespace
@@ -198,8 +191,8 @@ def write_contents(inargs, rg, aqua_fn, time_idx):
         new_time_idx = time_idx + n_time_min_1
         if inargs.verbose: print('Current time_idx:', time_idx,
                                  'New time_idx:', new_time_idx)
-        for var in var_list:
-            if var in in_var_list:
+        for var in inargs.in_vars + inargs.out_vars:
+            if var in inargs.in_vars:
                 var_time_idxs = np.arange(0, 0 + n_time_min_1)
             else:
                 var_time_idxs = np.arange(1, 1 + n_time_min_1)
@@ -209,7 +202,8 @@ def write_contents(inargs, rg, aqua_fn, time_idx):
                 if aqua_rg.variables[var].ndim == 3:
                     # [time, lat, lon]
                     rg.variables[var][time_idx:new_time_idx] = \
-                        aqua_rg.variables[var][var_time_idxs][:, inargs.lat_idxs, :]
+                        aqua_rg.variables[var][var_time_idxs][:, inargs.lat_idxs,
+                                                              :]
                 elif aqua_rg.variables[var].ndim == 4:
                     # [time, lev, lat, lon]
                     rg.variables[var][time_idx:new_time_idx] = \
@@ -228,8 +222,98 @@ def write_contents(inargs, rg, aqua_fn, time_idx):
     return new_time_idx
 
 
+def create_mean_std(inargs):
+    """Create files with means and standard deviations.
+    These have either dimension z or 1
+
+    Args:
+        inargs: Namespace
+
+    """
+    # File to read from
+    full_rg = Dataset(os.path.join(inargs.out_dir, inargs.out_fn), 'r')
+
+    # Loop over mean and std
+    for type, fn in zip(['mean', 'std'], [inargs.mean_fn, inargs.std_fn]):
+        # Mean and std files
+        nc_fn = os.path.join(inargs.out_dir, fn)
+        if inargs.verbose: print(type, 'file:', nc_fn)
+        rg = Dataset(nc_fn, 'w')
+        rg.log = create_log_str()
+
+        # Create levs dimensions
+        rg.createDimension('lev', full_rg.dimensions['lev'].size)
+
+        # Loop through all variables
+        for var_name in inargs.in_vars + inargs.out_vars:
+            full_v = full_rg.variables[var_name]
+            if full_v.ndim == 3:
+                v = rg.createVariable(var_name, inargs.dtype, ())
+                if type == 'mean':
+                    v[:] = np.mean(full_v[:])
+                else:
+                    v[:] = np.std(full_v[:], ddof=1)
+
+            elif full_v.ndim == 4:
+                v = rg.createVariable(var_name, inargs.dtype, 'lev')
+                if type == 'mean':
+                    v[:] = np.mean(full_v[:], axis=(0, 2, 3))
+                else:
+                    v[:] = np.std(full_v[:], ddof=1, axis=(0, 2, 3))
+            else:
+                raise ValueError('Wrong dimensions for variable %s.' % var_name)
+
+        rg.close()
+    full_rg.close()
+
+
+def create_flat(inargs):
+    """Create flat version of outputs file
+
+    Args:
+        inargs: Namespace
+    """
+    # File to read from
+    full_rg = Dataset(os.path.join(inargs.out_dir, inargs.out_fn), 'r')
+
+    # Create new file
+    nc_fn = os.path.join(inargs.out_dir, inargs.flat_fn)
+    if inargs.verbose: print('Flattened file:', nc_fn)
+    rg = Dataset(nc_fn, 'w')
+    rg.log = create_log_str()
+
+    # Create dimensions
+    n_samples = (full_rg.dimensions['time'].size *
+                 full_rg.dimensions['lat'].size *
+                 full_rg.dimensions['lon'].size)
+    rg.createDimension('lev', full_rg.dimensions['lev'].size)
+    rg.createDimension('sample', n_samples)
+
+    # Loop through variables and write flattened arrays
+    for var in inargs.in_vars + inargs.out_vars:
+        full_var = full_rg.variables[var]
+        if full_var.ndim == 3:
+            v = rg.createVariable(var, inargs.dtype, 'sample')
+            data = full_var[:]   # [time, lat, lon]
+            v[:] = np.ravel(data)
+
+        elif full_var.ndim == 4:
+            v = rg.createVariable(var, inargs.dtype, ('lev', 'sample'))
+            data = full_var[:]   # [time, lev, lat, lon]
+            data = np.rollaxis(data, 1, 0)  # [lev, time, lat, lon]
+            v[:] = data.reshape(v.shape)
+        else:
+            raise ValueError('Wrong dimensions for variable %s.' % var)
+
+        # Add additional information
+        v.long_name = full_var.long_name
+        v.units = full_var.units
+
 def main(inargs):
     """Main function. Takes arguments and executes preprocessing routines.
+
+    Args:
+        inargs: argument namespace
     """
 
     # Create list of all input data files
@@ -248,12 +332,31 @@ def main(inargs):
     time_idx = 0
     for aqua_fn in in_list:
         time_idx = write_contents(inargs, rg, aqua_fn, time_idx)
-
     rg.close()
+
+    # Create mean and std files
+    create_mean_std(inargs)
+
+    if inargs.flatten is not None:
+        create_flat(inargs)
+
 
 if __name__ == '__main__':
 
-    p = ArgumentParser()
+    p = ArgParser()
+    p.add('--config_file',
+          required=True,
+          is_config_file=True,
+          help='Name of config file in this directory. '
+               'Must contain in and out variable lists.')
+    p.add_argument('--in_vars',
+                   type=str,
+                   nargs='+',
+                   help='Variables for neural net input.')
+    p.add_argument('--out_vars',
+                   type=str,
+                   nargs='+',
+                   help='Variables for neural net output.')
     p.add_argument('--in_dir',
                    type=str,
                    help='Directory with input (aqua) files.')
@@ -269,6 +372,16 @@ if __name__ == '__main__':
                    default='SPCAM_outputs_detailed.nc',
                    help='Filename of preprocessed file. '
                         'Default = "SPCAM_outputs_detailed.nc"')
+    p.add_argument('--mean_fn',
+                   type=str,
+                   default='SPCAM_mean_detailed.nc',
+                   help='Filename of mean file. '
+                        'Default = "SPCAM_mean_detailed.nc"')
+    p.add_argument('--std_fn',
+                   type=str,
+                   default='SPCAM_std_detailed.nc',
+                   help='Filename of std file. '
+                        'Default = "SPCAM_std_detailed.nc"')
     p.add_argument('--min_lev',
                    type=int,
                    default=9,
@@ -282,6 +395,17 @@ if __name__ == '__main__':
                    type=str,
                    default='float32',
                    help='Datatype of out variables. Default = "float32"')
+    p.add_argument('--flatten',
+                   dest='flatten',
+                   action='store_true',
+                   help='If given: flatten time, lat and lon in a separate '
+                        'file. NOTE: Twise the memory!')
+    p.set_defaults(flatten=True)
+    p.add_argument('--flat_fn',
+                   type=str,
+                   default='SPCAM_outputs_flat.nc',
+                   help='Filename of flat file. '
+                        'Default = "SPCAM_outputs_flat.nc"')
     p.add_argument('--verbose',
                    dest='verbose',
                    action='store_true',
@@ -289,5 +413,9 @@ if __name__ == '__main__':
     p.set_defaults(verbose=True)
 
     args = p.parse_args()
+
+    # Perform some input checks
+    assert len(args.in_vars[0]) > 0, 'No in_vars given.'
+    assert len(args.out_vars[0]) > 0, 'No out_vars given.'
 
     main(args)

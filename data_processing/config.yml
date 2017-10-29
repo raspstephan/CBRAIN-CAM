@@ -1,0 +1,4 @@
+# Define input and output variables
+# Important: Do not include quatation marks!
+in_vars: [TAP, SHFLX]   # Inputs/features
+out_vars: [LHFLX]          # Outputs/targets
