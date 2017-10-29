@@ -4,7 +4,6 @@ in the neural network scripts.
 Author: Stephan Rasp
 
 TODO:
-- Create date dimensions
 - Add moisture convergence
 """
 import glob
@@ -113,7 +112,7 @@ def create_nc(inargs, sample_rg, n_infiles):
             add_LAT(inargs, rg)
         elif var in ['dTdt_adiabatic', 'dQdt_adiabatic']:
             tmp_var = 'TAP'
-            dims = ['date'] + list(sample_rg.variables[var].dimensions)
+            dims = ['date'] + list(sample_rg.variables[tmp_var].dimensions)
             v = rg.createVariable(var, inargs.dtype, dims)
             if var == 'dTdt_adiabatic':
                 v.long_name = 'Adiabatic T tendency'
@@ -137,6 +136,8 @@ def add_LAT(inargs, rg):
     """
     # Create variable
     v = rg.createVariable('LAT', inargs.dtype, ('date', 'time', 'lat', 'lon'))
+    v.long_name = 'Latitude'
+    v.units = 'degrees'
 
     # Create LAT array
     lat_1d = rg.variables['lat'][:]
@@ -335,7 +336,7 @@ def main(inargs):
     # Create mean and std files
     create_mean_std(inargs)
 
-    if inargs.flatten is not None:
+    if inargs.flatten:
         create_flat(inargs)
 
 
@@ -343,7 +344,7 @@ if __name__ == '__main__':
 
     p = ArgParser()
     p.add('--config_file',
-          required=True,
+          default='config.yml',
           is_config_file=True,
           help='Name of config file in this directory. '
                'Must contain in and out variable lists.')
@@ -397,8 +398,8 @@ if __name__ == '__main__':
                    dest='flatten',
                    action='store_true',
                    help='If given: flatten time, lat and lon in a separate '
-                        'file. NOTE: Twise the memory!')
-    p.set_defaults(flatten=True)
+                        'file. NOTE: Twice the memory!')
+    p.set_defaults(flatten=False)
     p.add_argument('--flat_fn',
                    type=str,
                    default='SPCAM_outputs_flat.nc',
@@ -408,7 +409,7 @@ if __name__ == '__main__':
                    dest='verbose',
                    action='store_true',
                    help='If given, print debugging information.')
-    p.set_defaults(verbose=True)
+    p.set_defaults(verbose=False)
 
     args = p.parse_args()
 
