@@ -4,17 +4,37 @@ in the neural network scripts.
 Author: Stephan Rasp
 
 TODO:
-- Create Lat variable
 - write mean and std files
-- Add select_lat option
+- compute adiabatic dt variables
+- Create config file for input and output variables
+- Create log file
 """
 import glob
 from argparse import ArgumentParser
 from netCDF4 import Dataset
 import os
+import numpy as np
 
 
-var_list = ['TAP', 'SHFLX']
+in_var_list = ['TAP', 'SHFLX', 'LAT']   # Inputs/features
+out_var_list = ['SPDT']          # Outputs/targets
+var_list = in_var_list + out_var_list
+
+
+def store_lat_idxs(inargs, sample_rg):
+    """Stores latitude indices
+
+    Args:
+        inargs: namespace
+
+    Stores:
+        inargs.lat_idxs: boolian numpy array with lat dimensions
+    """
+    inargs.lat_idxs = np.where(
+        (sample_rg.variables['lat'][:] >= inargs.lat_range[0]) &
+        (sample_rg.variables['lat'][:] <= inargs.lat_range[1])
+    )[0]
+    if inargs.verbose: print('Latitude indices:', inargs.lat_idxs)
 
 
 def create_nc(inargs, sample_rg, n_infiles):
@@ -36,29 +56,60 @@ def create_nc(inargs, sample_rg, n_infiles):
 
     # Create dimensions [time, lev, lat, lon]
     # and dimension variables
-    rg.createDimension('time', sample_rg.dimensions['time'].size * n_infiles)
+    # Time (subtract one time step=
+    rg.createDimension('time',
+                       (sample_rg.dimensions['time'].size - 1) * n_infiles)
     rg.createVariable('time', inargs.dtype, 'time')
+    # Level (potentially omit top layers)
     rg.createDimension('lev',
                        sample_rg.variables['lev'][inargs.min_lev:].shape[0])
     v = rg.createVariable('lev', inargs.dtype, 'lev')
     v[:] = sample_rg.variables['lev'][inargs.min_lev:]
-    for name in ['lat', 'lon']:
-        rg.createDimension(name, sample_rg.dimensions[name].size)
-        v = rg.createVariable(name, inargs.dtype, name)
-        v.long_name = sample_rg.variables[name].long_name
-        v.units = sample_rg.variables[name].units
-        # Write values
-        v[:] = sample_rg.variables[name][:]
+    # Latitude (potentially chose latitude range)
+    rg.createDimension('lat',
+                       sample_rg.variables['lat'][inargs.lat_idxs].shape[0])
+    v = rg.createVariable('lat', inargs.dtype, 'lat')
+    v[:] = sample_rg.variables['lat'][inargs.lat_idxs]
+    # Longitude (nothing special)
+    rg.createDimension('lon', sample_rg.variables['lon'][:].shape[0])
+    v = rg.createVariable('lon', inargs.dtype, 'lon')
+    v[:] = sample_rg.variables['lon'][:]
 
     # Create all other variables
     for var in var_list:
-        v = rg.createVariable(var, inargs.dtype,
-                              sample_rg.variables[var].dimensions)
-        v.long_name = sample_rg.variables[var].long_name
-        v.units = sample_rg.variables[var].units
+        if var in sample_rg.variables.keys()
+            v = rg.createVariable(var, inargs.dtype,
+                                  sample_rg.variables[var].dimensions)
+            v.long_name = sample_rg.variables[var].long_name
+            v.units = sample_rg.variables[var].units
+        elif var == 'LAT':
+            add_LAT(inargs, rg)
+        else:
+            KeyError('Variable %s not implemented.' % var)
 
     if inargs.verbose: print('Created out_file:', rg)
     return rg
+
+
+def add_LAT(inargs, rg):
+    """Adds latitude array with dimensions [time, lat, lon]
+
+    Args:
+        inargs: Namespace
+        rg: output file
+    """
+    # Create variable
+    v = rg.createVariable('LAT', inargs.dtype, ('time', 'lat', 'lon'))
+
+    # Create LAT array
+    lat_1d = rg.variables['lat'][:]
+    lat_3d = lat_1d.reshape((1, lat_1d.shape[0], 1))
+    lat_3d = np.repeat(lat_3d, v.shape[0], axis=0)   # Time
+    lat_3d = np.repeat(lat_3d, v.shape[2], axis=2)   # Lon
+
+    # Write to file
+    v[:] = lat_3d
+
 
 
 def write_contents(inargs, rg, aqua_fn, time_idx):
@@ -77,18 +128,33 @@ def write_contents(inargs, rg, aqua_fn, time_idx):
 
     # Open aqua file
     with Dataset(aqua_fn, 'r') as aqua_rg:
-        new_time_idx = time_idx + aqua_rg.dimensions['time'].size
+        n_time_min_1 = aqua_rg.dimensions['time'].size - 1
+        new_time_idx = time_idx + n_time_min_1
         if inargs.verbose: print('Current time_idx:', time_idx,
                                  'New time_idx:', new_time_idx)
         for var in var_list:
-            if aqua_rg.variables[var].ndim == 3:
-                rg.variables[var][time_idx:new_time_idx] = \
-                    aqua_rg.variables[var][:, :, :]
-            elif aqua_rg.variables[var].ndim == 4:
-                rg.variables[var][time_idx:new_time_idx] = \
-                    aqua_rg.variables[var][:, inargs.min_lev:, :, :]
+            if var in in_var_list:
+                var_time_idxs = np.arange(0, 0 + n_time_min_1)
             else:
-                raise ValueError('Wrong dimensions.')
+                var_time_idxs = np.arange(1, 1 + n_time_min_1)
+            if inargs.verbose: print('Variable time indices:', var_time_idxs,
+                                     'for variable:', var)
+            if var in aqua_rg.variables.keys():
+                if aqua_rg.variables[var].ndim == 3:
+                    # [time, lat, lon]
+                    rg.variables[var][time_idx:new_time_idx] = \
+                        aqua_rg.variables[var][var_time_idxs][:, inargs.lat_idxs, :]
+                elif aqua_rg.variables[var].ndim == 4:
+                    # [time, lev, lat, lon]
+                    rg.variables[var][time_idx:new_time_idx] = \
+                        aqua_rg.variables[var][var_time_idxs][:, inargs.min_lev:,
+                                                              inargs.lat_idxs, :]
+                else:
+                    raise ValueError('Wrong dimensions.')
+            elif var == 'LAT':
+                pass   # Already dealt with that some other place
+            else:
+                raise KeyError('Variable %s not implemented.' % var)
 
     return new_time_idx
 
@@ -103,6 +169,7 @@ def main(inargs):
 
     # Read the first input file to get basic parameters
     sample_rg = Dataset(in_list[0], 'r')
+    store_lat_idxs(inargs, sample_rg)
 
     # Allocate new netCDF file
     rg = create_nc(inargs, sample_rg, len(in_list))
