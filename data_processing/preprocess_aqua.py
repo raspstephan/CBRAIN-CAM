@@ -4,7 +4,7 @@ in the neural network scripts.
 Author: Stephan Rasp
 
 TODO:
-- Train/valid split
+- Create date dimensions
 - Add moisture convergence
 """
 import glob
@@ -78,12 +78,15 @@ def create_nc(inargs, sample_rg, n_infiles):
     rg = Dataset(nc_fn, 'w')
     rg.log = create_log_str()
 
-    # Create dimensions [time, lev, lat, lon]
+    # Create dimensions [date, time, lev, lat, lon]
     # and dimension variables
-    # Time (subtract one time step=
-    rg.createDimension('time',
-                       (sample_rg.dimensions['time'].size - 1) * n_infiles)
-    rg.createVariable('time', inargs.dtype, 'time')
+    rg.createDimension('date', n_infiles)
+    v = rg.createVariable('date', inargs.dtype, 'date')
+    v[:] = np.arange(1, n_infiles + 1)
+    # Time (subtract one time step)
+    rg.createDimension('time',(sample_rg.dimensions['time'].size - 1))
+    v = rg.createVariable('time', inargs.dtype, 'time')
+    v[:] = np.arange(v.shape[0])
     # Level (potentially omit top layers)
     rg.createDimension('lev',
                        sample_rg.variables['lev'][inargs.min_lev:].shape[0])
@@ -102,16 +105,16 @@ def create_nc(inargs, sample_rg, n_infiles):
     # Create all other variables
     for var in inargs.in_vars + inargs.out_vars:
         if var in sample_rg.variables.keys():
-            v = rg.createVariable(var, inargs.dtype,
-                                  sample_rg.variables[var].dimensions)
+            dims = ['date'] + list(sample_rg.variables[var].dimensions)
+            v = rg.createVariable(var, inargs.dtype, dims)
             v.long_name = sample_rg.variables[var].long_name
             v.units = sample_rg.variables[var].units
         elif var == 'LAT':
             add_LAT(inargs, rg)
         elif var in ['dTdt_adiabatic', 'dQdt_adiabatic']:
             tmp_var = 'TAP'
-            v = rg.createVariable(var, inargs.dtype,
-                                  sample_rg.variables[tmp_var].dimensions)
+            dims = ['date'] + list(sample_rg.variables[var].dimensions)
+            v = rg.createVariable(var, inargs.dtype, dims)
             if var == 'dTdt_adiabatic':
                 v.long_name = 'Adiabatic T tendency'
                 v.units = 'K/s'
@@ -126,23 +129,24 @@ def create_nc(inargs, sample_rg, n_infiles):
 
 
 def add_LAT(inargs, rg):
-    """Adds latitude array with dimensions [time, lat, lon]
+    """Adds latitude array with dimensions [date, time, lat, lon]
 
     Args:
         inargs: Namespace
         rg: output file
     """
     # Create variable
-    v = rg.createVariable('LAT', inargs.dtype, ('time', 'lat', 'lon'))
+    v = rg.createVariable('LAT', inargs.dtype, ('date', 'time', 'lat', 'lon'))
 
     # Create LAT array
     lat_1d = rg.variables['lat'][:]
-    lat_3d = lat_1d.reshape((1, lat_1d.shape[0], 1))
-    lat_3d = np.repeat(lat_3d, v.shape[0], axis=0)   # Time
-    lat_3d = np.repeat(lat_3d, v.shape[2], axis=2)   # Lon
+    lat_4d = lat_1d.reshape((1, 1, lat_1d.shape[0], 1))
+    lat_4d = np.repeat(lat_4d, v.shape[0], axis=0)   # Date
+    lat_4d = np.repeat(lat_4d, v.shape[1], axis=1)   # Time
+    lat_4d = np.repeat(lat_4d, v.shape[3], axis=3)   # Lon
 
     # Write to file
-    v[:] = lat_3d
+    v[:] = lat_4d
 
 
 def compute_adiabatic(inargs, var, aqua_rg):
@@ -171,26 +175,21 @@ def compute_adiabatic(inargs, var, aqua_rg):
     return dt - phy
 
 
-def write_contents(inargs, rg, aqua_fn, time_idx):
+def write_contents(inargs, rg, aqua_fn, date_idx):
     """Write contents of one aqua file
 
     Args:
         inargs: argparse namespace
         rg: nc rootgroup to write in
         aqua_fn: filename of aqua file
-        time_idx: Current time index
-
-    Returns:
-        new_time_idx: Updated time index
+        date_idx: date_index
 
     """
 
     # Open aqua file
     with Dataset(aqua_fn, 'r') as aqua_rg:
         n_time_min_1 = aqua_rg.dimensions['time'].size - 1
-        new_time_idx = time_idx + n_time_min_1
-        if inargs.verbose: print('Current time_idx:', time_idx,
-                                 'New time_idx:', new_time_idx)
+        if inargs.verbose: print('date_idx:', date_idx)
         for var in inargs.in_vars + inargs.out_vars:
             if var in inargs.in_vars:
                 var_time_idxs = np.arange(0, 0 + n_time_min_1)
@@ -201,12 +200,12 @@ def write_contents(inargs, rg, aqua_fn, time_idx):
             if var in aqua_rg.variables.keys():
                 if aqua_rg.variables[var].ndim == 3:
                     # [time, lat, lon]
-                    rg.variables[var][time_idx:new_time_idx] = \
+                    rg.variables[var][date_idx] = \
                         aqua_rg.variables[var][var_time_idxs][:, inargs.lat_idxs,
                                                               :]
                 elif aqua_rg.variables[var].ndim == 4:
                     # [time, lev, lat, lon]
-                    rg.variables[var][time_idx:new_time_idx] = \
+                    rg.variables[var][date_idx] = \
                         aqua_rg.variables[var][var_time_idxs][:, inargs.min_lev:,
                                                               inargs.lat_idxs, :]
                 else:
@@ -214,12 +213,10 @@ def write_contents(inargs, rg, aqua_fn, time_idx):
             elif var == 'LAT':
                 pass   # Already dealt with that some other place
             elif var in ['dTdt_adiabatic', 'dQdt_adiabatic']:
-                rg.variables[var][time_idx:new_time_idx] = \
+                rg.variables[var][date_idx] = \
                     compute_adiabatic(inargs, var, aqua_rg)
             else:
                 raise KeyError('Variable %s not implemented.' % var)
-
-    return new_time_idx
 
 
 def create_mean_std(inargs):
@@ -247,19 +244,20 @@ def create_mean_std(inargs):
         # Loop through all variables
         for var_name in inargs.in_vars + inargs.out_vars:
             full_v = full_rg.variables[var_name]
-            if full_v.ndim == 3:
+            if full_v.ndim == 4:
                 v = rg.createVariable(var_name, inargs.dtype, ())
                 if type == 'mean':
                     v[:] = np.mean(full_v[:])
                 else:
                     v[:] = np.std(full_v[:], ddof=1)
 
-            elif full_v.ndim == 4:
+            elif full_v.ndim == 5:
+                # [date, time, lev, lat, lon]
                 v = rg.createVariable(var_name, inargs.dtype, 'lev')
                 if type == 'mean':
-                    v[:] = np.mean(full_v[:], axis=(0, 2, 3))
+                    v[:] = np.mean(full_v[:], axis=(0, 1, 3, 4))
                 else:
-                    v[:] = np.std(full_v[:], ddof=1, axis=(0, 2, 3))
+                    v[:] = np.std(full_v[:], ddof=1, axis=(0, 1, 3, 4))
             else:
                 raise ValueError('Wrong dimensions for variable %s.' % var_name)
 
@@ -283,7 +281,8 @@ def create_flat(inargs):
     rg.log = create_log_str()
 
     # Create dimensions
-    n_samples = (full_rg.dimensions['time'].size *
+    n_samples = (full_rg.dimensions['date'].size *
+                 full_rg.dimensions['time'].size *
                  full_rg.dimensions['lat'].size *
                  full_rg.dimensions['lon'].size)
     rg.createDimension('lev', full_rg.dimensions['lev'].size)
@@ -292,15 +291,14 @@ def create_flat(inargs):
     # Loop through variables and write flattened arrays
     for var in inargs.in_vars + inargs.out_vars:
         full_var = full_rg.variables[var]
-        if full_var.ndim == 3:
+        if full_var.ndim == 4:
             v = rg.createVariable(var, inargs.dtype, 'sample')
-            data = full_var[:]   # [time, lat, lon]
+            data = full_var[:]   # [date, time, lat, lon]
             v[:] = np.ravel(data)
-
-        elif full_var.ndim == 4:
+        elif full_var.ndim == 5:
             v = rg.createVariable(var, inargs.dtype, ('lev', 'sample'))
-            data = full_var[:]   # [time, lev, lat, lon]
-            data = np.rollaxis(data, 1, 0)  # [lev, time, lat, lon]
+            data = full_var[:]   # [date, time, lev, lat, lon]
+            data = np.rollaxis(data, 2, 0)  # [lev, date, time, lat, lon]
             v[:] = data.reshape(v.shape)
         else:
             raise ValueError('Wrong dimensions for variable %s.' % var)
@@ -308,6 +306,7 @@ def create_flat(inargs):
         # Add additional information
         v.long_name = full_var.long_name
         v.units = full_var.units
+
 
 def main(inargs):
     """Main function. Takes arguments and executes preprocessing routines.
@@ -329,9 +328,8 @@ def main(inargs):
     sample_rg.close()
 
     # Go through files and write contents
-    time_idx = 0
-    for aqua_fn in in_list:
-        time_idx = write_contents(inargs, rg, aqua_fn, time_idx)
+    for date_idx, aqua_fn in enumerate(in_list):
+        write_contents(inargs, rg, aqua_fn, date_idx)
     rg.close()
 
     # Create mean and std files
