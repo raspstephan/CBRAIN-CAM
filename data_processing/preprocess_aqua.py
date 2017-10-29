@@ -5,20 +5,49 @@ Author: Stephan Rasp
 
 TODO:
 - write mean and std files
-- compute adiabatic dt variables
 - Create config file for input and output variables
 - Create log file
 """
 import glob
 from argparse import ArgumentParser
 from netCDF4 import Dataset
-import os
+import os, sys
 import numpy as np
+from datetime import datetime
+from subprocess import getoutput
 
 
-in_var_list = ['TAP', 'SHFLX', 'LAT']   # Inputs/features
+in_var_list = ['TAP', 'SHFLX', 'LAT', 'dTdt_adiabatic']   # Inputs/features
 out_var_list = ['SPDT']          # Outputs/targets
 var_list = in_var_list + out_var_list
+
+
+def create_log_str():
+    """Create a log string to add to the netcdf file for reproducibility.
+    See: https://raspstephan.github.io/2017/08/24/reproducibility-hack.html
+
+    Returns:
+        log_str: String with reproducibility information
+    """
+    time_stamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    try:
+        from git import Repo
+        pwd = getoutput(['pwd']).rstrip()  # Need to remove trailing /n
+        git_dir = pwd.rsplit('/', 1)[0]
+        git_hash = Repo(git_dir).heads[0].commit
+    except ModuleNotFoundError:
+        print('GitPython not found. Please install for better reproducibility.')
+        git_hash = 'N/A'
+    exe_str = ' '.join(sys.argv)
+
+    log_str = ("""
+    Time: %s\n
+    Executed command:\n
+    python %s\n
+    In directory: %s\n
+    Git hash: %s\n
+        """ % (time_stamp, exe_str, pwd, str(git_hash)))
+    return log_str
 
 
 def store_lat_idxs(inargs, sample_rg):
@@ -53,6 +82,7 @@ def create_nc(inargs, sample_rg, n_infiles):
     nc_fn = os.path.join(inargs.out_dir, inargs.out_fn)
     if inargs.verbose: print('Preprocessed file:', nc_fn)
     rg = Dataset(nc_fn, 'w')
+    rg.log = create_log_str()
 
     # Create dimensions [time, lev, lat, lon]
     # and dimension variables
@@ -77,13 +107,23 @@ def create_nc(inargs, sample_rg, n_infiles):
 
     # Create all other variables
     for var in var_list:
-        if var in sample_rg.variables.keys()
+        if var in sample_rg.variables.keys():
             v = rg.createVariable(var, inargs.dtype,
                                   sample_rg.variables[var].dimensions)
             v.long_name = sample_rg.variables[var].long_name
             v.units = sample_rg.variables[var].units
         elif var == 'LAT':
             add_LAT(inargs, rg)
+        elif var in ['dTdt_adiabatic', 'dQdt_adiabatic']:
+            tmp_var = 'TAP'
+            v = rg.createVariable(var, inargs.dtype,
+                                  sample_rg.variables[tmp_var].dimensions)
+            if var == 'dTdt_adiabatic':
+                v.long_name = 'Adiabatic T tendency'
+                v.units = 'K/s'
+            else:
+                v.long_name = 'Adiabatic Q tendency'
+                v.units = 'kg/kg/s'
         else:
             KeyError('Variable %s not implemented.' % var)
 
@@ -110,6 +150,32 @@ def add_LAT(inargs, rg):
     # Write to file
     v[:] = lat_3d
 
+
+
+def compute_adiabatic(inargs, var, aqua_rg):
+    """
+
+    Args:
+        inargs: Namespace
+        var: Variable to be computed
+        aqua_rg: input file
+
+    Returns:
+        adiabatic: Numpy array
+    """
+    # Load relevant files
+    if var == 'dTdt_adiabatic':
+        base_var = 'TAP'
+        phy_var = 'TPHYSTND'
+    else:
+        base_var = 'QAP'
+        phy_var = 'PHQ'
+    dt = (
+        aqua_rg.variables[base_var][1:][:, inargs.min_lev:, inargs.lat_idxs, :] -
+        aqua_rg.variables[base_var][:-1][:, inargs.min_lev:, inargs.lat_idxs, :]
+    ) / (0.5 * 60 * 60)   # Convert to s-1
+    phy = aqua_rg.variables[phy_var][1:][:, inargs.min_lev:, inargs.lat_idxs, :]
+    return dt - phy
 
 
 def write_contents(inargs, rg, aqua_fn, time_idx):
@@ -153,6 +219,9 @@ def write_contents(inargs, rg, aqua_fn, time_idx):
                     raise ValueError('Wrong dimensions.')
             elif var == 'LAT':
                 pass   # Already dealt with that some other place
+            elif var in ['dTdt_adiabatic', 'dQdt_adiabatic']:
+                rg.variables[var][time_idx:new_time_idx] = \
+                    compute_adiabatic(inargs, var, aqua_rg)
             else:
                 raise KeyError('Variable %s not implemented.' % var)
 
