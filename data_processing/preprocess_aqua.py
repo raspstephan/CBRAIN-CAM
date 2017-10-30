@@ -23,9 +23,9 @@ def create_log_str():
         log_str: String with reproducibility information
     """
     time_stamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    pwd = getoutput(['pwd']).rstrip()  # Need to remove trailing /n
     try:
         from git import Repo
-        pwd = getoutput(['pwd']).rstrip()  # Need to remove trailing /n
         git_dir = pwd.rsplit('/', 1)[0]
         git_hash = Repo(git_dir).heads[0].commit
     except ModuleNotFoundError:

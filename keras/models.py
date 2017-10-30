@@ -6,7 +6,8 @@ Author: Stephan Rasp
 
 import keras
 from keras.models import Sequential, Model
-from keras.layers import Dense, Conv1D, Input, Flatten, Concatenate
+from keras.layers import Dense, Conv1D, Input, Flatten, Concatenate, \
+    BatchNormalization
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
 from losses import *
@@ -42,7 +43,7 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss):
 
 
 def conv_model(feature_shape_conv, feature_shape_1d, target_shape, feature_maps,
-               hidden_layers, lr, loss, kernel_size=3):
+               hidden_layers, lr, loss, kernel_size=3, batch_norm=False):
     """
     TODO
 
@@ -67,10 +68,14 @@ def conv_model(feature_shape_conv, feature_shape_1d, target_shape, feature_maps,
 
     # Concatenate the two
     x = Concatenate()([x_conv, inp_1d])
+    if batch_norm:
+        x = BatchNormalization()(x)
 
     # Fully connected layers at the end
     for h in hidden_layers:
         x = Dense(h, activation='relu')(x)
+        if batch_norm:
+            x = BatchNormalization()(x)
 
     # Final linear layer
     x = Dense(target_shape, activation='linear')(x)

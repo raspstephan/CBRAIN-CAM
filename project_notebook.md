@@ -83,3 +83,10 @@ python  ./main.py --run_validation=true --randomize=true --batch_size=128 --opti
 And run keras reference runs next to it!
 
 Then go through losses and check which are different!
+
+## October 30
+
+data preprocessing:
+    - compare new flat array with old file --> Looks good
+    - go back to keras notebook, run better model and then do some more output analysis!
+    - rewrite keras script without data_generator to sets as in PPNN

@@ -7,6 +7,86 @@ import numpy as np
 import h5py
 
 
+class DataSet(object):
+    """Gets a dataset of train data.
+    """
+
+    def __init__(self, data_dir, out_fn, mean_fn, std_fn, feature_names,
+                 target_names=['SPDT', 'SPDQ'],
+                 convolution=False, dtype='float32'):
+        """
+        Initialize dataset
+        Args:
+            data_dir: directory where data is stored
+            out_fn: filename of outputs file
+            mean_fn: filename of mean file
+            std_fn: filename of std file
+            target_names: target variable names
+            convolution: get data with channels
+            dtype: numpy precision
+        """
+        # File names
+        self.data_dir = data_dir
+        self.out_fn = data_dir + out_fn
+        self.mean_fn = data_dir + mean_fn
+        self.std_fn = data_dir + std_fn
+
+        # Other settings
+        self.convolution = convolution
+        self.feature_names = feature_names
+        self.target_names = target_names
+        self.dtype = dtype
+
+        # Load data
+        self.features = self.__get_features()
+        self.targets = self.__get_targets()
+
+    # These functions are copied from the data generator function
+    def __get_features(self):
+        """Load and scale the features
+        """
+        # Load features
+        with h5py.File(self.out_fn, 'r') as out_file, \
+                h5py.File(self.mean_fn, 'r') as mean_file, \
+                h5py.File(self.std_fn, 'r') as std_file:
+
+            # Get total number of samples
+            self.n_samples = out_file['TAP'].shape[1]
+
+            f_list = []
+            for v in self.feature_names:
+                f = np.atleast_2d(out_file[v][:]).T
+                # normalize
+                f = (f - mean_file[v].value) / std_file[v].value
+                # Adjust data type
+                f = np.asarray(f, dtype=self.dtype)
+                f_list.append(f)
+            if self.convolution:
+                f_2d = [f for f in f_list if f.shape[1] > 1]
+                f_1d = [f for f in f_list if f.shape[1] == 1]
+                f_2d = np.stack(f_2d, axis=-1)
+                # I do not think this is necessary!
+                # f_2d = np.reshape(
+                #     f_2d, (f_2d.shape[0], f_2d.shape[1], 1, f_2d.shape[2])
+                # )
+                f_1d = np.concatenate(f_1d, axis=1)
+                return [f_2d, f_1d]
+                # [sample, z, feature]
+            else:
+                return np.concatenate(f_list, axis=1)
+                # [sample, flattened features]
+
+    def __get_targets(self):
+        """Load and convert the targets
+        """
+        with h5py.File(self.out_fn, 'r') as out_file:
+            targets = np.concatenate([
+                out_file['SPDT'][:] * 1000.,
+                out_file['SPDQ'][:] * 2.5e6,
+            ], axis=0)
+            return np.asarray(targets.T, dtype=self.dtype)
+
+
 class DataGenerator(object):
     """Generate batches
     https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly.html
