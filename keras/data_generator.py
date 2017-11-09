@@ -1,6 +1,12 @@
 """Define DataGenerator class
 
 Author: Stephan Rasp
+
+TODO:
+- Add option to read detailed data and then flatten
+    - all
+- Add option to create spatial input
+- Add option to add timeseries input
 """
 
 import numpy as np
@@ -12,10 +18,11 @@ class DataSet(object):
     """
 
     def __init__(self, data_dir, out_fn, mean_fn, std_fn, feature_names,
-                 target_names=['SPDT', 'SPDQ'],
-                 convolution=False, dtype='float32'):
+                 target_names=['SPDT', 'SPDQ'], convolution=False,
+                 dtype='float32', flat_input=False, flatten=None):
         """
         Initialize dataset
+
         Args:
             data_dir: directory where data is stored
             out_fn: filename of outputs file
@@ -24,6 +31,8 @@ class DataSet(object):
             target_names: target variable names
             convolution: get data with channels
             dtype: numpy precision
+            flat_input: If true, assumes already flattened input array
+            flatten: 'all', 'space', 'time' or None
         """
         # File names
         self.data_dir = data_dir
@@ -38,11 +47,11 @@ class DataSet(object):
         self.dtype = dtype
 
         # Load data
-        self.features = self.__get_features()
+        self.features = self.__get_features(flat_input)
         self.targets = self.__get_targets()
 
     # These functions are copied from the data generator function
-    def __get_features(self):
+    def __get_features(self, flat_input=False):
         """Load and scale the features
         """
         # Load features
@@ -51,11 +60,24 @@ class DataSet(object):
                 h5py.File(self.std_fn, 'r') as std_file:
 
             # Get total number of samples
-            self.n_samples = out_file['TAP'].shape[1]
+            if flat_input:
+                self.n_samples = out_file['LAT'].shape[0]
+            else:
+                self.n_samples = np.prod(out_file['LAT'].shape[:])
 
             f_list = []
             for v in self.feature_names:
-                f = np.atleast_2d(out_file[v][:]).T
+                if flat_input:
+                    f = np.atleast_2d(out_file[v][:]).T
+                else:
+                    f = out_file[v][:]
+                    # Either [date,time,lat,lon] or [date,time,lev,lat,lon]
+                    # convert to [sample, 1] or [sample, lev]
+                    if f.ndim == 4:
+                        f = f.reshape((self.n_samples, 1))
+                    elif f.ndim == 5:
+                        f = np.rollaxis(f, 2, 4)
+                        f = f.reshape((self.n_samples, -1))
                 # normalize
                 f = (f - mean_file[v].value) / std_file[v].value
                 # Adjust data type
@@ -76,13 +98,13 @@ class DataSet(object):
                 return np.concatenate(f_list, axis=1)
                 # [sample, flattened features]
 
-    def __get_targets(self):
+    def __get_targets(self, flat_input=False):
         """Load and convert the targets
         """
         with h5py.File(self.out_fn, 'r') as out_file:
             targets = np.concatenate([
-                out_file['SPDT'][:] * 1000.,
-                out_file['SPDQ'][:] * 2.5e6,
+                np.ravel(out_file['SPDT'][:]) * 1000.,
+                np.ravel(out_file['SPDQ'][:]) * 2.5e6,
             ], axis=0)
             return np.asarray(targets.T, dtype=self.dtype)
 

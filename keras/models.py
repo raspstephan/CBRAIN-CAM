@@ -5,6 +5,7 @@ Author: Stephan Rasp
 """
 
 import keras
+import tensorflow as tf
 from keras.models import Sequential, Model
 from keras.layers import Dense, Conv1D, Input, Flatten, Concatenate, \
     BatchNormalization
