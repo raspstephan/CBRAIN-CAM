@@ -11,6 +11,7 @@ TODO:
 
 import numpy as np
 import h5py
+import pdb
 
 
 class DataSet(object):
@@ -48,7 +49,7 @@ class DataSet(object):
 
         # Load data
         self.features = self.__get_features(flat_input)
-        self.targets = self.__get_targets()
+        self.targets = self.__get_targets(flat_input)
 
     # These functions are copied from the data generator function
     def __get_features(self, flat_input=False):
@@ -76,7 +77,7 @@ class DataSet(object):
                     if f.ndim == 4:
                         f = f.reshape((self.n_samples, 1))
                     elif f.ndim == 5:
-                        f = np.rollaxis(f, 2, 4)
+                        f = np.rollaxis(f, 2, 5)
                         f = f.reshape((self.n_samples, -1))
                 # normalize
                 f = (f - mean_file[v].value) / std_file[v].value
@@ -98,15 +99,25 @@ class DataSet(object):
                 return np.concatenate(f_list, axis=1)
                 # [sample, flattened features]
 
-    def __get_targets(self, flat_input=False):
-        """Load and convert the targets
+    def __get_targets(self, flat_input):
+        """Load and convert the targets [sample, target dim]
         """
         with h5py.File(self.out_fn, 'r') as out_file:
-            targets = np.concatenate([
-                np.ravel(out_file['SPDT'][:]) * 1000.,
-                np.ravel(out_file['SPDQ'][:]) * 2.5e6,
-            ], axis=0)
-            return np.asarray(targets.T, dtype=self.dtype)
+            # [date,time,lev,lat,lon]
+            if flat_input:
+                targets = np.concatenate([
+                    out_file['SPDT'][:] * 1000.,
+                    out_file['SPDQ'][:] * 2.5e6,
+                ], axis=0).T
+            else:
+                # [date,time,lev,lat,lon]
+                t_list = []
+                for var, fac in zip(['SPDT', 'SPDQ'], [1000., 2.5e6]):
+                    t = out_file[var][:] * fac
+                    t = np.rollaxis(t, 2, 5)
+                    t_list.append(t.reshape((self.n_samples, -1)))
+                targets = np.concatenate(t_list, axis=1)
+            return np.asarray(targets, dtype=self.dtype)
 
 
 class DataGenerator(object):

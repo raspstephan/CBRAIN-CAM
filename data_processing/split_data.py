@@ -8,6 +8,7 @@ from argparse import ArgumentParser
 from netCDF4 import Dataset
 import numpy as np
 from preprocess_aqua import create_log_str
+import pdb
 
 # Make train/valid split reproducible
 np.random.seed(42)
@@ -22,7 +23,7 @@ def main(inargs):
     """
     # Open full dataset
     raw_out = Dataset(inargs.raw_fn)
-
+    pdb.set_trace()
     # Create indexes for train and valid set
     if inargs.split_by_lon:
         n_lon = raw_out.dimensions['lon'].size
