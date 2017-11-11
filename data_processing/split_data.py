@@ -23,7 +23,6 @@ def main(inargs):
     """
     # Open full dataset
     raw_out = Dataset(inargs.raw_fn)
-    pdb.set_trace()
     # Create indexes for train and valid set
     if inargs.split_by_lon:
         n_lon = raw_out.dimensions['lon'].size
@@ -100,7 +99,7 @@ if __name__ == '__main__':
                    help='Output directory.')
     p.add_argument('--out_pref',
                    type=str,
-                   help='Prefix for output files. E.g. SPCAM_outputs_')
+                   help='Prefix for output files. E.g. SPCAM_outputs')
     p.add_argument('--train_fraction',
                    type=float,
                    help='Fraction of data in training set.')

@@ -21,9 +21,9 @@ plt.rcParams["figure.figsize"] = (10,7)
 
 
 # Plotting functions
-def vis_features_targets(outputs, sample_idx, feature_vars, target_vars,
-                         preds=None):
-    """Visualize features and targets
+def vis_features_targets_from_nc(outputs, sample_idx, feature_vars, target_vars,
+                                 preds=None):
+    """Visualize features and targets from the preprocessed dataset.
 
     Args:
         outputs: nc object
