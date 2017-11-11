@@ -20,7 +20,8 @@ class DataSet(object):
 
     def __init__(self, data_dir, out_fn, mean_fn, std_fn, feature_names,
                  target_names=['SPDT', 'SPDQ'], convolution=False,
-                 dtype='float32', flat_input=False, flatten=None):
+                 dtype='float32', flat_input=False, flatten=None,
+                 mean_std_dir='same'):
         """
         Initialize dataset
 
@@ -38,8 +39,10 @@ class DataSet(object):
         # File names
         self.data_dir = data_dir
         self.out_fn = data_dir + out_fn
-        self.mean_fn = data_dir + mean_fn
-        self.std_fn = data_dir + std_fn
+        if mean_std_dir == 'same':
+            mean_std_dir = data_dir
+        self.mean_fn = mean_std_dir + mean_fn
+        self.std_fn = mean_std_dir + std_fn
 
         # Other settings
         self.convolution = convolution
