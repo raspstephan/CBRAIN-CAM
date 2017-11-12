@@ -14,7 +14,8 @@ from keras.callbacks import TensorBoard
 from losses import *
 
 
-def fc_model(feature_shape, target_shape, hidden_layers, lr, loss):
+def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
+             activation='relu'):
     """Creates a simple fully connected neural net and compiles it
 
     Args:
@@ -23,18 +24,20 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss):
         hidden_layers: list with hidden nodes
         lr: learning rate for Adam optimizer
         loss: loss function
+        activation: Keras activation function
 
     Returns:
-
+        model: compiled Keras model
     """
     # First hidden layer
     model = Sequential([
-        Dense(hidden_layers[0], input_shape=(feature_shape,), activation='relu')
+        Dense(hidden_layers[0], input_shape=(feature_shape,),
+              activation=activation)
     ])
     # All other hidden layers
     if len(hidden_layers) > 1:
         for h in hidden_layers[1:]:
-            model.add(Dense(h, activation='relu'))
+            model.add(Dense(h, activation=activation))
     # Output layer
     model.add(Dense(target_shape, activation='linear'))
 
@@ -44,7 +47,8 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss):
 
 
 def conv_model(feature_shape_conv, feature_shape_1d, target_shape, feature_maps,
-               hidden_layers, lr, loss, kernel_size=3, batch_norm=False):
+               hidden_layers, lr, loss, kernel_size=3, batch_norm=False,
+               activation='relu'):
     """
     TODO
 
@@ -57,11 +61,11 @@ def conv_model(feature_shape_conv, feature_shape_1d, target_shape, feature_maps,
                             feature_shape_conv[1],))
     # First convolutional layer
     x_conv = Conv1D(feature_maps[0], kernel_size, padding='same',
-                    activation='relu')(inp_conv)
+                    activation=activation)(inp_conv)
     if len(feature_maps) > 1:
         for fm in feature_maps[1:]:
             x_conv = Conv1D(fm, kernel_size, padding='same',
-                            activation='relu')(x_conv)
+                            activation=activation)(x_conv)
     x_conv = Flatten()(x_conv)
 
     # Then the linear path
@@ -74,7 +78,7 @@ def conv_model(feature_shape_conv, feature_shape_1d, target_shape, feature_maps,
 
     # Fully connected layers at the end
     for h in hidden_layers:
-        x = Dense(h, activation='relu')(x)
+        x = Dense(h, activation=activation)(x)
         if batch_norm:
             x = BatchNormalization()(x)
 
