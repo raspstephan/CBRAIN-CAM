@@ -102,7 +102,7 @@ def create_nc(inargs, sample_rg, n_infiles):
     v[:] = sample_rg.variables['lon'][:]
 
     # Create all other variables
-    for var in inargs.in_vars + inargs.out_vars:
+    for var in inargs.vars:
         if var in sample_rg.variables.keys():
             dims = ['date'] + list(sample_rg.variables[var].dimensions)
             v = rg.createVariable(var, inargs.dtype, dims)
@@ -191,11 +191,11 @@ def write_contents(inargs, rg, aqua_fn, date_idx):
     with Dataset(aqua_fn, 'r') as aqua_rg:
         n_time_min_1 = aqua_rg.dimensions['time'].size - 1
         if inargs.verbose: print('date_idx:', date_idx)
-        for var in inargs.in_vars + inargs.out_vars:
-            if var in inargs.in_vars:
-                var_time_idxs = np.arange(0, 0 + n_time_min_1)
-            else:
+        for var in inargs.vars:
+            if var in inargs.current_vars:
                 var_time_idxs = np.arange(1, 1 + n_time_min_1)
+            else:
+                var_time_idxs = np.arange(0, 0 + n_time_min_1)
             if inargs.verbose: print('Variable time indices:', var_time_idxs,
                                      'for variable:', var)
             if var in aqua_rg.variables.keys():
@@ -243,7 +243,7 @@ def create_mean_std(inargs):
         rg.createDimension('lev', full_rg.dimensions['lev'].size)
 
         # Loop through all variables
-        for var_name in inargs.in_vars + inargs.out_vars:
+        for var_name in inargs.vars:
             full_v = full_rg.variables[var_name]
             if full_v.ndim == 4:
                 v = rg.createVariable(var_name, inargs.dtype, ())
@@ -290,7 +290,7 @@ def create_flat(inargs):
     rg.createDimension('sample', n_samples)
 
     # Loop through variables and write flattened arrays
-    for var in inargs.in_vars + inargs.out_vars:
+    for var in inargs.vars:
         full_var = full_rg.variables[var]
         if full_var.ndim == 4:
             v = rg.createVariable(var, inargs.dtype, 'sample')
@@ -348,14 +348,14 @@ if __name__ == '__main__':
           is_config_file=True,
           help='Name of config file in this directory. '
                'Must contain in and out variable lists.')
-    p.add_argument('--in_vars',
+    p.add_argument('--vars',
                    type=str,
                    nargs='+',
-                   help='Variables for neural net input.')
-    p.add_argument('--out_vars',
+                   help='All variables. Features and targets')
+    p.add_argument('--current_vars',
                    type=str,
                    nargs='+',
-                   help='Variables for neural net output.')
+                   help='Variables to take ffrom current time step.')
     p.add_argument('--in_dir',
                    type=str,
                    help='Directory with input (aqua) files.')
@@ -414,7 +414,6 @@ if __name__ == '__main__':
     args = p.parse_args()
 
     # Perform some input checks
-    assert len(args.in_vars[0]) > 0, 'No in_vars given.'
-    assert len(args.out_vars[0]) > 0, 'No out_vars given.'
+    assert len(args.vars[0]) > 0, 'No vars given.'
 
     main(args)

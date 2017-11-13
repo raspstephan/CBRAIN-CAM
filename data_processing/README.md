@@ -9,8 +9,8 @@ The scripts in this directory preprocess the raw aquaplanet NetCDF files to a ha
 | Argument | Default | Description |
 |----------|---------|-------------|
 |`--config_file`| | Name of config file in this directory. Must contain in and out variable lists. Described in detail below. |
-|`--in_vars`| | Variables for neural net input. |
-| `--out_vars` | | Variables for neural net output. |
+|`--vars`| | All variables. |
+| `--current_vars` | | Variables from current time step. |
 | `--in_dir` | | Directory with input (aqua) files. |
 | `--out_dir` | | Directory to write preprocessed file. |
 | `--aqua_pref` | AndKua_aqua_ | Prefix of aqua files. |
@@ -26,11 +26,12 @@ The scripts in this directory preprocess the raw aquaplanet NetCDF files to a ha
 
 ### Config file
 
-The variables to be preprocessed are listed in the config file. Input variables (features) and output variables (targets) of the neural net have to be listed separately. Here is an example:
+The variables to be preprocessed are listed in the config file. `vars` contains all files. If the data for the current time step needs to be taken (target variables, dynamics), these need to be listed in `current_vars`:
 
 ```
-in_vars: [TAP, QAP, OMEGA, SHFLX, LHFLX, LAT, dTdt_adiabatic, dQdt_adiabatic, QRL, QRS]   # Inputs/features
-out_vars: [SPDT, SPDQ]          # Outputs/targets
+vars: [TAP, QAP, OMEGA, SHFLX, LHFLX, LAT, dTdt_adiabatic, dQdt_adiabatic, QRL, QRS, SPDT, SPDQ]   # All variables, feature and target
+current_vars: [SPDT, SPDQ, OMEGA]          # Variables to take from current time step
 ```
 
 Note that all variables are case-sensitive. `LAT` is the latitude repeated along all other dimensions.
+
