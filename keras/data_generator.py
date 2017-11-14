@@ -20,8 +20,7 @@ class DataSet(object):
 
     def __init__(self, data_dir, out_fn, mean_fn, std_fn, feature_names,
                  target_names=['SPDT', 'SPDQ'], convolution=False,
-                 dtype='float32', flat_input=False, flatten=None,
-                 mean_std_dir='same'):
+                 dtype='float32', flat_input=False, mean_std_dir='same'):
         """
         Initialize dataset
 
@@ -34,7 +33,7 @@ class DataSet(object):
             convolution: get data with channels
             dtype: numpy precision
             flat_input: If true, assumes already flattened input array
-            flatten: 'all', 'space', 'time' or None
+            mean_std_dir: Directory for mean and std data. Default = 'same'
         """
         # File names
         self.data_dir = data_dir

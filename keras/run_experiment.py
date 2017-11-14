@@ -9,12 +9,13 @@ TODO:
 - pick outputs dataset
 """
 import keras
+from keras.callbacks import TensorBoard, LearningRateScheduler
 import tensorflow as tf
 from argparse import ArgumentParser
-from models import *
+from models import conv_model, fc_model
 from losses import *
 from utils import *
-from data_generator import *
+from data_generator import DataSet
 from collections import OrderedDict
 
 # This needs to be NOT hardcoded
@@ -45,12 +46,14 @@ def main(inargs):
     keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
 
     # Load train and valid set
-    train_set = DataSet(inargs.data_dir, 'SPCAM_outputs_train.nc',
-                        'SPCAM_mean.nc', 'SPCAM_std.nc', feature_vars.keys(),
-                        convolution=inargs.convolution)
-    valid_set = DataSet(inargs.data_dir, 'SPCAM_outputs_valid.nc',
-                        'SPCAM_mean.nc', 'SPCAM_std.nc', feature_vars.keys(),
-                        convolution=inargs.convolution)
+    train_set = DataSet(inargs.data_dir, inargs.train_fn,
+                        inargs.mean_fn, inargs.std_fn, feature_vars.keys(),
+                        convolution=inargs.convolution,
+                        flat_input=inargs.flat_input)
+    valid_set = DataSet(inargs.data_dir, inargs.valid_fn,
+                        inargs.mean_fn, inargs.std_fn, feature_vars.keys(),
+                        convolution=inargs.convolution,
+                        flat_input=inargs.flat_input)
 
     # Build and compile model
     if inargs.convolution:
@@ -71,48 +74,102 @@ def main(inargs):
                          inargs.loss)
     if inargs.verbose: print(model.summary())
 
+    callbacks_list = []
+    if inargs.log_dir is not None:
+        callbacks_list.append(TensorBoard(log_dir=inargs.log_dir +
+                                                  inargs.exp_name))
+    if not inargs.lr_step == 0:
+        def lr_update(epoch):
+            # From goo.gl/GXQaK6
+            init_lr = inargs.lr
+            drop = 1./inargs.lr_divide
+            epochs_drop = inargs.lr_step
+            lr = init_lr * np.power(drop, np.floor((1+epoch)/epochs_drop))
+            print('lr:', lr)
+            return lr
+        callbacks_list.append(LearningRateScheduler(lr_update))
+
+
+
     # Fit model
     model.fit(train_set.features, train_set.targets,
               batch_size=inargs.batch_size,
               epochs=inargs.epochs,
               validation_data=(valid_set.features, valid_set.targets),
-              callbacks=[TensorBoard(log_dir=inargs.log_dir)])
+              callbacks=callbacks_list)
 
-    model.save()
+    if inargs.exp_name is not None:
+        model.save(inargs.model_dir + inargs.exp_name + '.h5')
 
 if __name__ == '__main__':
 
     p = ArgumentParser()
 
+    p.add_argument('--exp_name',
+                   default=None,
+                   type=str,
+                   help='Experiment name.')
+    p.add_argument('--model_dir',
+                   type=str,
+                   help='Directory to save model to.')
     p.add_argument('--data_dir',
                    type=str,
                    help='Full outputs file.')
+    p.add_argument('--train_fn',
+                   type=str,
+                   help='Training set file.')
+    p.add_argument('--valid_fn',
+                   type=str,
+                   help='Validation set file.')
+    p.add_argument('--mean_fn',
+                   type=str,
+                   help='Mean file.')
+    p.add_argument('--std_fn',
+                   type=str,
+                   help='Std file.')
     p.add_argument('--log_dir',
+                   default=None,
                    type=str,
                    help='TensorBoard log dir')
     p.add_argument('--loss',
+                   default='mae',
                    type=str,
                    help='Loss function.')
     p.add_argument('--gpu_frac',
+                   default=0.2,
                    type=float,
                    help='GPU usage fraction.')
     p.add_argument('--lr',
+                   default=1e-4,
                    type=float,
                    help='Learning rate.')
+    p.add_argument('--lr_step',
+                   default=10,
+                   type=int,
+                   help='Step at which to divide learning rate by factor.')
+    p.add_argument('--lr_divide',
+                   default=5.,
+                   type=float,
+                   help='Factor to divide learning rate.')
     p.add_argument('--epochs',
+                   default=50,
                    type=int,
                    help='Number of epochs')
     p.add_argument('--batch_size',
+                   default=512,
                    type=int,
                    help='Batch size')
     p.add_argument('--kernel_size',
+                   default=3,
                    type=int,
                    help='Size of convolution kernel.')
     p.add_argument('--hidden_layers',
+                   default=[],
                    nargs='+',
                    type=int,
                    help='List with hidden nodes.')
     p.add_argument('--conv_layers',
+                   default=[],
                    nargs='+',
                    type=int,
                    help='List with feature maps')
@@ -120,17 +177,22 @@ if __name__ == '__main__':
                    dest='convolution',
                    action='store_true',
                    help='Use convolutional net.')
-    p.set_defaults(convolution='False')
+    p.set_defaults(convolution=False)
+    p.add_argument('--flat_input',
+                   dest='flat_input',
+                   action='store_true',
+                   help='If true, assume flat input.')
+    p.set_defaults(flat_input=False)
     p.add_argument('--batch_norm',
                    dest='batch_norm',
                    action='store_true',
                    help='Use batch_norm.')
-    p.set_defaults(batch_norm='False')
+    p.set_defaults(batch_norm=False)
     p.add_argument('--verbose',
                    dest='verbose',
                    action='store_true',
                    help='Print additional information.')
-    p.set_defaults(verbose='False')
+    p.set_defaults(verbose=False)
 
     args = p.parse_args()
 
