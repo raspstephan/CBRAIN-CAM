@@ -73,7 +73,7 @@ def create_nc(inargs, sample_rg, n_infiles):
 
     # Create file
     nc_fn = os.path.join(inargs.out_dir, inargs.out_fn)
-    if inargs.verbose: print('Preprocessed file:', nc_fn)
+    print('Preprocessed file:', nc_fn)
     rg = Dataset(nc_fn, 'w')
     rg.log = create_log_str()
 
@@ -235,7 +235,7 @@ def create_mean_std(inargs):
     for type, fn in zip(['mean', 'std'], [inargs.mean_fn, inargs.std_fn]):
         # Mean and std files
         nc_fn = os.path.join(inargs.out_dir, fn)
-        if inargs.verbose: print(type, 'file:', nc_fn)
+        print(type, 'file:', nc_fn)
         rg = Dataset(nc_fn, 'w')
         rg.log = create_log_str()
 
@@ -266,49 +266,6 @@ def create_mean_std(inargs):
     full_rg.close()
 
 
-def create_flat(inargs):
-    """Create flat version of outputs file
-
-    Args:
-        inargs: Namespace
-    """
-    # File to read from
-    full_rg = Dataset(os.path.join(inargs.out_dir, inargs.out_fn), 'r')
-
-    # Create new file
-    nc_fn = os.path.join(inargs.out_dir, inargs.flat_fn)
-    if inargs.verbose: print('Flattened file:', nc_fn)
-    rg = Dataset(nc_fn, 'w')
-    rg.log = create_log_str()
-
-    # Create dimensions
-    n_samples = (full_rg.dimensions['date'].size *
-                 full_rg.dimensions['time'].size *
-                 full_rg.dimensions['lat'].size *
-                 full_rg.dimensions['lon'].size)
-    rg.createDimension('lev', full_rg.dimensions['lev'].size)
-    rg.createDimension('sample', n_samples)
-
-    # Loop through variables and write flattened arrays
-    for var in inargs.vars:
-        full_var = full_rg.variables[var]
-        if full_var.ndim == 4:
-            v = rg.createVariable(var, inargs.dtype, 'sample')
-            data = full_var[:]   # [date, time, lat, lon]
-            v[:] = np.ravel(data)
-        elif full_var.ndim == 5:
-            v = rg.createVariable(var, inargs.dtype, ('lev', 'sample'))
-            data = full_var[:]   # [date, time, lev, lat, lon]
-            data = np.rollaxis(data, 2, 0)  # [lev, date, time, lat, lon]
-            v[:] = data.reshape(v.shape)
-        else:
-            raise ValueError('Wrong dimensions for variable %s.' % var)
-
-        # Add additional information
-        v.long_name = full_var.long_name
-        v.units = full_var.units
-
-
 def main(inargs):
     """Main function. Takes arguments and executes preprocessing routines.
 
@@ -335,9 +292,6 @@ def main(inargs):
 
     # Create mean and std files
     create_mean_std(inargs)
-
-    if inargs.flatten:
-        create_flat(inargs)
 
 
 if __name__ == '__main__':
@@ -394,12 +348,6 @@ if __name__ == '__main__':
                    type=str,
                    default='float32',
                    help='Datatype of out variables. Default = "float32"')
-    p.add_argument('--flatten',
-                   dest='flatten',
-                   action='store_true',
-                   help='If given: flatten time, lat and lon in a separate '
-                        'file. NOTE: Twice the memory!')
-    p.set_defaults(flatten=False)
     p.add_argument('--flat_fn',
                    type=str,
                    default='SPCAM_outputs_flat.nc',
