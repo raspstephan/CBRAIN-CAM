@@ -49,6 +49,7 @@ train_arg.add_argument('--lambda_k', type=float, default=0.001)
 train_arg.add_argument('--use_gpu', type=str2bool, default=True)
 train_arg.add_argument('--run_validation', type=str2bool, default=True)
 train_arg.add_argument('--keep_dropout_rate', type=float, default=1.)
+train_arg.add_argument('--trivial_init', type=int, default=0)
 
 # Misc
 #parser.add('-c', '--config', default='', is_config_file=True, help='config file path')
