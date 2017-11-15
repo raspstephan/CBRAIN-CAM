@@ -42,7 +42,8 @@ def main(inargs):
     """
     # set GPU usage
     config = tf.ConfigProto()
-    config.gpu_options.per_process_gpu_memory_fraction = inargs.gpu_frac  # GPU RAM usage fraction of 4GB
+    # config.gpu_options.per_process_gpu_memory_fraction = inargs.gpu_frac  # GPU RAM usage fraction of 4GB
+    config.gpu_options.allow_growth = True
     keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
 
     # Load train and valid set

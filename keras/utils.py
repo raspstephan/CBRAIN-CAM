@@ -73,6 +73,39 @@ def plot_lat_z_statistic(a, lats, statistic, cmap='inferno', vmin=None, vmax=Non
     plt.show()
 
 
+def vis_features_targets_from_pred(features, targets,
+                                   predictions, sample_idx,
+                                   feature_names, target_names):
+    """NOTE: FEATURES HARD-CODED!!!
+
+    """
+    nz = 21
+    z = np.arange(20, -1, -1)
+    fig, axes = plt.subplots(2, 5, figsize=(15, 10))
+    in_axes = np.ravel(axes[:, :4])
+    out_axes = np.ravel(axes[:, 4])
+
+    for i in range(len(feature_names[:-3])):
+        in_axes[i].plot(features[sample_idx, i*nz:(i+1)*nz], z)
+        in_axes[i].set_title(feature_names[i])
+    in_axes[-1].bar(range(3), features[sample_idx, -3:],
+                    tick_label=feature_names[-3:])
+
+    # Split targets
+    t = targets.reshape((targets.shape[0], -1, 2))
+    p = predictions.reshape((predictions.shape[0], -1, 2))
+    for i in range(t.shape[-1]):
+        out_axes[i].plot(t[sample_idx, :, i], z, label='True')
+        out_axes[i].plot(p[sample_idx, :, i], z, label='Prediction')
+        #out_axes[i].set_xlim(-0.5, 0.5)
+        out_axes[i].set_title(target_names[i])
+        out_axes[i].axvline(0, c='gray', zorder=0.1)
+    out_axes[-1].legend(loc=0)
+    plt.suptitle('Sample %i' % sample_idx, fontsize=15)
+    plt.tight_layout(rect=(0, 0, 1, 0.95))
+    plt.show()
+
+
 def rmse_stat(x):
     """
     RMSE function for lat_z plots
