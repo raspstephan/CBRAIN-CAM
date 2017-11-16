@@ -106,6 +106,48 @@ def vis_features_targets_from_pred(features, targets,
     plt.show()
 
 
+def vis_features_targets_from_pred2(features, targets,
+                                    predictions, sample_idx,
+                                    feature_names, target_names):
+    """NOTE: FEATURES HARD-CODED!!!
+    Features are [TAP, QAP, dTdt_adiabatic, dQdt_adiabatic, SHFLX, LHFLX]
+    Targets are [SPDT, SPDQ, QRL, QRS, PRECT, FLUT]
+    """
+    nz = 21
+    z = np.arange(20, -1, -1)
+    fig, axes = plt.subplots(2, 5, figsize=(15, 10))
+    in_axes = np.ravel(axes[0, :])
+    out_axes = np.ravel(axes[1, :])
+
+    for i in range(len(feature_names[:-2])):
+        in_axes[i].plot(features[sample_idx, i*nz:(i+1)*nz], z, c='b')
+        in_axes[i].set_title(feature_names[i])
+    in_axes[-1].bar(range(2), features[sample_idx, -2:],
+                    tick_label=feature_names[-2:])
+
+    for i in range(len(target_names[:-2])):
+        out_axes[i].plot(targets[sample_idx, i * nz:(i + 1) * nz], z,
+                         label='True', c='b')
+        out_axes[i].plot(predictions[sample_idx, i * nz:(i + 1) * nz], z,
+                         label='Prediction', c='g')
+        out_axes[i].set_title(target_names[i])
+        #out_axes[i].axvline(0, c='gray', zorder=0.1)
+    twin = out_axes[-1].twinx()
+    out_axes[-1].bar(1 - 0.2, targets[sample_idx, -2], 0.4,
+                     color='b')
+    out_axes[-1].bar(1 + 0.2, predictions[sample_idx, -2],
+                     0.4, color='g')
+    twin.bar(2 - 0.2, targets[sample_idx, -1], 0.4,
+                     color='b')
+    twin.bar(2 + 0.2, predictions[sample_idx, -1],
+                     0.4, color='g')
+    out_axes[-1].set_xticks([1, 2])
+    out_axes[-1].set_xticklabels(target_names[-2:])
+    out_axes[0].legend(loc=0)
+    plt.suptitle('Sample %i' % sample_idx, fontsize=15)
+    plt.tight_layout(rect=(0, 0, 1, 0.95))
+    plt.show()
+
 def rmse_stat(x):
     """
     RMSE function for lat_z plots

@@ -22,8 +22,8 @@ conversion_dict = {
     'SPDQ': L_V,
     'QRL': C_P,
     'QRS': C_P,
-    'PRECT': 1e3*24*3600,
-    'FLUT': 1.,
+    'PRECT': 1e3*24*3600 * 1e-3,
+    'FLUT': 1. * 1e-5,
 }
 
 
@@ -143,6 +143,7 @@ class DataSet(object):
                         cm_list.append(np.atleast_1d(conv_mean))
                         cs_list.append(np.atleast_1d(conv_std))
                         t = (t - conv_mean) / conv_std
+                        # t = t / conv_std
                     t_list.append(t)
                 targets = np.concatenate(t_list, axis=1)
                 if self.target_norm:
@@ -163,7 +164,9 @@ class DataSet(object):
         """If targets and preds are normalized, reconvert them
         """
         assert self.target_norm, 'Only for normalized targets'
+
         return x * self.target_std + self.target_mean
+        # return x * self.target_std
 
 
 class DataGenerator(object):
