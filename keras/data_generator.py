@@ -14,13 +14,27 @@ import h5py
 import pdb
 
 
+# Define conversion dict
+L_V = 2.5e6   # Latent heat of vaporization is actually 2.26e6
+C_P = 1e3 # Specific heat capacity of air at constant pressure
+conversion_dict = {
+    'SPDT': C_P,
+    'SPDQ': L_V,
+    'QRL': C_P,
+    'QRS': C_P,
+    'PRECT': 1e3*24*3600,
+    'FLUT': 1.,
+}
+
+
 class DataSet(object):
     """Gets a dataset of train data.
     """
 
     def __init__(self, data_dir, out_fn, mean_fn, std_fn, feature_names,
                  target_names=['SPDT', 'SPDQ'], convolution=False,
-                 dtype='float32', flat_input=False, mean_std_dir='same'):
+                 dtype='float32', flat_input=False, mean_std_dir='same',
+                 target_norm=False, target_norm_lev_weight=False):
         """
         Initialize dataset
 
@@ -34,6 +48,8 @@ class DataSet(object):
             dtype: numpy precision
             flat_input: If true, assumes already flattened input array
             mean_std_dir: Directory for mean and std data. Default = 'same'
+            target_norm: If given, normalize outputs
+            target_norm_lev_weight: If given, weigh target norm by levels
         """
         # File names
         self.data_dir = data_dir
@@ -48,6 +64,8 @@ class DataSet(object):
         self.feature_names = feature_names
         self.target_names = target_names
         self.dtype = dtype
+        self.target_norm = target_norm
+        self.target_norm_lev_weight = target_norm_lev_weight
 
         # Load data
         self.features = self.__get_features(flat_input)
@@ -104,14 +122,34 @@ class DataSet(object):
     def __get_targets(self, flat_input):
         """Load and convert the targets [sample, target dim]
         """
-        with h5py.File(self.out_fn, 'r') as out_file:
+        with h5py.File(self.out_fn, 'r') as out_file, \
+                h5py.File(self.mean_fn, 'r') as mean_file, \
+                h5py.File(self.std_fn, 'r') as std_file:
             # [date,time,lev,lat,lon]
             if flat_input:
-                targets = np.concatenate([
-                    out_file['SPDT'][:] * 1000.,
-                    out_file['SPDQ'][:] * 2.5e6,
-                ], axis=0).T
+                t_list = []
+                if self.target_norm:
+                    # Store converted means and std's to reconvert them later
+                    cm_list = []
+                    cs_list = []
+                for v in self.target_names:
+                    t = np.atleast_2d(out_file[v][:] * conversion_dict[v]).T
+                    if self.target_norm:
+                        conv_mean = mean_file[v].value * conversion_dict[v]
+                        conv_std = std_file[v].value * conversion_dict[v]
+                        if self.target_norm_lev_weight:
+                            conv_std = (conv_std *
+                                        np.atleast_1d(conv_std).shape[0])
+                        cm_list.append(np.atleast_1d(conv_mean))
+                        cs_list.append(np.atleast_1d(conv_std))
+                        t = (t - conv_mean) / conv_std
+                    t_list.append(t)
+                targets = np.concatenate(t_list, axis=1)
+                if self.target_norm:
+                    self.target_mean = np.concatenate(cm_list, axis=0)
+                    self.target_std = np.concatenate(cs_list, axis=0)
             else:
+                assert self.target_names == ['SPDT', 'SPDQ'], 'Not implemented.'
                 # [date,time,lev,lat,lon]
                 t_list = []
                 for var, fac in zip(['SPDT', 'SPDQ'], [1000., 2.5e6]):
@@ -120,6 +158,12 @@ class DataSet(object):
                     t_list.append(t.reshape((self.n_samples, -1)))
                 targets = np.concatenate(t_list, axis=1)
             return np.asarray(targets, dtype=self.dtype)
+
+    def renorm_outputs(self, x):
+        """If targets and preds are normalized, reconvert them
+        """
+        assert self.target_norm, 'Only for normalized targets'
+        return x * self.target_std + self.target_mean
 
 
 class DataGenerator(object):

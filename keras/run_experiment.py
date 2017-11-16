@@ -11,30 +11,12 @@ TODO:
 import keras
 from keras.callbacks import TensorBoard, LearningRateScheduler
 import tensorflow as tf
-from argparse import ArgumentParser
+from configargparse import ArgParser
 from models import conv_model, fc_model
 from losses import *
 from utils import *
 from data_generator import DataSet
 from collections import OrderedDict
-
-# This needs to be NOT hardcoded
-feature_vars = OrderedDict({
-    'TAP': 2,             # Temperature [z, sample]
-    'QAP': 2,             # Specific humidity [z, sample]
-    'OMEGA': 2,           # [z, sample]
-    'dTdt_adiabatic': 2,  # [z, sample]
-    'dQdt_adiabatic': 2,  # [z, sample]
-    'QRL': 2,             # Long wave heating rate [z, sample]
-    'QRS': 2,             # Short wave heating rate [z, sample]
-    'SHFLX': 1,           # [sample]
-    'LHFLX': 1,           # [sample]
-    'LAT': 1,             # Latitude [sample]
-})
-target_vars = OrderedDict({
-    'SPDT': 2,            # SP temperature tendency [z, sample]
-    'SPDQ': 2,            # SP humidity tendency [z, sample]
-})
 
 
 def main(inargs):
@@ -48,13 +30,19 @@ def main(inargs):
 
     # Load train and valid set
     train_set = DataSet(inargs.data_dir, inargs.train_fn,
-                        inargs.mean_fn, inargs.std_fn, feature_vars.keys(),
+                        inargs.mean_fn, inargs.std_fn, inargs.feature_vars,
                         convolution=inargs.convolution,
-                        flat_input=inargs.flat_input)
+                        flat_input=inargs.flat_input,
+                        target_names=inargs.target_vars,
+                        target_norm=inargs.target_norm,
+                        target_norm_lev_weight=inargs.target_norm_lev_weight)
     valid_set = DataSet(inargs.data_dir, inargs.valid_fn,
-                        inargs.mean_fn, inargs.std_fn, feature_vars.keys(),
+                        inargs.mean_fn, inargs.std_fn, inargs.feature_vars,
                         convolution=inargs.convolution,
-                        flat_input=inargs.flat_input)
+                        flat_input=inargs.flat_input,
+                        target_names=inargs.target_vars,
+                        target_norm=inargs.target_norm,
+                        target_norm_lev_weight=inargs.target_norm_lev_weight)
 
     # Build and compile model
     if inargs.convolution:
@@ -100,12 +88,23 @@ def main(inargs):
               callbacks=callbacks_list)
 
     if inargs.exp_name is not None:
-        model.save(inargs.model_dir + inargs.exp_name + '.h5')
+        model.save(inargs.model_dir + '/' + inargs.exp_name + '.h5')
 
 if __name__ == '__main__':
 
-    p = ArgumentParser()
-
+    p = ArgParser()
+    p.add('--config_file',
+          is_config_file=True,
+          help='Name of config file in this directory. '
+               'Must contain in and out variable lists.')
+    p.add_argument('--feature_vars',
+                   type=str,
+                   nargs='+',
+                   help='Feature variables.')
+    p.add_argument('--target_vars',
+                   type=str,
+                   nargs='+',
+                   help='Target variables.')
     p.add_argument('--exp_name',
                    default=None,
                    type=str,
@@ -189,6 +188,16 @@ if __name__ == '__main__':
                    action='store_true',
                    help='Use batch_norm.')
     p.set_defaults(batch_norm=False)
+    p.add_argument('--target_norm',
+                   dest='target_norm',
+                   action='store_true',
+                   help='Normalize targets.')
+    p.set_defaults(target_norm=False)
+    p.add_argument('--target_norm_lev_weight',
+                   dest='target_norm_lev_weight',
+                   action='store_true',
+                   help='Weigh target normalization by level.')
+    p.set_defaults(target_norm_lev_weight=False)
     p.add_argument('--verbose',
                    dest='verbose',
                    action='store_true',
