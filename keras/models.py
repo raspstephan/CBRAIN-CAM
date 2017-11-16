@@ -15,7 +15,7 @@ from losses import *
 
 
 def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
-             activation='relu'):
+             activation='relu', batch_norm=False):
     """Creates a simple fully connected neural net and compiles it
 
     Args:
@@ -25,6 +25,7 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
         lr: learning rate for Adam optimizer
         loss: loss function
         activation: Keras activation function
+        batch_norm: Add batch normalization
 
     Returns:
         model: compiled Keras model
@@ -34,10 +35,14 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
         Dense(hidden_layers[0], input_shape=(feature_shape,),
               activation=activation)
     ])
+    if batch_norm:
+        model.add(BatchNormalization())
     # All other hidden layers
     if len(hidden_layers) > 1:
         for h in hidden_layers[1:]:
             model.add(Dense(h, activation=activation))
+            if batch_norm:
+                model.add(BatchNormalization())
     # Output layer
     model.add(Dense(target_shape, activation='linear'))
 

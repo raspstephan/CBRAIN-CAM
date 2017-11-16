@@ -60,7 +60,9 @@ def main(inargs):
                          train_set.targets.shape[1],
                          inargs.hidden_layers,
                          inargs.lr,
-                         inargs.loss)
+                         inargs.loss,
+                         batch_norm=inargs.batch_norm,
+                         activation=inargs.activation)
     if inargs.verbose: print(model.summary())
 
     callbacks_list = []
@@ -135,6 +137,10 @@ if __name__ == '__main__':
                    default='mae',
                    type=str,
                    help='Loss function.')
+    p.add_argument('--activation',
+                   default='relu',
+                   type=str,
+                   help='Activation function.')
     p.add_argument('--gpu_frac',
                    default=0.2,
                    type=float,
