@@ -110,7 +110,7 @@ def vis_features_targets_from_pred2(features, targets,
                                     predictions, sample_idx,
                                     feature_names, target_names):
     """NOTE: FEATURES HARD-CODED!!!
-    Features are [TAP, QAP, dTdt_adiabatic, dQdt_adiabatic, SHFLX, LHFLX]
+    Features are [TAP, QAP, dTdt_adiabatic, dQdt_adiabatic, SHFLX, LHFLX, SOLIN]
     Targets are [SPDT, SPDQ, QRL, QRS, PRECT, FLUT]
     """
     nz = 21
@@ -119,11 +119,11 @@ def vis_features_targets_from_pred2(features, targets,
     in_axes = np.ravel(axes[0, :])
     out_axes = np.ravel(axes[1, :])
 
-    for i in range(len(feature_names[:-2])):
+    for i in range(len(feature_names[:-3])):
         in_axes[i].plot(features[sample_idx, i*nz:(i+1)*nz], z, c='b')
         in_axes[i].set_title(feature_names[i])
-    in_axes[-1].bar(range(2), features[sample_idx, -2:],
-                    tick_label=feature_names[-2:])
+    in_axes[-1].bar(range(3), features[sample_idx, -3:],
+                    tick_label=feature_names[-3:])
 
     for i in range(len(target_names[:-2])):
         out_axes[i].plot(targets[sample_idx, i * nz:(i + 1) * nz], z,
