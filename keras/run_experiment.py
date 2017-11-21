@@ -15,7 +15,7 @@ from configargparse import ArgParser
 from models import conv_model, fc_model
 from losses import *
 from utils import *
-from data_generator import DataSet
+from data_generator import *
 from collections import OrderedDict
 
 
@@ -29,20 +29,44 @@ def main(inargs):
     keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
 
     # Load train and valid set
-    train_set = DataSet(inargs.data_dir, inargs.train_fn,
-                        inargs.mean_fn, inargs.std_fn, inargs.feature_vars,
-                        convolution=inargs.convolution,
-                        flat_input=inargs.flat_input,
-                        target_names=inargs.target_vars,
-                        target_norm=inargs.target_norm,
-                        target_norm_lev_weight=inargs.target_norm_lev_weight)
-    valid_set = DataSet(inargs.data_dir, inargs.valid_fn,
-                        inargs.mean_fn, inargs.std_fn, inargs.feature_vars,
-                        convolution=inargs.convolution,
-                        flat_input=inargs.flat_input,
-                        target_names=inargs.target_vars,
-                        target_norm=inargs.target_norm,
-                        target_norm_lev_weight=inargs.target_norm_lev_weight)
+    if inargs.data_set_type == 'set':
+        train_set = DataSet(inargs.data_dir, inargs.train_fn,
+                            inargs.mean_fn, inargs.std_fn, inargs.feature_vars,
+                            convolution=inargs.convolution,
+                            flat_input=inargs.flat_input,
+                            target_names=inargs.target_vars,
+                            target_norm=inargs.target_norm,
+                            target_norm_lev_weight=inargs.target_norm_lev_weight)
+        valid_set = DataSet(inargs.data_dir, inargs.valid_fn,
+                            inargs.mean_fn, inargs.std_fn, inargs.feature_vars,
+                            convolution=inargs.convolution,
+                            flat_input=inargs.flat_input,
+                            target_names=inargs.target_vars,
+                            target_norm=inargs.target_norm,
+                            target_norm_lev_weight=inargs.target_norm_lev_weight)
+        feature_shape = train_set.features.shape[1]
+        target_shape = train_set.targets.shape[1]
+    elif inargs.data_set_type == 'gen1':
+        train_gen = data_generator1(inargs.data_dir, inargs.train_fn,
+                                    inargs.mean_fn, inargs.std_fn,
+                                    inargs.feature_vars,
+                                    target_names=inargs.target_vars,
+                                    shuffle=True,
+                                    batch_size=inargs.batch_size)
+        valid_gen = data_generator1(inargs.data_dir, inargs.valid_fn,
+                                    inargs.mean_fn, inargs.std_fn,
+                                    inargs.feature_vars,
+                                    target_names=inargs.target_vars,
+                                    shuffle=True,
+                                    batch_size=inargs.batch_size)
+        train_n_batches = get_n_batches(inargs.data_dir, inargs.train_fn,
+                                        batch_size=inargs.batch_size)
+        valid_n_batches = get_n_batches(inargs.data_dir, inargs.valid_fn,
+                                        batch_size=inargs.batch_size)
+        feature_shape = 87
+        target_shape = 86
+    else:
+        raise Exception
 
     # Build and compile model
     if inargs.convolution:
@@ -56,8 +80,8 @@ def main(inargs):
                            batch_norm=inargs.batch_norm,
                            kernel_size=inargs.kernel_size)
     else:   # Fully connected model
-        model = fc_model(train_set.features.shape[1],
-                         train_set.targets.shape[1],
+        model = fc_model(feature_shape,
+                         target_shape,
                          inargs.hidden_layers,
                          inargs.lr,
                          inargs.loss,
@@ -83,12 +107,18 @@ def main(inargs):
 
 
     # Fit model
-    model.fit(train_set.features, train_set.targets,
-              batch_size=inargs.batch_size,
-              epochs=inargs.epochs,
-              validation_data=(valid_set.features, valid_set.targets),
-              callbacks=callbacks_list)
+    if inargs.data_set_type == 'set':
+        model.fit(train_set.features, train_set.targets,
+                  batch_size=inargs.batch_size,
+                  epochs=inargs.epochs,
+                  validation_data=(valid_set.features, valid_set.targets),
+                  callbacks=callbacks_list)
 
+    if inargs.data_set_type == 'gen1':
+        model.fit_generator(train_gen, train_n_batches, epochs=inargs.epochs,
+                            validation_data=valid_gen,
+                            validation_steps=valid_n_batches,
+                            workers=inargs.n_workers)
     if inargs.exp_name is not None:
         model.save(inargs.model_dir + '/' + inargs.exp_name + '.h5')
 
@@ -179,6 +209,14 @@ if __name__ == '__main__':
                    nargs='+',
                    type=int,
                    help='List with feature maps')
+    p.add_argument('--data_set_type',
+                   default='set',
+                   type=str,
+                   help='set or gen1')
+    p.add_argument('--n_workers',
+                   default=1,
+                   type=int,
+                   help='Workers for generator queue')
     p.add_argument('--convolution',
                    dest='convolution',
                    action='store_true',
