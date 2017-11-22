@@ -145,9 +145,10 @@ class Trainer(object):
                     for op in tf.all_variables():
                         print(op) 
                         npar = self.sess.run(op)
-                        filename = 'saveNet/'+op.name
-                        os.makedirs(os.path.dirname(filename), exist_ok=True)
-                        np.save(filename, npar)
+                        if 'Adam' not in op.name:
+                            filename = 'saveNet/'+op.name
+                            os.makedirs(os.path.dirname(filename), exist_ok=True)
+                            np.save(filename, npar)
 
                 visuarrs = result['visuarrs']#self.sess.run(self.visuarrs)
                 try:
