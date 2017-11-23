@@ -48,6 +48,8 @@ def print_tensors_in_checkpoint_file(file_name, tensor_name, all_tensors):
       for key in sorted(var_to_shape_map):
         print("tensor_name: ", key)
         print(reader.get_tensor(key))
+        #tensor_name_out = key.replace('/','_') # added Pierre to save matrices into a file
+        #np.savetxt( tensor_name_out, reader.get_tensor(tensor_name), delimiter=' ', newline=' ] ; ... \n [ ', fmt='%1.8e') 
     elif not tensor_name:
       print(reader.debug_string().decode("utf-8"))
     else:
@@ -127,9 +129,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--all_tensors",
       nargs="?",
-      const=True,
       type="bool",
-      default=False,
+      default=True,
       help="If True, print the values of all the tensors.")
   parser.add_argument(
       "--printoptions",

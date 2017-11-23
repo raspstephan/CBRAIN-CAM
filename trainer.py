@@ -22,6 +22,11 @@ def signLog(a, linearRegion=1):
     return tf.asinh(a/2)/tf.log(10.0)
     return (tf.log(tf.nn.relu(a)+1) - tf.log(tf.nn.relu(-a)+1)) / np.log(10.0)
 
+def trivial_init(shape, dtype=None):
+    ones = tf.ones(shape=shape)
+    ones = tf.cumsum(ones, axis=0)
+    return ones
+
 class Trainer(object):
     def __init__(self, config, data_loader):
         self.config = config
@@ -137,6 +142,14 @@ class Trainer(object):
                     trainBar.set_description("epoch:{:03d}, L:{:.4f}, logL:{:+.3f}, R2:{:+.3f}, q:{:d}, lr:{:.4g}". \
                         format(ep, loss, logloss, R2, self.data_loader.size_op.eval(session=self.sess), self.lr.eval(session=self.sess)))
 
+                    for op in tf.all_variables():
+                        print(op) 
+                        npar = self.sess.run(op)
+                        if 'Adam' not in op.name:
+                            filename = 'saveNet/'+op.name
+                            os.makedirs(os.path.dirname(filename), exist_ok=True)
+                            np.save(filename, npar)
+
                 visuarrs = result['visuarrs']#self.sess.run(self.visuarrs)
                 try:
                     visualizer.update(arrays=visuarrs)#, frame=np.concatenate(visuarrs, axis=1))
@@ -202,17 +215,30 @@ class Trainer(object):
         x = self.x
         print('x:', x)
 
+        kernelInit = 'glorot_uniform'
+        biasIinit = 'zeros'
+        if self.config.trivial_init:
+            kernelInit = trivial_init
+            biasIinit = trivial_init
+
         for nLay in self.config.hidden.split(','):
             nLay = int(nLay)
+            if nLay == 0:
+                continue
             x = tf.pad(x, paddings=[[0,0],[1,1],[0,0],[0,0]], mode='SYMMETRIC')
-            print('x:', x)
+            print(nLay, ' x:', x)
             if self.config.localConvo:
-                x = LocallyConnected2D(nLay, (3,1), data_format='channels_last')(x)
+                layer = LocallyConnected2D(nLay, (3,1), data_format='channels_last', kernel_initializer=kernelInit, bias_initializer=biasIinit)
+                print("layer weights: ", layer.weights)
+                x = layer(x)
             else:
-                x = Conv2D(nLay, (3,1), padding='valid', data_format='channels_last')(x)
+                layer = Conv2D(nLay, (3,1), padding='valid', data_format='channels_last', kernel_initializer=kernelInit, bias_initializer=biasIinit)
+                x = layer(x)
             x = LeakyReLU()(x)
         print('x:', x)
-        x = Conv2D(self.data_loader.Yshape[-1], (1,1), padding='valid', data_format='channels_last')(x)
+        layer = Conv2D(self.data_loader.Yshape[-1], (1,1), padding='valid', data_format='channels_last', kernel_initializer=kernelInit, bias_initializer=biasIinit)
+        x = layer(x)
+        print("layer weights: ", layer.weights)
         print('x:', x)
 
         self.pred = x#tf.reshape(x, self.y.get_shape())
