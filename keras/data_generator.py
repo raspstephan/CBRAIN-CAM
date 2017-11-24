@@ -200,7 +200,7 @@ class DataSet(object):
 def get_n_batches(data_dir, out_fn, batch_size=512):
     with h5py.File(data_dir + out_fn) as out_file:
         # Determine sizes
-        n_samples = out_file['TAP'].shape[1]
+        n_samples = out_file['TAP'].shape[0]
         n_batches = int(n_samples / batch_size)
         print(n_samples, n_batches)
     return n_batches
@@ -215,9 +215,8 @@ def data_generator1(data_dir, out_fn, mean_fn, std_fn, feature_names,
     std_file = h5py.File(data_dir + std_fn)
 
     # Determine sizes
-    n_samples = out_file['TAP'].shape[1]
+    n_samples = out_file['TAP'].shape[0]
     n_batches = int(n_samples / batch_size)
-
     # Create ID list
     idxs = np.arange(0, n_samples, batch_size)
     if shuffle:
@@ -231,10 +230,11 @@ def data_generator1(data_dir, out_fn, mean_fn, std_fn, feature_names,
             f_list = []
             for v in feature_names:
                 if out_file[v].ndim == 2:
-                    f = out_file[v][:, batch_idx:batch_idx + batch_size].T
+                    f = out_file[v][batch_idx:batch_idx + batch_size, :]
                 elif out_file[v].ndim == 1:
                     f = np.atleast_2d(
-                        out_file[v][batch_idx:batch_idx + batch_size]).T
+                        out_file[v][batch_idx:batch_idx + batch_size]
+                    ).T
                 else:
                     raise ValueError('Wrong feature dimensions.')
                 # normalize
@@ -246,10 +246,11 @@ def data_generator1(data_dir, out_fn, mean_fn, std_fn, feature_names,
             t_list = []
             for v in target_names:
                 if out_file[v].ndim == 2:
-                    t = out_file[v][:, batch_idx:batch_idx + batch_size].T
+                    t = out_file[v][batch_idx:batch_idx + batch_size, :]
                 elif out_file[v].ndim == 1:
                     t = np.atleast_2d(
-                        out_file[v][batch_idx:batch_idx + batch_size]).T
+                        out_file[v][batch_idx:batch_idx + batch_size]
+                    ).T
                 t = t * conversion_dict[v]
                 t_list.append(t)
             y = np.concatenate(t_list, axis=1)
