@@ -200,7 +200,10 @@ class DataSet(object):
 def get_n_batches(data_dir, out_fn, batch_size=512):
     with h5py.File(data_dir + out_fn) as out_file:
         # Determine sizes
-        n_samples = out_file['TAP'].shape[0]
+        try:
+            n_samples = out_file['TAP'].shape[0]
+        except:
+            n_samples = out_file['features'].shape[0]
         n_batches = int(n_samples / batch_size)
         print(n_samples, n_batches)
     return n_batches
@@ -254,6 +257,30 @@ def data_generator1(data_dir, out_fn, mean_fn, std_fn, feature_names,
                 t = t * conversion_dict[v]
                 t_list.append(t)
             y = np.concatenate(t_list, axis=1)
+            yield x, y
+
+
+@threadsafe_generator
+def data_generator2(data_dir, out_fn, shuffle=True,
+                    batch_size=512):
+    # Open files
+    out_file = h5py.File(data_dir + out_fn)
+
+    # Determine sizes
+    n_samples = out_file['features'].shape[0]
+    n_batches = int(n_samples / batch_size)
+    # Create ID list
+    idxs = np.arange(0, n_samples, batch_size)
+    if shuffle:
+        np.random.shuffle(idxs)
+
+    # generate
+    while True:
+        for i in range(n_batches):
+            batch_idx = idxs[i]
+
+            x = out_file['features'][batch_idx:batch_idx + batch_size, :]
+            y = out_file['targets'][batch_idx:batch_idx + batch_size, :]
             yield x, y
 
 

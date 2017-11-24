@@ -4,9 +4,6 @@ Author: Stephan Rasp
 
 TODO:
 - reprodicibility
-- learning rate schedule
-- Save model
-- pick outputs dataset
 """
 import keras
 from keras.callbacks import TensorBoard, LearningRateScheduler
@@ -65,6 +62,18 @@ def main(inargs):
                                         batch_size=inargs.batch_size)
         feature_shape = 87
         target_shape = 86
+    elif inargs.data_set_type == 'gen2':
+        train_gen = data_generator2(inargs.data_dir, inargs.train_fn,
+                                    shuffle=True,
+                                    batch_size=inargs.batch_size)
+        valid_gen = data_generator2(inargs.data_dir, inargs.valid_fn,
+                                    batch_size=inargs.batch_size)
+        train_n_batches = get_n_batches(inargs.data_dir, inargs.train_fn,
+                                        batch_size=inargs.batch_size)
+        valid_n_batches = get_n_batches(inargs.data_dir, inargs.valid_fn,
+                                        batch_size=inargs.batch_size)
+        feature_shape = 87
+        target_shape = 86
     else:
         raise Exception
 
@@ -114,7 +123,7 @@ def main(inargs):
                   validation_data=(valid_set.features, valid_set.targets),
                   callbacks=callbacks_list)
 
-    if inargs.data_set_type == 'gen1':
+    if inargs.data_set_type in ['gen1', 'gen2']:
         model.fit_generator(train_gen, train_n_batches, epochs=inargs.epochs,
                             validation_data=valid_gen,
                             validation_steps=valid_n_batches,
