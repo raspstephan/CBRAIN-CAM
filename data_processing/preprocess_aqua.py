@@ -19,7 +19,7 @@ import timeit
 
 # Define conversion dict
 L_V = 2.5e6   # Latent heat of vaporization is actually 2.26e6
-C_P = 1e3 # Specific heat capacity of air at constant pressure
+C_P = 1e3   # Specific heat capacity of air at constant pressure
 conversion_dict = {
     'SPDT': C_P,
     'SPDQ': L_V,
