@@ -246,6 +246,19 @@ def shuffle_da(feature_da, target_da, seed):
     return feature_da, target_da
 
 
+def rechunk_da(da, sample_chunks=100000):
+    """
+    
+    Args:
+        da: xarray DataArray
+        sample_chunks:  Chunk size in sample dimensions 
+
+    Returns:
+        da: xarray DataArray rechunked
+    """
+    return da.chunk({'sample': sample_chunks,  'lev': da.coords['lev'].size})
+
+
 def main(inargs):
     """Main function. Takes arguments and executes preprocessing routines.
 
@@ -271,6 +284,10 @@ def main(inargs):
     feature_da = reshape_da(feature_da)
     target_da = reshape_da(target_da)
 
+    # Rechunk 1
+    feature_da = rechunk_da(feature_da)
+    target_da = rechunk_da(target_da)
+
     # Normalize features
     norm_fn = inargs.out_dir + inargs.out_pref + '_norm.nc'
     feature_da = normalize_da(feature_da, log_str, norm_fn, inargs.ext_norm)
@@ -282,6 +299,10 @@ def main(inargs):
     else:   # Need to reset indices for some reason
         feature_da = feature_da.reset_index('sample')
         target_da = target_da.reset_index('sample')
+
+    # Rechunk 2
+    feature_da = rechunk_da(feature_da)
+    target_da = rechunk_da(target_da)
 
     # Convert to Datasets
     feature_ds = xr.Dataset({'features': feature_da})
