@@ -23,9 +23,9 @@ def create_log_str():
         log_str: String with reproducibility information
     """
     time_stamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    pwd = getoutput(['pwd']).rstrip()  # Need to remove trailing /n
     try:
         from git import Repo
-        pwd = getoutput(['pwd']).rstrip()  # Need to remove trailing /n
         git_dir = pwd.rsplit('/', 1)[0]
         git_hash = Repo(git_dir).heads[0].commit
     except ModuleNotFoundError:
@@ -274,7 +274,7 @@ def main(inargs):
     """
 
     # Create list of all input data files
-    in_list = sorted(glob.glob(inargs.in_dir + inargs.aqua_pref + '*'))
+    in_list = sorted(glob.glob(inargs.in_dir + inargs.aqua_names))
     if inargs.verbose: print('Input file list:', in_list)
 
     # Read the first input file to get basic parameters
@@ -316,10 +316,11 @@ if __name__ == '__main__':
     p.add_argument('--out_dir',
                    type=str,
                    help='Directory to write preprocessed file.')
-    p.add_argument('--aqua_pref',
+    p.add_argument('--aqua_names',
                    type=str,
-                   default='AndKua_aqua_',
-                   help='Prefix of aqua files. Default = "AndKua_aqua_"')
+                   default='AndKua_aqua_*',
+                   help='String with filenames to be processed. '
+                        'Default = "AndKua_aqua_*"')
     p.add_argument('--out_fn',
                    type=str,
                    default='SPCAM_outputs_detailed.nc',

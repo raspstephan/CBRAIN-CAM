@@ -53,10 +53,15 @@ def create_flat(inargs, full_rg, fn_pref):
             data = full_var[:]  # [date, time, lat, lon]
             v[:] = np.ravel(data)
         elif full_var.ndim == 5:
-            v = rg.createVariable(name, full_var.dtype, ('lev', 'sample'))
             data = full_var[:]  # [date, time, lev, lat, lon]
-            data = np.rollaxis(data, 2, 0)  # [lev, date, time, lat, lon]
-            v[:] = data.reshape(v.shape)
+            if inargs.lev_last:
+                data = np.rollaxis(data, 2, 5)  # [lev, date, time, lat, lon]
+                v = rg.createVariable(name, full_var.dtype, ('sample', 'lev'))
+                v[:] = data.reshape(v.shape)
+            else:
+                data = np.rollaxis(data, 2, 0)  # [lev, date, time, lat, lon]
+                v = rg.createVariable(name, full_var.dtype, ('lev', 'sample'))
+                v[:] = data.reshape(v.shape)
         else:
             if inargs.verbose: print('Do not create flat:', name)
 
@@ -277,6 +282,11 @@ if __name__ == '__main__':
                    help='If given: flatten time, lat and lon in a separate '
                         'file. NOTE: Twice the memory!')
     p.set_defaults(flatten=False)
+    p.add_argument('--lev_last',
+                   dest='lev_last',
+                   action='store_true',
+                   help='If given: Save flat array as [sample, lev]')
+    p.set_defaults(lev_last=False)
     p.add_argument('--delete_intermediate',
                    dest='delete_intermediate',
                    action='store_true',
