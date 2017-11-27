@@ -212,6 +212,7 @@ def get_n_batches(data_dir, out_fn, batch_size=512):
 def data_generator1(data_dir, out_fn, mean_fn, std_fn, feature_names,
                     target_names=['SPDT', 'SPDQ'], shuffle=True,
                     batch_size=512):
+    """Works on [sample, lev] data"""
     # Open files
     out_file = h5py.File(data_dir + out_fn)
     mean_file = h5py.File(data_dir + mean_fn)
@@ -263,6 +264,8 @@ def data_generator1(data_dir, out_fn, mean_fn, std_fn, feature_names,
 @threadsafe_generator
 def data_generator2(data_dir, out_fn, shuffle=True,
                     batch_size=512):
+    """Works on pre-stacked targets
+    """
     # Open files
     out_file = h5py.File(data_dir + out_fn)
 
@@ -282,6 +285,33 @@ def data_generator2(data_dir, out_fn, shuffle=True,
             x = out_file['features'][batch_idx:batch_idx + batch_size, :]
             y = out_file['targets'][batch_idx:batch_idx + batch_size, :]
             yield x, y
+
+
+@threadsafe_generator
+def data_generator3(data_dir, out_fn, shuffle=True,
+                    batch_size=512):
+    """Works on pre-stacked targets with truely random batches
+    """
+    # Open files
+    out_file = h5py.File(data_dir + out_fn)
+
+    # Determine sizes
+    n_samples = out_file['features'].shape[0]
+    n_batches = int(n_samples / batch_size)
+    # Create ID list
+    idxs = np.arange(n_samples)
+    if shuffle:
+        np.random.shuffle(idxs)
+
+    # generate
+    while True:
+        for i in range(n_batches):
+            batch_idxs = idxs[i*batch_size:(i+1)*batch_size]
+            batch_idxs.sort()
+            x = out_file['features'][batch_idxs, :]
+            y = out_file['targets'][batch_idxs, :]
+            yield x, y
+
 
 
 

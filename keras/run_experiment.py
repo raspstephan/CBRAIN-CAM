@@ -74,6 +74,18 @@ def main(inargs):
                                         batch_size=inargs.batch_size)
         feature_shape = 87
         target_shape = 86
+    elif inargs.data_set_type == 'gen3':
+        train_gen = data_generator3(inargs.data_dir, inargs.train_fn,
+                                    shuffle=True,
+                                    batch_size=inargs.batch_size)
+        valid_gen = data_generator3(inargs.data_dir, inargs.valid_fn,
+                                    batch_size=inargs.batch_size)
+        train_n_batches = get_n_batches(inargs.data_dir, inargs.train_fn,
+                                        batch_size=inargs.batch_size)
+        valid_n_batches = get_n_batches(inargs.data_dir, inargs.valid_fn,
+                                        batch_size=inargs.batch_size)
+        feature_shape = 87
+        target_shape = 86
     else:
         raise Exception
 
@@ -123,11 +135,12 @@ def main(inargs):
                   validation_data=(valid_set.features, valid_set.targets),
                   callbacks=callbacks_list)
 
-    if inargs.data_set_type in ['gen1', 'gen2']:
+    if inargs.data_set_type in ['gen1', 'gen2', 'gen3']:
         model.fit_generator(train_gen, train_n_batches, epochs=inargs.epochs,
                             validation_data=valid_gen,
                             validation_steps=valid_n_batches,
-                            workers=inargs.n_workers)
+                            workers=inargs.n_workers,
+			    max_q_size=50)
     if inargs.exp_name is not None:
         model.save(inargs.model_dir + '/' + inargs.exp_name + '.h5')
 
