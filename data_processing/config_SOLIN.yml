@@ -1,4 +1,5 @@
 # Define input and output variables
 # Important: Do not include quatation marks!
-vars: [TAP, QAP, SHFLX, LHFLX, LAT, dTdt_adiabatic, dQdt_adiabatic, QRL, QRS, SPDT, SPDQ, PS, PRECT, FLUT, SOLIN]   # All variables, feature and target
-current_vars: [SPDT, SPDQ, QRL, QRS, PRECT, FLUT]          # Variables to take from current time step
+# Also important: the order!
+feature_vars: [TAP, QAP, dTdt_adiabatic, dQdt_adiabatic, SHFLX, LHFLX, SOLIN]   # Features
+target_vars: [SPDT, SPDQ, QRL, QRS, PRECT, FLUT]          # Targets

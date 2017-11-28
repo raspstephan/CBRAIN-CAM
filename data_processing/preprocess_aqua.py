@@ -5,14 +5,29 @@ Author: Stephan Rasp
 
 TODO:
 - Add moisture convergence
+- Add option for LAT
+- Read convesion dics from config file
+- Add list of variables to log and as variable in arrays
 """
-import glob
 from configargparse import ArgParser
-from netCDF4 import Dataset
-import os, sys
+import sys
 import numpy as np
 from datetime import datetime
 from subprocess import getoutput
+import xarray as xr
+import timeit
+
+# Define conversion dict
+L_V = 2.5e6   # Latent heat of vaporization is actually 2.26e6
+C_P = 1e3   # Specific heat capacity of air at constant pressure
+conversion_dict = {
+    'SPDT': C_P,
+    'SPDQ': L_V,
+    'QRL': C_P,
+    'QRS': C_P,
+    'PRECT': 1e3*24*3600 * 1e-3,
+    'FLUT': 1. * 1e-5,
+}
 
 
 def create_log_str():
@@ -43,123 +58,35 @@ def create_log_str():
     return log_str
 
 
-def store_lat_idxs(inargs, sample_rg):
-    """Stores latitude indices
+def crop_ds(inargs, ds):
+    """Crops dataset in lat and lev dimensions
 
     Args:
         inargs: namespace
-
+        ds: Dataset
     Stores:
-        inargs.lat_idxs: boolian numpy array with lat dimensions
+        ds: Cropped Dataset
     """
-    inargs.lat_idxs = np.where(
-        (sample_rg.variables['lat'][:] >= inargs.lat_range[0]) &
-        (sample_rg.variables['lat'][:] <= inargs.lat_range[1])
+    lat_idxs = np.where(
+        (ds.coords['lat'].values >= inargs.lat_range[0]) &
+        (ds.coords['lat'].values <= inargs.lat_range[1])
     )[0]
-    if inargs.verbose: print('Latitude indices:', inargs.lat_idxs)
+    lev_idxs = np.arange(inargs.min_lev, ds.coords['lev'].size)
+    if inargs.verbose:
+        print('Latitude indices:', lat_idxs)
+        print('Level indices:', lev_idxs)
+    return ds.isel(lat=lat_idxs, lev=lev_idxs)
 
 
-def create_nc(inargs, sample_rg, n_infiles):
-    """Create new netcdf file.
-
-    Args:
-        inargs: ArgParse namespace
-        sample_rg: Example aqua nc file to get dimensions
-        n_infiles: Number of aqua files
-
-    Returns:
-        rg: NetCDF rootgroup object
-    """
-
-    # Create file
-    nc_fn = os.path.join(inargs.out_dir, inargs.out_fn)
-    print('Preprocessed file:', nc_fn)
-    rg = Dataset(nc_fn, 'w')
-    rg.log = create_log_str()
-
-    # Create dimensions [date, time, lev, lat, lon]
-    # and dimension variables
-    rg.createDimension('date', n_infiles)
-    v = rg.createVariable('date', inargs.dtype, 'date')
-    v[:] = np.arange(1, n_infiles + 1)
-    # Time (subtract one time step)
-    rg.createDimension('time',(sample_rg.dimensions['time'].size - 1))
-    v = rg.createVariable('time', inargs.dtype, 'time')
-    v[:] = np.arange(v.shape[0])
-    # Level (potentially omit top layers)
-    rg.createDimension('lev',
-                       sample_rg.variables['lev'][inargs.min_lev:].shape[0])
-    v = rg.createVariable('lev', inargs.dtype, 'lev')
-    v[:] = sample_rg.variables['lev'][inargs.min_lev:]
-    # Latitude (potentially chose latitude range)
-    rg.createDimension('lat',
-                       sample_rg.variables['lat'][inargs.lat_idxs].shape[0])
-    v = rg.createVariable('lat', inargs.dtype, 'lat')
-    v[:] = sample_rg.variables['lat'][inargs.lat_idxs]
-    # Longitude (nothing special)
-    rg.createDimension('lon', sample_rg.variables['lon'][:].shape[0])
-    v = rg.createVariable('lon', inargs.dtype, 'lon')
-    v[:] = sample_rg.variables['lon'][:]
-
-    # Create all other variables
-    for var in inargs.vars:
-        if var in sample_rg.variables.keys():
-            dims = ['date'] + list(sample_rg.variables[var].dimensions)
-            v = rg.createVariable(var, inargs.dtype, dims)
-            v.long_name = sample_rg.variables[var].long_name
-            v.units = sample_rg.variables[var].units
-        elif var == 'LAT':
-            add_LAT(inargs, rg)
-        elif var in ['dTdt_adiabatic', 'dQdt_adiabatic']:
-            tmp_var = 'TAP'
-            dims = ['date'] + list(sample_rg.variables[tmp_var].dimensions)
-            v = rg.createVariable(var, inargs.dtype, dims)
-            if var == 'dTdt_adiabatic':
-                v.long_name = 'Adiabatic T tendency'
-                v.units = 'K/s'
-            else:
-                v.long_name = 'Adiabatic Q tendency'
-                v.units = 'kg/kg/s'
-        else:
-            KeyError('Variable %s not implemented.' % var)
-
-    if inargs.verbose: print('Created out_file:', rg)
-    return rg
-
-
-def add_LAT(inargs, rg):
-    """Adds latitude array with dimensions [date, time, lat, lon]
-
-    Args:
-        inargs: Namespace
-        rg: output file
-    """
-    # Create variable
-    v = rg.createVariable('LAT', inargs.dtype, ('date', 'time', 'lat', 'lon'))
-    v.long_name = 'Latitude'
-    v.units = 'degrees'
-
-    # Create LAT array
-    lat_1d = rg.variables['lat'][:]
-    lat_4d = lat_1d.reshape((1, 1, lat_1d.shape[0], 1))
-    lat_4d = np.repeat(lat_4d, v.shape[0], axis=0)   # Date
-    lat_4d = np.repeat(lat_4d, v.shape[1], axis=1)   # Time
-    lat_4d = np.repeat(lat_4d, v.shape[3], axis=3)   # Lon
-
-    # Write to file
-    v[:] = lat_4d
-
-
-def compute_adiabatic(inargs, var, aqua_rg):
+def compute_adiabatic(ds, var):
     """Compute adiabatic tendencies.
 
     Args:
-        inargs: Namespace
+        ds: xarray dataset
         var: Variable to be computed
-        aqua_rg: input file
 
     Returns:
-        adiabatic: Numpy array
+        adiabatic: xarray dataarray
     """
     # Load relevant files
     if var == 'dTdt_adiabatic':
@@ -168,102 +95,168 @@ def compute_adiabatic(inargs, var, aqua_rg):
     else:
         base_var = 'QAP'
         phy_var = 'PHQ'
-    dt = (
-        aqua_rg.variables[base_var][1:][:, inargs.min_lev:, inargs.lat_idxs, :] -
-        aqua_rg.variables[base_var][:-1][:, inargs.min_lev:, inargs.lat_idxs, :]
-    ) / (0.5 * 60 * 60)   # Convert to s-1
-    phy = aqua_rg.variables[phy_var][1:][:, inargs.min_lev:, inargs.lat_idxs, :]
-    return dt - phy
+    adiabatic = ds[base_var].diff('time', n=1) / (0.5 * 60 * 60) - ds[phy_var]  # Convert to s-1
+    return adiabatic
 
 
-def write_contents(inargs, rg, aqua_fn, date_idx):
-    """Write contents of one aqua file
+def create_feature_da(ds, feature_vars):
+    """Create feature dataArray
+    
+    Args:
+        ds: xarray DataSet
+        feature_vars: list of feature variables
+
+    Returns:
+        feature_da: Dataarray with feature variables
+    """
+    # Get list of all feature DataArrays
+    features_list = []
+    for var in feature_vars:
+        if var == 'dTdt_adiabatic':
+            features_list.append(compute_adiabatic(ds, 'dTdt_adiabatic'))
+        elif var == 'dQdt_adiabatic':
+            features_list.append(compute_adiabatic(ds, 'dQdt_adiabatic'))
+        else:
+            features_list.append(ds[var][:-1])
+
+    # Relabel time and lev coordinates
+    ilev = 0
+    for da in features_list:
+        da.coords['time'] = np.arange(da.coords['time'].size)
+        if 'lev' in da.coords:
+            da.coords['lev'] = np.arange(ilev, ilev + da.coords['lev'].size)
+            ilev += da.coords['lev'].size
+        else:
+            da.expand_dims('lev')
+            da.coords['lev'] = ilev
+            ilev += 1
+
+    # Concatenate
+    feature_da = xr.concat(features_list, dim='lev')
+    feature_da = feature_da.rename('features')
+
+    return feature_da
+
+
+def create_target_da(ds, target_vars):
+    """Create target DataArray
 
     Args:
-        inargs: argparse namespace
-        rg: nc rootgroup to write in
-        aqua_fn: filename of aqua file
-        date_idx: date_index
+        ds: xarray DataSet
+        target_vars: list of target variables
 
+    Returns:
+        target_da: Dataarray with feature variables
     """
+    # Get list of all target DataArrays
+    targets_list = []
+    for var in target_vars:
+        targets_list.append(ds[var][1:] * conversion_dict[var])
 
-    # Open aqua file
-    with Dataset(aqua_fn, 'r') as aqua_rg:
-        n_time_min_1 = aqua_rg.dimensions['time'].size - 1
-        if inargs.verbose: print('date_idx:', date_idx)
-        for var in inargs.vars:
-            if var in inargs.current_vars:
-                var_time_idxs = np.arange(1, 1 + n_time_min_1)
-            else:
-                var_time_idxs = np.arange(0, 0 + n_time_min_1)
-            if inargs.verbose: print('Variable time indices:', var_time_idxs,
-                                     'for variable:', var)
-            if var in aqua_rg.variables.keys():
-                if aqua_rg.variables[var].ndim == 3:
-                    # [time, lat, lon]
-                    rg.variables[var][date_idx] = \
-                        aqua_rg.variables[var][var_time_idxs][:, inargs.lat_idxs,
-                                                              :]
-                elif aqua_rg.variables[var].ndim == 4:
-                    # [time, lev, lat, lon]
-                    rg.variables[var][date_idx] = \
-                        aqua_rg.variables[var][var_time_idxs][:, inargs.min_lev:,
-                                                              inargs.lat_idxs, :]
-                else:
-                    raise ValueError('Wrong dimensions.')
-            elif var == 'LAT':
-                pass   # Already dealt with that some other place
-            elif var in ['dTdt_adiabatic', 'dQdt_adiabatic']:
-                rg.variables[var][date_idx] = \
-                    compute_adiabatic(inargs, var, aqua_rg)
-            else:
-                raise KeyError('Variable %s not implemented.' % var)
+    # Relabel time and lev coordinates, TODO: make function, copied from above
+    ilev = 0
+    for da in targets_list:
+        da.coords['time'] = np.arange(da.coords['time'].size)
+        if 'lev' in da.coords:
+            da.coords['lev'] = np.arange(ilev, ilev + da.coords['lev'].size)
+            ilev += da.coords['lev'].size
+        else:
+            da.expand_dims('lev')
+            da.coords['lev'] = ilev
+            ilev += 1
+
+    # Concatenate
+    target_da = xr.concat(targets_list, dim='lev')
+    target_da = target_da.rename('targets')
+
+    return target_da
 
 
-def create_mean_std(inargs):
-    """Create files with means and standard deviations.
-    These have either dimension z or 1
-
+def reshape_da(da):
+    """Reshape from [time, lev, lat, lon] to [sample, lev]
+    
     Args:
-        inargs: Namespace
+        da: xarray DataArray
 
+    Returns:
+        da: reshaped dataArray
     """
-    # File to read from
-    full_rg = Dataset(os.path.join(inargs.out_dir, inargs.out_fn), 'r')
+    da = da.stack(sample=('time', 'lat', 'lon'))
+    da = da.transpose('sample', 'lev')
+    return da
 
-    # Loop over mean and std
-    for type, fn in zip(['mean', 'std'], [inargs.mean_fn, inargs.std_fn]):
-        # Mean and std files
-        nc_fn = os.path.join(inargs.out_dir, fn)
-        print(type, 'file:', nc_fn)
-        rg = Dataset(nc_fn, 'w')
-        rg.log = create_log_str()
 
-        # Create levs dimensions
-        rg.createDimension('lev', full_rg.dimensions['lev'].size)
+def normalize_da(da, log_str, norm_fn=None, ext_norm=None):
+    """Normalize feature arrays
+    
+    Args:
+        da: DataArray
+        log_str: log string
+        norm_fn: Name of normalization file to be saved, only if not ext_norm
+        ext_norm: Path to external normalization file
 
-        # Loop through all variables
-        for var_name in inargs.vars:
-            full_v = full_rg.variables[var_name]
-            if full_v.ndim == 4:
-                v = rg.createVariable(var_name, inargs.dtype, ())
-                if type == 'mean':
-                    v[:] = np.mean(full_v[:])
-                else:
-                    v[:] = np.std(full_v[:], ddof=1)
+    Returns:
+        da: Normalized DataArray
+    """
+    if ext_norm is None:
+        print('Compute means and stds')
+        means = da.mean(axis=0)
+        means.name = 'feature_mean'
+        stds = da.std(axis=0)
+        stds.name = 'feature_std'
 
-            elif full_v.ndim == 5:
-                # [date, time, lev, lat, lon]
-                v = rg.createVariable(var_name, inargs.dtype, 'lev')
-                if type == 'mean':
-                    v[:] = np.mean(full_v[:], axis=(0, 1, 3, 4))
-                else:
-                    v[:] = np.std(full_v[:], ddof=1, axis=(0, 1, 3, 4))
-            else:
-                raise ValueError('Wrong dimensions for variable %s.' % var_name)
+        # Store means and variables
+        norm_ds = xr.Dataset({'mean': means, 'std': stds})
+        norm_ds.attrs['log'] = log_str
+        norm_ds.to_netcdf(norm_fn)
+    else:
+        print('Load external normalization file')
+        norm_ds = xr.open_dataset(ext_norm)
 
-        rg.close()
-    full_rg.close()
+    da = (da - norm_ds['mean']) / norm_ds['std']
+    return da
+
+
+def shuffle_da(feature_da, target_da, seed):
+    """
+    
+    Args:
+        feature_da: Feature array
+        target_da: Target array
+        seed: random seed
+
+    Returns:
+        feature_da, target_da: Shuffle DataArrays
+    """
+    print('Shuffling...')
+    # Create random coordinate
+    np.random.seed(seed)
+    assert feature_da.coords['sample'].size == target_da.coords['sample'].size,\
+        'Something is wrong...'
+    rand_idxs = np.arange(feature_da.coords['sample'].size)
+    np.random.shuffle(rand_idxs)
+
+    feature_da.coords['sample'] = rand_idxs
+    target_da.coords['sample'] = rand_idxs
+
+    # Sort
+    feature_da = feature_da.sortby('sample')
+    target_da = target_da.sortby('sample')
+
+    return feature_da, target_da
+
+
+def rechunk_da(da, sample_chunks=100000):
+    """
+    
+    Args:
+        da: xarray DataArray
+        sample_chunks:  Chunk size in sample dimensions 
+
+    Returns:
+        da: xarray DataArray rechunked
+    """
+    return da.chunk({'sample': sample_chunks,  'lev': da.coords['lev'].size})
 
 
 def main(inargs):
@@ -272,6 +265,7 @@ def main(inargs):
     Args:
         inargs: argument namespace
     """
+<<<<<<< HEAD
 
     # Create list of all input data files
     in_list = sorted(glob.glob(inargs.in_dir + inargs.aqua_names))
@@ -292,6 +286,63 @@ def main(inargs):
 
     # Create mean and std files
     create_mean_std(inargs)
+=======
+    t1 = timeit.default_timer()
+    # Create log string
+    log_str = create_log_str()
+
+    # Load dataset
+    merged_ds = xr.open_mfdataset(inargs.in_dir + inargs.aqua_names,
+                                  decode_times=False)
+    print('Number of dates:', merged_ds.coords['time'].size)
+    # Crop levels and latitude range
+    merged_ds = crop_ds(inargs, merged_ds)
+
+    # Create stacked feature and target datasets
+    feature_da = create_feature_da(merged_ds, inargs.feature_vars)
+    target_da = create_target_da(merged_ds, inargs.target_vars)
+
+    # Reshape
+    feature_da = reshape_da(feature_da)
+    target_da = reshape_da(target_da)
+
+    # Rechunk 1
+    feature_da = rechunk_da(feature_da)
+    target_da = rechunk_da(target_da)
+
+    # Normalize features
+    norm_fn = inargs.out_dir + inargs.out_pref + '_norm.nc'
+    feature_da = normalize_da(feature_da, log_str, norm_fn, inargs.ext_norm)
+
+    # Shuffle along sample dimension
+    if inargs.shuffle:
+        feature_da, target_da = shuffle_da(feature_da, target_da,
+                                           inargs.random_seed)
+    else:   # Need to reset indices for some reason
+        feature_da = feature_da.reset_index('sample')
+        target_da = target_da.reset_index('sample')
+
+    # Rechunk 2
+    feature_da = rechunk_da(feature_da)
+    target_da = rechunk_da(target_da)
+
+    # Convert to Datasets
+    feature_ds = xr.Dataset({'features': feature_da})
+    target_ds = xr.Dataset({'targets': target_da})
+
+    # Save data arrays
+    feature_ds.attrs['log'] = log_str
+    target_ds.attrs['log'] = log_str
+    feature_fn = inargs.out_dir + inargs.out_pref + '_features.nc'
+    target_fn = inargs.out_dir + inargs.out_pref + '_targets.nc'
+    print('Save features:', feature_fn)
+    feature_ds.to_netcdf(feature_fn)
+    print('Save targets:', target_fn)
+    target_ds.to_netcdf(target_fn)
+
+    t2 = timeit.default_timer()
+    print('Total time: %.2f s' % (t2 - t1))
+>>>>>>> data_processing
 
 
 if __name__ == '__main__':
@@ -301,12 +352,12 @@ if __name__ == '__main__':
           default='config.yml',
           is_config_file=True,
           help='Name of config file in this directory. '
-               'Must contain in and out variable lists.')
-    p.add_argument('--vars',
+               'Must contain feature and target variable lists.')
+    p.add_argument('--feature_vars',
                    type=str,
                    nargs='+',
                    help='All variables. Features and targets')
-    p.add_argument('--current_vars',
+    p.add_argument('--target_vars',
                    type=str,
                    nargs='+',
                    help='Variables to take ffrom current time step.')
@@ -321,21 +372,18 @@ if __name__ == '__main__':
                    default='AndKua_aqua_*',
                    help='String with filenames to be processed. '
                         'Default = "AndKua_aqua_*"')
+<<<<<<< HEAD
     p.add_argument('--out_fn',
+=======
+    p.add_argument('--out_pref',
+>>>>>>> data_processing
                    type=str,
-                   default='SPCAM_outputs_detailed.nc',
-                   help='Filename of preprocessed file. '
-                        'Default = "SPCAM_outputs_detailed.nc"')
-    p.add_argument('--mean_fn',
+                   default='test',
+                   help='Prefix for all file names')
+    p.add_argument('--ext_norm',
                    type=str,
-                   default='SPCAM_mean_detailed.nc',
-                   help='Filename of mean file. '
-                        'Default = "SPCAM_mean_detailed.nc"')
-    p.add_argument('--std_fn',
-                   type=str,
-                   default='SPCAM_std_detailed.nc',
-                   help='Filename of std file. '
-                        'Default = "SPCAM_std_detailed.nc"')
+                   default=None,
+                   help='Name of external normalization file')
     p.add_argument('--min_lev',
                    type=int,
                    default=9,
@@ -345,15 +393,15 @@ if __name__ == '__main__':
                    nargs='+',
                    default=[-90, 90],
                    help='Latitude range. Default = [-90, 90]')
-    p.add_argument('--dtype',
-                   type=str,
-                   default='float32',
-                   help='Datatype of out variables. Default = "float32"')
-    p.add_argument('--flat_fn',
-                   type=str,
-                   default='SPCAM_outputs_flat.nc',
-                   help='Filename of flat file. '
-                        'Default = "SPCAM_outputs_flat.nc"')
+    p.add_argument('--random_seed',
+                   type=int,
+                   default=42,
+                   help='Random seed for shuffling of data.')
+    p.add_argument('--shuffle',
+                   dest='shuffle',
+                   action='store_true',
+                   help='If given, shuffle data along sample dimension.')
+    p.set_defaults(shuffle=False)
     p.add_argument('--verbose',
                    dest='verbose',
                    action='store_true',
@@ -361,8 +409,5 @@ if __name__ == '__main__':
     p.set_defaults(verbose=False)
 
     args = p.parse_args()
-
-    # Perform some input checks
-    assert len(args.vars[0]) > 0, 'No vars given.'
 
     main(args)
