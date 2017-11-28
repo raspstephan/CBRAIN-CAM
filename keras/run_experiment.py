@@ -12,7 +12,7 @@ from configargparse import ArgParser
 from models import conv_model, fc_model
 from losses import *
 from utils import *
-from data_generator import *
+from data_generator import DataSet, DataGenerator
 from collections import OrderedDict
 
 
@@ -43,49 +43,23 @@ def main(inargs):
                             target_norm_lev_weight=inargs.target_norm_lev_weight)
         feature_shape = train_set.features.shape[1]
         target_shape = train_set.targets.shape[1]
-    elif inargs.data_set_type == 'gen1':
-        train_gen = data_generator1(inargs.data_dir, inargs.train_fn,
-                                    inargs.mean_fn, inargs.std_fn,
-                                    inargs.feature_vars,
-                                    target_names=inargs.target_vars,
-                                    shuffle=True,
-                                    batch_size=inargs.batch_size)
-        valid_gen = data_generator1(inargs.data_dir, inargs.valid_fn,
-                                    inargs.mean_fn, inargs.std_fn,
-                                    inargs.feature_vars,
-                                    target_names=inargs.target_vars,
-                                    shuffle=True,
-                                    batch_size=inargs.batch_size)
-        train_n_batches = get_n_batches(inargs.data_dir, inargs.train_fn,
-                                        batch_size=inargs.batch_size)
-        valid_n_batches = get_n_batches(inargs.data_dir, inargs.valid_fn,
-                                        batch_size=inargs.batch_size)
-        feature_shape = 87
-        target_shape = 86
-    elif inargs.data_set_type == 'gen2':
-        train_gen = data_generator2(inargs.data_dir, inargs.train_fn,
-                                    shuffle=True,
-                                    batch_size=inargs.batch_size)
-        valid_gen = data_generator2(inargs.data_dir, inargs.valid_fn,
-                                    batch_size=inargs.batch_size)
-        train_n_batches = get_n_batches(inargs.data_dir, inargs.train_fn,
-                                        batch_size=inargs.batch_size)
-        valid_n_batches = get_n_batches(inargs.data_dir, inargs.valid_fn,
-                                        batch_size=inargs.batch_size)
-        feature_shape = 87
-        target_shape = 86
-    elif inargs.data_set_type == 'gen3':
-        train_gen = data_generator3(inargs.data_dir, inargs.train_fn,
-                                    shuffle=True,
-                                    batch_size=inargs.batch_size)
-        valid_gen = data_generator3(inargs.data_dir, inargs.valid_fn,
-                                    batch_size=inargs.batch_size)
-        train_n_batches = get_n_batches(inargs.data_dir, inargs.train_fn,
-                                        batch_size=inargs.batch_size)
-        valid_n_batches = get_n_batches(inargs.data_dir, inargs.valid_fn,
-                                        batch_size=inargs.batch_size)
-        feature_shape = 87
-        target_shape = 86
+    elif inargs.data_set_type == 'gen':
+        train_gen = DataGenerator(
+            inargs.data_dir,
+            inargs.train_fn + '_features.nc',
+            inargs.train_fn + '_targets.nc',
+            inargs.batch_size,
+            shuffle=True,
+        )
+        valid_gen = DataGenerator(
+            inargs.data_dir,
+            inargs.valid_fn + '_features.nc',
+            inargs.valid_fn + '_targets.nc',
+            inargs.batch_size * 4,
+            shuffle=False,
+        )
+        feature_shape = train_gen.feature_shape
+        target_shape = train_gen.target_shape
     else:
         raise Exception
 
@@ -101,13 +75,15 @@ def main(inargs):
                            batch_norm=inargs.batch_norm,
                            kernel_size=inargs.kernel_size)
     else:   # Fully connected model
-        model = fc_model(feature_shape,
-                         target_shape,
-                         inargs.hidden_layers,
-                         inargs.lr,
-                         inargs.loss,
-                         batch_norm=inargs.batch_norm,
-                         activation=inargs.activation)
+        model = fc_model(
+            feature_shape,
+            target_shape,
+            inargs.hidden_layers,
+            inargs.lr,
+            inargs.loss,
+            batch_norm=inargs.batch_norm,
+            activation=inargs.activation
+        )
     if inargs.verbose: print(model.summary())
 
     callbacks_list = []
@@ -125,8 +101,6 @@ def main(inargs):
             return lr
         callbacks_list.append(LearningRateScheduler(lr_update))
 
-
-
     # Fit model
     if inargs.data_set_type == 'set':
         model.fit(train_set.features, train_set.targets,
@@ -134,13 +108,16 @@ def main(inargs):
                   epochs=inargs.epochs,
                   validation_data=(valid_set.features, valid_set.targets),
                   callbacks=callbacks_list)
-
-    if inargs.data_set_type in ['gen1', 'gen2', 'gen3']:
-        model.fit_generator(train_gen, train_n_batches, epochs=inargs.epochs,
-                            validation_data=valid_gen,
-                            validation_steps=valid_n_batches,
-                            workers=inargs.n_workers,
-			    max_q_size=50)
+    else:   # Generator
+        model.fit_generator(
+            train_gen.return_generator(),
+            train_gen.n_batches,
+            epochs=inargs.epochs,
+            validation_data=valid_gen.return_generator(),
+            validation_steps=valid_gen.n_batches,
+            workers=inargs.n_workers,
+            max_q_size=50
+        )
     if inargs.exp_name is not None:
         model.save(inargs.model_dir + '/' + inargs.exp_name + '.h5')
 
@@ -177,9 +154,11 @@ if __name__ == '__main__':
                    help='Validation set file.')
     p.add_argument('--mean_fn',
                    type=str,
+                   default=None,
                    help='Mean file.')
     p.add_argument('--std_fn',
                    type=str,
+                   default=None,
                    help='Std file.')
     p.add_argument('--log_dir',
                    default=None,

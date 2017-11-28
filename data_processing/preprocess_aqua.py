@@ -209,6 +209,8 @@ def normalize_da(da, log_str, norm_fn=None, ext_norm=None):
         norm_ds = xr.Dataset({'mean': means, 'std': stds})
         norm_ds.attrs['log'] = log_str
         norm_ds.to_netcdf(norm_fn)
+        norm_ds.close()
+        norm_ds = xr.open_dataset(norm_fn)
     else:
         print('Load external normalization file')
         norm_ds = xr.open_dataset(ext_norm)
@@ -218,7 +220,7 @@ def normalize_da(da, log_str, norm_fn=None, ext_norm=None):
 
 
 def shuffle_da(feature_da, target_da, seed):
-    """
+    """Shuffle indices and sort
     
     Args:
         feature_da: Feature array
@@ -251,7 +253,7 @@ def rechunk_da(da, sample_chunks=100000):
     
     Args:
         da: xarray DataArray
-        sample_chunks:  Chunk size in sample dimensions 
+        sample_chunks:  Chunk size in sample dimensions
 
     Returns:
         da: xarray DataArray rechunked
@@ -265,28 +267,7 @@ def main(inargs):
     Args:
         inargs: argument namespace
     """
-<<<<<<< HEAD
 
-    # Create list of all input data files
-    in_list = sorted(glob.glob(inargs.in_dir + inargs.aqua_names))
-    if inargs.verbose: print('Input file list:', in_list)
-
-    # Read the first input file to get basic parameters
-    sample_rg = Dataset(in_list[0], 'r')
-    store_lat_idxs(inargs, sample_rg)
-
-    # Allocate new netCDF file
-    rg = create_nc(inargs, sample_rg, len(in_list))
-    sample_rg.close()
-
-    # Go through files and write contents
-    for date_idx, aqua_fn in enumerate(in_list):
-        write_contents(inargs, rg, aqua_fn, date_idx)
-    rg.close()
-
-    # Create mean and std files
-    create_mean_std(inargs)
-=======
     t1 = timeit.default_timer()
     # Create log string
     log_str = create_log_str()
@@ -294,7 +275,7 @@ def main(inargs):
     # Load dataset
     merged_ds = xr.open_mfdataset(inargs.in_dir + inargs.aqua_names,
                                   decode_times=False)
-    print('Number of dates:', merged_ds.coords['time'].size)
+    print('Number of time steps:', merged_ds.coords['time'].size)
     # Crop levels and latitude range
     merged_ds = crop_ds(inargs, merged_ds)
 
@@ -342,7 +323,6 @@ def main(inargs):
 
     t2 = timeit.default_timer()
     print('Total time: %.2f s' % (t2 - t1))
->>>>>>> data_processing
 
 
 if __name__ == '__main__':
@@ -372,11 +352,7 @@ if __name__ == '__main__':
                    default='AndKua_aqua_*',
                    help='String with filenames to be processed. '
                         'Default = "AndKua_aqua_*"')
-<<<<<<< HEAD
-    p.add_argument('--out_fn',
-=======
     p.add_argument('--out_pref',
->>>>>>> data_processing
                    type=str,
                    default='test',
                    help='Prefix for all file names')

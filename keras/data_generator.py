@@ -2,11 +2,6 @@
 
 Author: Stephan Rasp
 
-TODO:
-- Add option to read detailed data and then flatten
-    - all
-- Add option to create spatial input
-- Add option to add timeseries input
 """
 
 import numpy as np
@@ -28,6 +23,7 @@ conversion_dict = {
 }
 
 
+# To make generators thread safe for multithreading
 def threadsafe_generator(f):
     """A decorator that takes a generator function and makes it thread-safe.
     """
@@ -48,11 +44,77 @@ class threadsafe_iter(object):
     def __iter__(self):
         return self
 
-    def __next__(self): # Py3
+    def __next__(self):   # Py3
         with self.lock:
             return next(self.it)
 
 
+@threadsafe_generator
+def data_generator(data_dir, feature_fn, target_fn, shuffle=True,
+                   batch_size=512):
+    """Works on pre-stacked targets with truely random batches
+    """
+    # Open files
+    feature_file = h5py.File(data_dir + feature_fn)
+    target_file = h5py.File(data_dir + target_fn)
+
+    # Determine sizes
+    n_samples = feature_file['features'].shape[0]
+    n_batches = int(np.floor(n_samples / batch_size))
+    # Create ID list
+    idxs = np.arange(0, n_samples, batch_size)
+    if shuffle:
+        np.random.shuffle(idxs)
+
+    # generate
+    while True:
+        for i in range(n_batches):
+            batch_idx = idxs[i]
+            x = feature_file['features'][batch_idx:batch_idx + batch_size, :]
+            y = target_file['targets'][batch_idx:batch_idx + batch_size, :]
+            yield x, y
+
+
+class DataGenerator(object):
+    """Class wrapper around data_generator function
+    """
+
+    def __init__(self, data_dir, feature_fn, target_fn, batch_size,
+                 shuffle=True):
+        """Initialize DataGenerator object
+
+        Args:
+            data_dir: Path to directory with feature and target files
+            feature_fn: Feature file name
+            target_fn: Target file name
+            batch_size: batch size
+            shuffle: Shuffle batches
+        """
+        self.data_dir = data_dir
+        self.feature_fn = feature_fn
+        self.target_fn = target_fn
+        self.batch_size = batch_size
+        self.shuffle = shuffle
+
+        # Determine n_batches and shapes
+        with h5py.File(data_dir + feature_fn) as feature_file:
+            n_samples = feature_file['features'].shape[0]
+            self.feature_shape = feature_file['features'].shape[1]
+        self.n_batches = int(np.floor(n_samples / batch_size))
+        with h5py.File(data_dir + target_fn) as target_file:
+            self.target_shape = target_file['targets'].shape[1]
+        print('Generator will have %i samples in %i batches' %
+              (n_samples, self.n_batches))
+        print('Features have shape %i; targets have shape %i' %
+              (self.feature_shape, self.target_shape))
+
+    def return_generator(self):
+        """Return data_generator
+
+        Returns: data_generator
+        """
+        return data_generator(self.data_dir, self.feature_fn, self.target_fn,
+                              self.shuffle, self.batch_size)
 
 
 class DataSet(object):
@@ -316,7 +378,7 @@ def data_generator3(data_dir, out_fn, shuffle=True,
 
 
 import multiprocessing
-def DataGenerator():
+def DataGenerator_erawerwer():
     """New multiprocessing version
     https://gist.github.com/tdeboissiere/195dde7fddfcf622a82a895b90d2c800
     """
