@@ -6,7 +6,7 @@ Author: Stephan Rasp
 TODO:
 - Add moisture convergence
 - Add option for LAT
-- Read convesion dics from config file
+- Read convesion dict from config file
 - Add list of variables to log and as variable in arrays
 """
 from configargparse import ArgParser
@@ -16,6 +16,7 @@ from datetime import datetime
 from subprocess import getoutput
 import xarray as xr
 import timeit
+import pdb
 
 # Define conversion dict
 L_V = 2.5e6   # Latent heat of vaporization is actually 2.26e6
@@ -99,18 +100,20 @@ def compute_adiabatic(ds, var):
     return adiabatic
 
 
-def create_feature_da(ds, feature_vars):
+def create_feature_ds(ds, feature_vars, min_lev):
     """Create feature dataArray
     
     Args:
         ds: xarray DataSet
         feature_vars: list of feature variables
+        min_lev: min lev
 
     Returns:
-        feature_da: Dataarray with feature variables
+        feature_ds: Dataset with feature variables
     """
     # Get list of all feature DataArrays
     features_list = []
+    name_list = []
     for var in feature_vars:
         if var == 'dTdt_adiabatic':
             features_list.append(compute_adiabatic(ds, 'dTdt_adiabatic'))
@@ -118,6 +121,11 @@ def create_feature_da(ds, feature_vars):
             features_list.append(compute_adiabatic(ds, 'dQdt_adiabatic'))
         else:
             features_list.append(ds[var][:-1])
+        if 'lev' in features_list[-1].coords:
+            name_list += [(var + '_lev%02i') % lev
+                          for lev in range(min_lev, 30)]
+        else:
+            name_list += [var]
 
     # Relabel time and lev coordinates
     ilev = 0
@@ -134,24 +142,32 @@ def create_feature_da(ds, feature_vars):
     # Concatenate
     feature_da = xr.concat(features_list, dim='lev')
     feature_da = feature_da.rename('features')
+    name_da = xr.DataArray(name_list, coords=[feature_da.coords['lev']])
 
-    return feature_da
+    return feature_da, name_da
 
 
-def create_target_da(ds, target_vars):
+def create_target_ds(ds, target_vars, min_lev):
     """Create target DataArray
 
     Args:
         ds: xarray DataSet
         target_vars: list of target variables
+        min_lev: min lev
 
     Returns:
-        target_da: Dataarray with feature variables
+        target_ds: Dataset with feature variables
     """
     # Get list of all target DataArrays
     targets_list = []
+    name_list = []
     for var in target_vars:
         targets_list.append(ds[var][1:] * conversion_dict[var])
+        if 'lev' in targets_list[-1].coords:
+            name_list += [(var + '_lev%02i') % lev
+                          for lev in range(min_lev, 30)]
+        else:
+            name_list += [var]
 
     # Relabel time and lev coordinates, TODO: make function, copied from above
     ilev = 0
@@ -168,16 +184,16 @@ def create_target_da(ds, target_vars):
     # Concatenate
     target_da = xr.concat(targets_list, dim='lev')
     target_da = target_da.rename('targets')
+    name_da = xr.DataArray(name_list, coords=[target_da.coords['lev']])
 
-    return target_da
+    return target_da, name_da
 
 
 def reshape_da(da):
     """Reshape from [time, lev, lat, lon] to [sample, lev]
-    
+
     Args:
         da: xarray DataArray
-
     Returns:
         da: reshaped dataArray
     """
@@ -186,11 +202,13 @@ def reshape_da(da):
     return da
 
 
-def normalize_da(da, log_str, norm_fn=None, ext_norm=None):
+def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
+                 feature_names=None, target_names=None):
     """Normalize feature arrays
     
     Args:
-        da: DataArray
+        feature_ds: feature Dataset
+        target_ds: target Dataset
         log_str: log string
         norm_fn: Name of normalization file to be saved, only if not ext_norm
         ext_norm: Path to external normalization file
@@ -200,13 +218,22 @@ def normalize_da(da, log_str, norm_fn=None, ext_norm=None):
     """
     if ext_norm is None:
         print('Compute means and stds')
-        means = da.mean(axis=0)
-        means.name = 'feature_mean'
-        stds = da.std(axis=0)
-        stds.name = 'feature_std'
+        feature_means = feature_da.mean(axis=0)
+        feature_stds = feature_da.std(axis=0)
+        target_means = target_da.mean(axis=0)
+        target_stds = target_da.std(axis=0)
+        feature_names = feature_names
+        target_names = target_names
 
         # Store means and variables
-        norm_ds = xr.Dataset({'mean': means, 'std': stds})
+        norm_ds = xr.Dataset({
+            'feature_means': feature_means.rename({'lev': 'feature_lev'}),
+            'feature_stds': feature_stds.rename({'lev': 'feature_lev'}),
+            'target_means': target_means.rename({'lev': 'target_lev'}),
+            'target_stds': target_stds.rename({'lev': 'target_lev'}),
+            'feature_names': feature_names.rename({'lev': 'feature_lev'}),
+            'target_names': target_names.rename({'lev': 'target_lev'}),
+        })
         norm_ds.attrs['log'] = log_str
         norm_ds.to_netcdf(norm_fn)
         norm_ds.close()
@@ -215,25 +242,25 @@ def normalize_da(da, log_str, norm_fn=None, ext_norm=None):
         print('Load external normalization file')
         norm_ds = xr.open_dataset(ext_norm)
 
-    da = (da - norm_ds['mean']) / norm_ds['std']
-    return da
+    feature_da = ((feature_da - norm_ds['feature_means']) /
+                  norm_ds['feature_stds'])
+    return feature_da
 
 
 def shuffle_da(feature_da, target_da, seed):
     """Shuffle indices and sort
-    
+
     Args:
         feature_da: Feature array
         target_da: Target array
         seed: random seed
-
     Returns:
         feature_da, target_da: Shuffle DataArrays
     """
     print('Shuffling...')
     # Create random coordinate
     np.random.seed(seed)
-    assert feature_da.coords['sample'].size == target_da.coords['sample'].size,\
+    assert feature_da.coords['sample'].size == target_da.coords['sample'].size, \
         'Something is wrong...'
     rand_idxs = np.arange(feature_da.coords['sample'].size)
     np.random.shuffle(rand_idxs)
@@ -250,15 +277,14 @@ def shuffle_da(feature_da, target_da, seed):
 
 def rechunk_da(da, sample_chunks=100000):
     """
-    
+
     Args:
         da: xarray DataArray
         sample_chunks:  Chunk size in sample dimensions
-
     Returns:
         da: xarray DataArray rechunked
     """
-    return da.chunk({'sample': sample_chunks,  'lev': da.coords['lev'].size})
+    return da.chunk({'sample': sample_chunks, 'lev': da.coords['lev'].size})
 
 
 def main(inargs):
@@ -280,46 +306,51 @@ def main(inargs):
     merged_ds = crop_ds(inargs, merged_ds)
 
     # Create stacked feature and target datasets
-    feature_da = create_feature_da(merged_ds, inargs.feature_vars)
-    target_da = create_target_da(merged_ds, inargs.target_vars)
+    feature_ds, feature_names = create_feature_ds(merged_ds,
+                                                  inargs.feature_vars,
+                                                  inargs.min_lev)
+    target_ds, target_names = create_target_ds(merged_ds,
+                                               inargs.target_vars,
+                                               inargs.min_lev)
 
     # Reshape
-    feature_da = reshape_da(feature_da)
-    target_da = reshape_da(target_da)
+    feature_ds = reshape_da(feature_ds)
+    target_ds = reshape_da(target_ds)
 
-    # Rechunk 1
-    feature_da = rechunk_da(feature_da)
-    target_da = rechunk_da(target_da)
+    # Rechunk 1, not sure if this is good or necessary
+    feature_ds = rechunk_da(feature_ds)
+    target_ds = rechunk_da(target_ds)
 
     # Normalize features
     norm_fn = inargs.out_dir + inargs.out_pref + '_norm.nc'
-    feature_da = normalize_da(feature_da, log_str, norm_fn, inargs.ext_norm)
+    feature_ds = normalize_da(feature_ds, target_ds, log_str, norm_fn,
+                              inargs.ext_norm, feature_names, target_names)
 
-    # Shuffle along sample dimension
-    if inargs.shuffle:
-        feature_da, target_da = shuffle_da(feature_da, target_da,
-                                           inargs.random_seed)
-    else:   # Need to reset indices for some reason
-        feature_da = feature_da.reset_index('sample')
-        target_da = target_da.reset_index('sample')
+    if not inargs.only_norm:
+        # Shuffle along sample dimension
+        if inargs.shuffle:
+            print('WARNING!!! '
+                  'For large files this will consume all your memory. '
+                  'Use shuffle_ds.py instead!')
+            feature_ds, target_ds = shuffle_da(feature_ds, target_ds,
+                                               inargs.random_seed)
+        else:   # Need to reset indices for some reason
+            feature_da = feature_ds.reset_index('sample')
+            target_ds = target_ds.reset_index('sample')
 
-    # Rechunk 2
-    feature_da = rechunk_da(feature_da)
-    target_da = rechunk_da(target_da)
+        # Rechunk 2, not sure if this is good or necessary at all...
+        feature_ds = rechunk_da(feature_ds)
+        target_ds = rechunk_da(target_ds)
 
-    # Convert to Datasets
-    feature_ds = xr.Dataset({'features': feature_da})
-    target_ds = xr.Dataset({'targets': target_da})
-
-    # Save data arrays
-    feature_ds.attrs['log'] = log_str
-    target_ds.attrs['log'] = log_str
-    feature_fn = inargs.out_dir + inargs.out_pref + '_features.nc'
-    target_fn = inargs.out_dir + inargs.out_pref + '_targets.nc'
-    print('Save features:', feature_fn)
-    feature_ds.to_netcdf(feature_fn)
-    print('Save targets:', target_fn)
-    target_ds.to_netcdf(target_fn)
+        # Save data arrays
+        feature_ds.attrs['log'] = log_str
+        target_ds.attrs['log'] = log_str
+        feature_fn = inargs.out_dir + inargs.out_pref + '_features.nc'
+        target_fn = inargs.out_dir + inargs.out_pref + '_targets.nc'
+        print('Save features:', feature_fn)
+        feature_ds.to_netcdf(feature_fn)
+        print('Save targets:', target_fn)
+        target_ds.to_netcdf(target_fn)
 
     t2 = timeit.default_timer()
     print('Total time: %.2f s' % (t2 - t1))
@@ -378,6 +409,11 @@ if __name__ == '__main__':
                    action='store_true',
                    help='If given, shuffle data along sample dimension.')
     p.set_defaults(shuffle=False)
+    p.add_argument('--only_norm',
+                   dest='only_norm',
+                   action='store_true',
+                   help='If given, Only compute and save normalization file.')
+    p.set_defaults(only_norm=False)
     p.add_argument('--verbose',
                    dest='verbose',
                    action='store_true',
