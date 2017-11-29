@@ -100,7 +100,7 @@ def compute_adiabatic(ds, var):
     return adiabatic
 
 
-def create_feature_ds(ds, feature_vars, min_lev):
+def create_feature_da(ds, feature_vars, min_lev):
     """Create feature dataArray
     
     Args:
@@ -141,13 +141,14 @@ def create_feature_ds(ds, feature_vars, min_lev):
 
     # Concatenate
     feature_da = xr.concat(features_list, dim='lev')
+    feature_da = feature_da.rename({'lev': 'feature_lev'})
     feature_da = feature_da.rename('features')
-    name_da = xr.DataArray(name_list, coords=[feature_da.coords['lev']])
+    name_da = xr.DataArray(name_list, coords=[feature_da.coords['feature_lev']])
 
     return feature_da, name_da
 
 
-def create_target_ds(ds, target_vars, min_lev):
+def create_target_da(ds, target_vars, min_lev):
     """Create target DataArray
 
     Args:
@@ -183,8 +184,9 @@ def create_target_ds(ds, target_vars, min_lev):
 
     # Concatenate
     target_da = xr.concat(targets_list, dim='lev')
+    target_da = target_da.rename({'lev': 'target_lev'})
     target_da = target_da.rename('targets')
-    name_da = xr.DataArray(name_list, coords=[target_da.coords['lev']])
+    name_da = xr.DataArray(name_list, coords=[target_da.coords['target_lev']])
 
     return target_da, name_da
 
@@ -198,7 +200,12 @@ def reshape_da(da):
         da: reshaped dataArray
     """
     da = da.stack(sample=('time', 'lat', 'lon'))
-    da = da.transpose('sample', 'lev')
+    if 'feature_lev' in da.coords:
+        da = da.transpose('sample', 'feature_lev')
+    elif 'target_lev' in da.coords:
+        da = da.transpose('sample', 'target_lev')
+    else:
+        raise Exception
     return da
 
 
@@ -227,12 +234,12 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
 
         # Store means and variables
         norm_ds = xr.Dataset({
-            'feature_means': feature_means.rename({'lev': 'feature_lev'}),
-            'feature_stds': feature_stds.rename({'lev': 'feature_lev'}),
-            'target_means': target_means.rename({'lev': 'target_lev'}),
-            'target_stds': target_stds.rename({'lev': 'target_lev'}),
-            'feature_names': feature_names.rename({'lev': 'feature_lev'}),
-            'target_names': target_names.rename({'lev': 'target_lev'}),
+            'feature_means': feature_means,
+            'feature_stds': feature_stds,
+            'target_means': target_means,
+            'target_stds': target_stds,
+            'feature_names': feature_names,
+            'target_names': target_names,
         })
         norm_ds.attrs['log'] = log_str
         norm_ds.to_netcdf(norm_fn)
@@ -240,7 +247,7 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
         norm_ds = xr.open_dataset(norm_fn)
     else:
         print('Load external normalization file')
-        norm_ds = xr.open_dataset(ext_norm)
+        norm_ds = xr.open_dataset(ext_norm).load()
 
     feature_da = ((feature_da - norm_ds['feature_means']) /
                   norm_ds['feature_stds'])
@@ -260,7 +267,7 @@ def shuffle_da(feature_da, target_da, seed):
     print('Shuffling...')
     # Create random coordinate
     np.random.seed(seed)
-    assert feature_da.coords['sample'].size == target_da.coords['sample'].size, \
+    assert feature_da.coords['sample'].size == target_da.coords['sample'].size,\
         'Something is wrong...'
     rand_idxs = np.arange(feature_da.coords['sample'].size)
     np.random.shuffle(rand_idxs)
@@ -284,7 +291,8 @@ def rechunk_da(da, sample_chunks=100000):
     Returns:
         da: xarray DataArray rechunked
     """
-    return da.chunk({'sample': sample_chunks, 'lev': da.coords['lev'].size})
+    lev_str = [s for s in list(da.coords) if 'lev' in s][0]
+    return da.chunk({'sample': sample_chunks, lev_str: da.coords[lev_str].size})
 
 
 def main(inargs):
@@ -306,24 +314,24 @@ def main(inargs):
     merged_ds = crop_ds(inargs, merged_ds)
 
     # Create stacked feature and target datasets
-    feature_ds, feature_names = create_feature_ds(merged_ds,
+    feature_da, feature_names = create_feature_da(merged_ds,
                                                   inargs.feature_vars,
                                                   inargs.min_lev)
-    target_ds, target_names = create_target_ds(merged_ds,
+    target_da, target_names = create_target_da(merged_ds,
                                                inargs.target_vars,
                                                inargs.min_lev)
 
     # Reshape
-    feature_ds = reshape_da(feature_ds)
-    target_ds = reshape_da(target_ds)
+    feature_da = reshape_da(feature_da)
+    target_da = reshape_da(target_da)
 
     # Rechunk 1, not sure if this is good or necessary
-    feature_ds = rechunk_da(feature_ds)
-    target_ds = rechunk_da(target_ds)
+    feature_da = rechunk_da(feature_da)
+    target_da = rechunk_da(target_da)
 
     # Normalize features
     norm_fn = inargs.out_dir + inargs.out_pref + '_norm.nc'
-    feature_ds = normalize_da(feature_ds, target_ds, log_str, norm_fn,
+    feature_da = normalize_da(feature_da, target_da, log_str, norm_fn,
                               inargs.ext_norm, feature_names, target_names)
 
     if not inargs.only_norm:
@@ -332,15 +340,21 @@ def main(inargs):
             print('WARNING!!! '
                   'For large files this will consume all your memory. '
                   'Use shuffle_ds.py instead!')
-            feature_ds, target_ds = shuffle_da(feature_ds, target_ds,
+            feature_da, target_da = shuffle_da(feature_da, target_da,
                                                inargs.random_seed)
         else:   # Need to reset indices for some reason
-            feature_da = feature_ds.reset_index('sample')
-            target_ds = target_ds.reset_index('sample')
+            feature_da = feature_da.reset_index('sample')
+            target_da = target_da.reset_index('sample')
 
         # Rechunk 2, not sure if this is good or necessary at all...
-        feature_ds = rechunk_da(feature_ds)
-        target_ds = rechunk_da(target_ds)
+        feature_da = rechunk_da(feature_da)
+        target_da = rechunk_da(target_da)
+
+        # Convert to Datasets
+        feature_ds = xr.Dataset({'features': feature_da},
+                                {'feature_names': feature_names})
+        target_ds = xr.Dataset({'targets': target_da,
+                                'target_names': target_names})
 
         # Save data arrays
         feature_ds.attrs['log'] = log_str
