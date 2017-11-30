@@ -229,6 +229,8 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
         feature_stds = feature_da.std(axis=0)
         target_means = target_da.mean(axis=0)
         target_stds = target_da.std(axis=0)
+        #target_01 = target_da.quantile(0.01, dim='sample')
+        #target_99 = target_da.quantile(0.99, dim='sample')
         feature_names = feature_names
         target_names = target_names
 
@@ -238,6 +240,8 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
             'feature_stds': feature_stds,
             'target_means': target_means,
             'target_stds': target_stds,
+            #'target_01': target_01,
+            #'target_99': target_99,
             'feature_names': feature_names,
             'target_names': target_names,
         })

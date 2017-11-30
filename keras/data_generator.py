@@ -55,8 +55,8 @@ def data_generator(data_dir, feature_fn, target_fn, shuffle=True,
     """Works on pre-stacked targets with truely random batches
     """
     # Open files
-    feature_file = h5py.File(data_dir + feature_fn)
-    target_file = h5py.File(data_dir + target_fn)
+    feature_file = h5py.File(data_dir + feature_fn, 'r')
+    target_file = h5py.File(data_dir + target_fn, 'r')
 
     # Determine sizes
     n_samples = feature_file['features'].shape[0]
@@ -97,11 +97,11 @@ class DataGenerator(object):
         self.shuffle = shuffle
 
         # Determine n_batches and shapes
-        with h5py.File(data_dir + feature_fn) as feature_file:
+        with h5py.File(data_dir + feature_fn, 'r') as feature_file:
             n_samples = feature_file['features'].shape[0]
             self.feature_shape = feature_file['features'].shape[1]
         self.n_batches = int(np.floor(n_samples / batch_size))
-        with h5py.File(data_dir + target_fn) as target_file:
+        with h5py.File(data_dir + target_fn, 'r') as target_file:
             self.target_shape = target_file['targets'].shape[1]
         print('Generator will have %i samples in %i batches' %
               (n_samples, self.n_batches))

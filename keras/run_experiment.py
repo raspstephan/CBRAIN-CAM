@@ -116,7 +116,8 @@ def main(inargs):
             validation_data=valid_gen.return_generator(),
             validation_steps=valid_gen.n_batches,
             workers=inargs.n_workers,
-            max_q_size=50
+            max_queue_size=50,
+            callbacks=callbacks_list,
         )
     if inargs.exp_name is not None:
         model.save(inargs.model_dir + '/' + inargs.exp_name + '.h5')
