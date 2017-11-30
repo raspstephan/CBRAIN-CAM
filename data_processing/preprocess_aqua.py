@@ -188,9 +188,7 @@ def rename_time_lev_and_cut_times(ds, da_list, name_list, feature_or_target):
     clean_time_steps = np.array(da.coords['time'])
     print('Cut time steps:', cut_time_steps)
     clean_time_steps = np.delete(clean_time_steps, cut_time_steps)
-    print(da)
     da = da.isel(time=clean_time_steps)
-    print(da)
     # Rename
     da = da.rename({'lev': lev_str})
     da = da.rename('targets')
