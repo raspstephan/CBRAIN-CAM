@@ -127,25 +127,8 @@ def create_feature_da(ds, feature_vars, min_lev):
         else:
             name_list += [var]
 
-    # Relabel time and lev coordinates
-    ilev = 0
-    for da in features_list:
-        da.coords['time'] = np.arange(da.coords['time'].size)
-        if 'lev' in da.coords:
-            da.coords['lev'] = np.arange(ilev, ilev + da.coords['lev'].size)
-            ilev += da.coords['lev'].size
-        else:
-            da.expand_dims('lev')
-            da.coords['lev'] = ilev
-            ilev += 1
-
-    # Concatenate
-    feature_da = xr.concat(features_list, dim='lev')
-    feature_da = feature_da.rename({'lev': 'feature_lev'})
-    feature_da = feature_da.rename('features')
-    name_da = xr.DataArray(name_list, coords=[feature_da.coords['feature_lev']])
-
-    return feature_da, name_da
+    return rename_time_lev_and_cut_times(ds, features_list, name_list,
+                                         'feature')
 
 
 def create_target_da(ds, target_vars, min_lev):
@@ -170,9 +153,24 @@ def create_target_da(ds, target_vars, min_lev):
         else:
             name_list += [var]
 
-    # Relabel time and lev coordinates, TODO: make function, copied from above
+    return rename_time_lev_and_cut_times(ds, targets_list, name_list, 'target')
+
+
+def rename_time_lev_and_cut_times(ds, da_list, name_list, feature_or_target):
+    """Create new time and lev coordinates and cut times for non-cont steps
+
+    Args:
+        ds: Merged dataset
+        da_list: list of dataarrays
+        name_list: list with variable names
+        feature_or_target: str
+
+    Returns:
+        da, name_da: concat da and name da
+    """
+
     ilev = 0
-    for da in targets_list:
+    for da in da_list:
         da.coords['time'] = np.arange(da.coords['time'].size)
         if 'lev' in da.coords:
             da.coords['lev'] = np.arange(ilev, ilev + da.coords['lev'].size)
@@ -183,12 +181,22 @@ def create_target_da(ds, target_vars, min_lev):
             ilev += 1
 
     # Concatenate
-    target_da = xr.concat(targets_list, dim='lev')
-    target_da = target_da.rename({'lev': 'target_lev'})
-    target_da = target_da.rename('targets')
-    name_da = xr.DataArray(name_list, coords=[target_da.coords['target_lev']])
+    lev_str = feature_or_target + '_lev'
+    da = xr.concat(da_list, dim='lev')
+    # Cut out time steps
+    cut_time_steps = np.where(np.diff(ds.time) > 2.09e-2)[0]
+    clean_time_steps = np.array(da.coords['time'])
+    print('Cut time steps:', cut_time_steps)
+    clean_time_steps = np.delete(clean_time_steps, cut_time_steps)
+    print(da)
+    da = da.isel(time=clean_time_steps)
+    print(da)
+    # Rename
+    da = da.rename({'lev': lev_str})
+    da = da.rename('targets')
+    name_da = xr.DataArray(name_list, coords=[da.coords[lev_str]])
 
-    return target_da, name_da
+    return da, name_da
 
 
 def reshape_da(da):
