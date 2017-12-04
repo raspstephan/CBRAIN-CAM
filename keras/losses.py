@@ -43,7 +43,7 @@ def rsquared(y_true, y_pred):
 def total_error_avgAx0(y_true, y_pred):
     """
     """
-    avgY = K.mean(y_true, axis=0, keepdims=True) # 0 is sample axis
+    avgY = K.mean(y_true, axis=0, keepdims=True)   # 0 is sample axis
     return K.sum(K.square(y_true - avgY))
 
 

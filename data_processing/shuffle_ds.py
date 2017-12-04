@@ -47,8 +47,8 @@ def fast(features_orig, targets_orig, features_shuffle, targets_shuffle,
     n_samples = features_orig.dimensions['sample'].size
     n_chunks = int(np.ceil(n_samples / float(chunk_size)))
 
-    for i in range(n_chunks):
-        print('Chunk %i out of %i' % (i+1, n_chunks))
+    for i in tqdm(range(n_chunks)):
+        if verbose >0: print('Chunk %i out of %i' % (i+1, n_chunks))
         start_idx = i * chunk_size
         stop_idx = np.min([(i+1) * chunk_size, n_samples])
         rand_idxs = np.arange(stop_idx - start_idx)
@@ -91,10 +91,10 @@ def main(inargs):
     targets_orig = Dataset(inargs.pref + '_targets.nc', 'r')
 
     # Create equivalent new files
-    print('Creating files:', inargs.pref + '_features_shuffle.nc',
-          inargs.pref + '_targets_shuffle.nc')
-    features_shuffle = Dataset(inargs.pref + '_features_shuffle.nc', 'w')
-    targets_shuffle = Dataset(inargs.pref + '_targets_shuffle.nc', 'w')
+    print('Creating files:', inargs.pref + '_shuffle_features.nc',
+          inargs.pref + '_shuffle_targets.nc')
+    features_shuffle = Dataset(inargs.pref + '_shuffle_features.nc', 'w')
+    targets_shuffle = Dataset(inargs.pref + '_shuffle_targets.nc', 'w')
     for orig, shuffle in zip([features_orig, targets_orig],
                              [features_shuffle, targets_shuffle]):
         for dim_name, dim in orig.dimensions.items():

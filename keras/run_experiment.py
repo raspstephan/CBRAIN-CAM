@@ -9,11 +9,17 @@ import keras
 from keras.callbacks import TensorBoard, LearningRateScheduler
 import tensorflow as tf
 from configargparse import ArgParser
-from models import conv_model, fc_model
+from models import conv_model, fc_model, conv_model_tile
 from losses import *
 from utils import *
 from data_generator import DataSet, DataGenerator
 from collections import OrderedDict
+
+# Loss dictionary. TODO: Solve this more cleverly (not Tom...)
+loss_dict = {
+    'mae': 'mae',
+    'log_loss': log_loss,
+}
 
 
 def main(inargs):
@@ -65,22 +71,23 @@ def main(inargs):
 
     # Build and compile model
     if inargs.convolution:
-        model = conv_model(train_set.features[0].shape[1:],
-                           train_set.features[1].shape[1],
-                           train_set.targets.shape[1],
-                           inargs.conv_layers,
-                           inargs.hidden_layers,
-                           inargs.lr,
-                           inargs.loss,
-                           batch_norm=inargs.batch_norm,
-                           kernel_size=inargs.kernel_size)
+        model = conv_model_tile(
+            (21, 7),
+            target_shape,
+            inargs.conv_layers,
+            inargs.hidden_layers,
+            inargs.lr,
+            loss_dict[inargs.loss],
+            kernel_size=inargs.kernel_size,
+            locally_connected=inargs.locally_connected
+        )
     else:   # Fully connected model
         model = fc_model(
             feature_shape,
             target_shape,
             inargs.hidden_layers,
             inargs.lr,
-            inargs.loss,
+            loss_dict[inargs.loss],
             batch_norm=inargs.batch_norm,
             activation=inargs.activation
         )
@@ -110,15 +117,33 @@ def main(inargs):
                   callbacks=callbacks_list)
     else:   # Generator
         model.fit_generator(
-            train_gen.return_generator(),
+            train_gen.return_generator(inargs.convolution),
             train_gen.n_batches,
-            epochs=inargs.epochs,
-            validation_data=valid_gen.return_generator(),
+            epochs=inargs.epochs - int(inargs.valid_after),
+            validation_data=None if inargs.valid_after
+                else valid_gen.return_generator(inargs.convolution),
             validation_steps=valid_gen.n_batches,
             workers=inargs.n_workers,
             max_queue_size=50,
             callbacks=callbacks_list,
         )
+        if inargs.valid_after:
+            # Run last epoch with validation
+            model.optimizer.lr = tf.Variable(lr_update(inargs.epochs))
+            if len(callbacks_list) == 1:
+                callbacks_list = []
+            else:
+                callbacks_list = [callbacks_list[0]]   # No LR scheduler
+            model.fit_generator(
+                train_gen.return_generator(inargs.convolution),
+                train_gen.n_batches,
+                epochs=1,
+                validation_data=valid_gen.return_generator(inargs.convolution),
+                validation_steps=valid_gen.n_batches,
+                workers=inargs.n_workers,
+                max_queue_size=50,
+                callbacks=callbacks_list,
+            )
     if inargs.exp_name is not None:
         model.save(inargs.model_dir + '/' + inargs.exp_name + '.h5')
 
@@ -132,11 +157,13 @@ if __name__ == '__main__':
     p.add_argument('--feature_vars',
                    type=str,
                    nargs='+',
-                   help='Feature variables.')
+                   default=None,
+                   help='Feature variables. Depricated')
     p.add_argument('--target_vars',
                    type=str,
                    nargs='+',
-                   help='Target variables.')
+                   default=None,
+                   help='Target variables. Depricated')
     p.add_argument('--exp_name',
                    default=None,
                    type=str,
@@ -244,6 +271,16 @@ if __name__ == '__main__':
                    action='store_true',
                    help='Weigh target normalization by level.')
     p.set_defaults(target_norm_lev_weight=False)
+    p.add_argument('--valid_after',
+                   dest='valid_after',
+                   action='store_true',
+                   help='Only validate after training.')
+    p.set_defaults(valid_after=False)
+    p.add_argument('--locally_connected',
+                   dest='locally_connected',
+                   action='store_true',
+                   help='Use locally connected convolutions.')
+    p.set_defaults(locally_connected=False)
     p.add_argument('--verbose',
                    dest='verbose',
                    action='store_true',

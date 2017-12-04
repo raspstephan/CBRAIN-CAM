@@ -75,6 +75,44 @@ def data_generator(data_dir, feature_fn, target_fn, shuffle=True,
             yield x, y
 
 
+@threadsafe_generator
+def data_generator_convo(data_dir, feature_fn, target_fn, shuffle=True,
+                         batch_size=512):
+    """Works on pre-stacked targets with truely random batches
+    Hard coded right now for
+    features = [TAP, QAP, dTdt_adiabatic, dQdt_adiabatic, SHFLX, LHFLX, SOLIN]
+    targets = [SPDT, SPDQ, QRL, QRS, PRECT, FLUT]
+    and lev = 21
+    Create [sample, z, feature] with 1D arrays tiled to lev dim
+    """
+    # Open files
+    feature_file = h5py.File(data_dir + feature_fn, 'r')
+    target_file = h5py.File(data_dir + target_fn, 'r')
+
+    # Determine sizes
+    n_samples = feature_file['features'].shape[0]
+    n_batches = int(np.floor(n_samples / batch_size))
+    # Create ID list
+    idxs = np.arange(0, n_samples, batch_size)
+    if shuffle:
+        np.random.shuffle(idxs)
+
+    # generate
+    while True:
+        for i in range(n_batches):
+            batch_idx = idxs[i]
+            x = feature_file['features'][batch_idx:batch_idx + batch_size, :]
+            x = np.concatenate(
+                [
+                    x[:, :-3].reshape((x.shape[0], 21, -1)),
+                    np.rollaxis(np.tile(x[:, -3:], (21, 1, 1)), 0, 2)
+                ],
+                axis=-1,
+            )
+            y = target_file['targets'][batch_idx:batch_idx + batch_size, :]
+            yield x, y
+
+
 class DataGenerator(object):
     """Class wrapper around data_generator function
     """
@@ -108,13 +146,27 @@ class DataGenerator(object):
         print('Features have shape %i; targets have shape %i' %
               (self.feature_shape, self.target_shape))
 
-    def return_generator(self):
+    def return_generator(self, convo=False):
         """Return data_generator
 
         Returns: data_generator
         """
-        return data_generator(self.data_dir, self.feature_fn, self.target_fn,
-                              self.shuffle, self.batch_size)
+        if convo:
+            return data_generator_convo(
+                self.data_dir,
+                self.feature_fn,
+                self.target_fn,
+                self.shuffle,
+                self.batch_size,
+            )
+        else:
+            return data_generator(
+                self.data_dir,
+                self.feature_fn,
+                self.target_fn,
+                self.shuffle,
+                self.batch_size,
+            )
 
 
 class DataSet(object):
