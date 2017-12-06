@@ -8,9 +8,29 @@ Author: Stephan Rasp
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import netCDF4 as nc
+import h5py
 from collections import OrderedDict
 from scipy.stats import binned_statistic
+import xarray as xr
+from losses import metrics
+from data_generator import DataGenerator
+import keras
+from keras.utils.generic_utils import get_custom_objects
+metrics_dict = dict([(f.__name__, f) for f in metrics])
+get_custom_objects().update(metrics_dict)
+from tqdm import tqdm
+
+# Define conversion dict
+L_V = 2.5e6   # Latent heat of vaporization is actually 2.26e6
+C_P = 1e3 # Specific heat capacity of air at constant pressure
+conversion_dict = {
+    'SPDT': C_P,
+    'SPDQ': L_V,
+    'QRL': C_P,
+    'QRS': C_P,
+    'PRECT': 1e3*24*3600 * 1e-3,
+    'FLUT': 1. * 1e-5,
+}
 
 # Basic setup
 np.random.seed(42)
@@ -108,7 +128,8 @@ def vis_features_targets_from_pred(features, targets,
 
 def vis_features_targets_from_pred2(features, targets,
                                     predictions, sample_idx,
-                                    feature_names, target_names):
+                                    feature_names, target_names,
+                                    unscale_targets=False):
     """NOTE: FEATURES HARD-CODED!!!
     Features are [TAP, QAP, dTdt_adiabatic, dQdt_adiabatic, SHFLX, LHFLX, SOLIN]
     Targets are [SPDT, SPDQ, QRL, QRS, PRECT, FLUT]
@@ -122,24 +143,31 @@ def vis_features_targets_from_pred2(features, targets,
     for i in range(len(feature_names[:-3])):
         in_axes[i].plot(features[sample_idx, i*nz:(i+1)*nz], z, c='b')
         in_axes[i].set_title(feature_names[i])
-    in_axes[-1].bar(range(3), features[sample_idx, -3:],
-                    tick_label=feature_names[-3:])
+    twin_in = in_axes[-1].twinx()
+    in_axes[-1].bar([1, 2], features[sample_idx, -3:-1])
+    twin_in.bar([3], features[sample_idx, -1])
+    in_axes[-1].set_xticks([1, 2, 3])
+    in_axes[-1].set_xticklabels(feature_names[-3:])
 
     for i in range(len(target_names[:-2])):
-        out_axes[i].plot(targets[sample_idx, i * nz:(i + 1) * nz], z,
+        if unscale_targets:
+            u = conversion_dict[target_names[i]]
+        else:
+            u = 1.
+        out_axes[i].plot(targets[sample_idx, i * nz:(i + 1) * nz] / u, z,
                          label='True', c='b')
-        out_axes[i].plot(predictions[sample_idx, i * nz:(i + 1) * nz], z,
+        out_axes[i].plot(predictions[sample_idx, i * nz:(i + 1) * nz] / u, z,
                          label='Prediction', c='g')
         out_axes[i].set_title(target_names[i])
         #out_axes[i].axvline(0, c='gray', zorder=0.1)
-    twin = out_axes[-1].twinx()
+    twin_out = out_axes[-1].twinx()
     out_axes[-1].bar(1 - 0.2, targets[sample_idx, -2], 0.4,
                      color='b')
     out_axes[-1].bar(1 + 0.2, predictions[sample_idx, -2],
                      0.4, color='g')
-    twin.bar(2 - 0.2, targets[sample_idx, -1], 0.4,
+    twin_out.bar(2 - 0.2, targets[sample_idx, -1], 0.4,
                      color='b')
-    twin.bar(2 + 0.2, predictions[sample_idx, -1],
+    twin_out.bar(2 + 0.2, predictions[sample_idx, -1],
                      0.4, color='g')
     out_axes[-1].set_xticks([1, 2])
     out_axes[-1].set_xticklabels(target_names[-2:])
@@ -147,6 +175,7 @@ def vis_features_targets_from_pred2(features, targets,
     plt.suptitle('Sample %i' % sample_idx, fontsize=15)
     plt.tight_layout(rect=(0, 0, 1, 0.95))
     plt.show()
+
 
 def rmse_stat(x):
     """
@@ -158,3 +187,77 @@ def rmse_stat(x):
 
     """
     return np.sqrt(np.mean(x**2))
+
+
+def split_variables(x):
+    """Hard-coded variable split for 21 lev"""
+    spdt  = x[..., :21]
+    spdq  = x[..., 21:42]
+    qrl   = x[..., 42:63]
+    qrs   = x[..., 63:84]
+    prect = x[..., 84]
+    flut  = x[..., 85]
+    return spdt, spdq, qrl, qrs, prect, flut
+
+
+def np_rmse(y_true, y_pred):
+    return np.sqrt(np.mean(np.square(y_true - y_pred), axis=1))
+def np_log_loss(y_true, y_pred):
+    return np.mean(np.log(np_rmse(y_true, y_pred) + 1e-20) / np.log(10.))
+
+
+def run_diagnostics(model_fn, data_dir, valid_pref, norm_fn, verbose=False,
+                    convo=False):
+    # Load model
+    model = keras.models.load_model(model_fn)
+    if verbose: print(model.summary())
+
+    # Load normalization file
+    norm = h5py.File(norm_fn, 'r')
+
+    # Get data generator without shuffling!
+    n_lon = 128
+    n_lat = 64
+    n_geo = n_lat * n_lon
+    gen_obj = DataGenerator(
+        data_dir,
+        valid_pref + '_features.nc',
+        valid_pref + '_targets.nc',
+        shuffle=False,
+        batch_size=n_geo,
+        verbose=False,
+    )
+    gen = gen_obj.return_generator(convo)
+    # Loop over chunks, get predictions compute scores
+    sse = np.zeros((gen_obj.target_shape))  # Sum of squared errors [z]
+    var_log_loss = np.zeros((6))
+    log_loss = 0
+    for t in tqdm(range(gen_obj.n_batches)):
+        # Load features and targets
+        tmp_features, tmp_targets = next(gen)
+        # Get predictions
+        tmp_preds = model.predict_on_batch(tmp_features)
+        # Reshape to [time, lat, lon, lev]
+        tmp_targets = tmp_targets.reshape(
+            (-1, n_lat, n_lon, tmp_targets.shape[-1]))
+        tmp_preds = tmp_preds.reshape((-1, n_lat, n_lon, tmp_preds.shape[-1]))
+        # Split by variable
+        split_targets = split_variables(tmp_targets)
+        split_preds = split_variables(tmp_preds)
+        # Compute statistics
+        sse += np.sum((tmp_targets - tmp_preds) ** 2, axis=(0, 1, 2))
+        log_loss += np_log_loss(tmp_targets, tmp_preds)
+        for i in range(6):
+            var_log_loss[i] += np_log_loss(split_targets[i], split_preds[i])
+
+    # Get average statistics
+    mse = sse / (gen_obj.n_batches * n_geo)
+    rel_mse = mse / norm['target_stds'][:] ** 2
+    var_log_loss = var_log_loss / (gen_obj.n_batches)
+    log_loss = log_loss / (gen_obj.n_batches)
+
+    return rel_mse, mse, var_log_loss, log_loss
+
+
+def reshape_geo(x):
+    return x.reshape((-1, n_lat, n_lon, x.shape[-1]))

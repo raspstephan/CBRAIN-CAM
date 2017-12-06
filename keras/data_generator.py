@@ -118,7 +118,7 @@ class DataGenerator(object):
     """
 
     def __init__(self, data_dir, feature_fn, target_fn, batch_size,
-                 shuffle=True):
+                 shuffle=True, verbose=True):
         """Initialize DataGenerator object
 
         Args:
@@ -141,10 +141,11 @@ class DataGenerator(object):
         self.n_batches = int(np.floor(n_samples / batch_size))
         with h5py.File(data_dir + target_fn, 'r') as target_file:
             self.target_shape = target_file['targets'].shape[1]
-        print('Generator will have %i samples in %i batches' %
-              (n_samples, self.n_batches))
-        print('Features have shape %i; targets have shape %i' %
-              (self.feature_shape, self.target_shape))
+        if verbose:
+            print('Generator will have %i samples in %i batches' %
+                  (n_samples, self.n_batches))
+            print('Features have shape %i; targets have shape %i' %
+                  (self.feature_shape, self.target_shape))
 
     def return_generator(self, convo=False):
         """Return data_generator
