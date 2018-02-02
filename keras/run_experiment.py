@@ -18,6 +18,7 @@ from collections import OrderedDict
 # Loss dictionary. TODO: Solve this more cleverly (not Tom...)
 loss_dict = {
     'mae': 'mae',
+    'mse': 'mse',
     'log_loss': log_loss,
 }
 

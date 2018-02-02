@@ -424,6 +424,11 @@ if __name__ == '__main__':
                    nargs='+',
                    default=[-90, 90],
                    help='Latitude range. Default = [-90, 90]')
+    p.add_argument('--target_factor',
+                   type=float,
+                   default=1.,
+                   help='Factor to multiply targets with. For TF comparison '
+                        ' set to 1e-3. Default = 1.')
     p.add_argument('--random_seed',
                    type=int,
                    default=42,
