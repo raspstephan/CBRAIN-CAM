@@ -55,11 +55,12 @@ def conv_model(feature_shape_conv, feature_shape_1d, target_shape, feature_maps,
                hidden_layers, lr, loss, kernel_size=3, batch_norm=False,
                activation='relu'):
     """
-    TODO
+    Convolutional model that takes 3D and 2D variables separately as input.
+
 
 
     """
-
+    
     # Use the functional API
     # First, the convolutional part
     inp_conv = Input(shape=(feature_shape_conv[0],

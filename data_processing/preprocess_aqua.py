@@ -131,7 +131,7 @@ def create_feature_da(ds, feature_vars, min_lev):
                                          'feature')
 
 
-def create_target_da(ds, target_vars, min_lev):
+def create_target_da(ds, target_vars, min_lev, target_factor):
     """Create target DataArray
 
     Args:
@@ -146,7 +146,7 @@ def create_target_da(ds, target_vars, min_lev):
     targets_list = []
     name_list = []
     for var in target_vars:
-        targets_list.append(ds[var][1:] * conversion_dict[var])
+        targets_list.append(ds[var][1:] * conversion_dict[var] * target_factor)
         if 'lev' in targets_list[-1].coords:
             name_list += [(var + '_lev%02i') % lev
                           for lev in range(min_lev, 30)]
@@ -329,7 +329,8 @@ def main(inargs):
                                                   inargs.min_lev)
     target_da, target_names = create_target_da(merged_ds,
                                                inargs.target_vars,
-                                               inargs.min_lev)
+                                               inargs.min_lev,
+                                               inargs.target_factor)
 
     # Reshape
     feature_da = reshape_da(feature_da)
