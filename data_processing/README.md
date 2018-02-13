@@ -1,23 +1,45 @@
 # Preprocessing of SPCAM files
 
-The scripts in this directory preprocess the raw aquaplanet NetCDF files to a handy format for the neural networks. 
+This directory contains two Python scripts to preprocess the Aquaplanet raw output files for use in the Keras models.
 
-`preprocess_aqua.py` extracts the required variables from the raw Aquaplanet files and saves them in one NetCDF file along with a mean and std file for normalization. Note that at the moment the means and stds are computed from the entire dataset before the train valid split. This is technically cheating, but I think should be fine for our purposes. This script preserves the time and space dimensions which might be necessary for later tests with CNNs and RNNs. Dimensions: --> [date, time step, (lev), lat, lon]
+`preprocess_aqua.py` extracts the variables requested in the config file from the specified Aqua files, computed additional variables and saves the prepared variables in separate files for the features and targets. The variables are already stacked to allow for faster access with dimensions [sample, lev]. The sample dimensions is flattened from time, lat, lon, so that these can be reconstructed. Additionally a normalization file containing mean and standard deviation is either created for the current data or read in externally.
 
-`train_valid_split_and_flatten.py` serves two purposes: First, it splits the file created by `preprocess_aqua.py` to create separate training and validation set files. Second, if requested it flattens the time and space dimensions to a simple sample dimension --> [(lev), sample] which can be used for our current simple neural nets. Having the train/valid split permanently is useful because the split is reproducible, thereby making experiments more comparable, and we can chose how we want to split the data. At the moment there are two options: First, a random split (only works if data is also flattened) which simple assigns samples to the train and valid set randomly; and second, a split by longitude. Here, we pick continuous longitude ranges for our train and validation set. So for example, 0 to 284 degrees for the train and 287 to 357 degrees for the validation set. I believe that this could be a fairer validation because otherwise the train and validation set are not really independent. This, of course, only works for the aquaplanet data. Better even would be a split by time, but for this we would need a several year dataset.
+`shuffle_ds.py` randomly shuffles the sample dimensions of the feature and target datasets. It in fact shuffles in chunks if method=fast, but the difference is negligible. Shuffling is crucial for the network optimization.
 
+### Naming conventions for variables
+
+- ?BP = ?AP - ?PHYSTND (or appropriate name) \* dt
+- ?_C = ?AP[t-1] - DTV/VD01[t-1] \* dt (if required)
+- d?dt_adiabatic = (?BP - ?_C)*dt
 
 ### Dependencies
 
 The scripts are designed for Python 3.6 and require the following packages:
 - configargparse
 - netCDF4
+- xarray
 
 Optional (but nice for a reproducible log string):
 - gitpython
 
 
 ### Example usage
+
+#### Define input and output variables in config file
+
+```yaml
+inputs : [TBP, QBP, VBP, PS, SOLIN]
+outputs : [TPHYSTND, PHQ]
+```
+
+#### Process the training file and produce a new normalization file
+
+```commandline
+python preprocess_aqua.py --config_file ../config/full_physics_essentials.yml --in_dir /project/meteo/w2w/A6/S.Rasp/SP-CAM/Aquaplanet_enhance05/ --aqua_names AndKua_aqua_SPCAM3.0.cam2.h1.0000-01-* --out_dir /local/S.Rasp/cbrain_data/ --out_pref full_physics_essentials_train_month01
+```
+
+
+
 
 First preprocess the aquaplanet files using the following config.yml
 ```yaml

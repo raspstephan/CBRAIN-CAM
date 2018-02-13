@@ -30,6 +30,21 @@ conversion_dict = {
     'FLUT': 1. * 1e-5,
 }
 
+# Dictionary containing the physical tendencies
+phy_dict = {
+    'TAP': 'TPHYSTND',
+    'QAP': 'PHQ',
+    'QCAP': 'PHCLDLIQ',
+    'QIAP': 'PHCLDICE'
+}
+# Define dictionary with vertical diffusion terms
+diff_dict = {
+    'TAP' : 'DTV',
+    'QAP' : 'VD01'
+}
+# Define time step
+dt_sec = (0.5 * 60 * 60)
+
 
 def create_log_str():
     """Create a log string to add to the netcdf file for reproducibility.
@@ -79,48 +94,84 @@ def crop_ds(inargs, ds):
     return ds.isel(lat=lat_idxs, lev=lev_idxs)
 
 
-def compute_adiabatic(ds, var):
+def compute_bp(ds, base_var):
+    """GCM state at beginning of time step before physics.
+    ?BP = ?AP - physical tendency * dt
+    
+    Args:
+        ds: xarray dataset
+        base_var: Base variable to be computed
+
+    Returns:
+        bp: xarray dataarray
+    """
+    return ds[base_var] - ds[phy_dict[base_var]] * dt_sec
+
+
+def compute_c(ds, base_var):
+    """CRM state at beginning of time step before physics.
+    ?_C = ?AP[t-1] - diffusion[t-1] * dt
+    
+    Args:
+        ds: xarray dataset
+        base_var: Base variable to be computed
+
+    Returns:
+        c: xarray dataarray
+    """
+    c = ds[base_var].isel(time=slice(0, -1, 1))
+    if base_var in diff_dict.keys():
+        c -= ds[diff_dict[base_var]].isel(time=slice(0, -1, 1)) * dt_sec
+    # Change time coordinate
+    c['time'] = ds.isel(time=slice(1, None, 1))['time']
+    return c
+
+
+def compute_adiabatic(ds, base_var):
     """Compute adiabatic tendencies.
 
     Args:
         ds: xarray dataset
-        var: Variable to be computed
+        base_var: Base variable to be computed
 
     Returns:
         adiabatic: xarray dataarray
     """
-    # Load relevant files
-    if var == 'dTdt_adiabatic':
-        base_var = 'TAP'
-        phy_var = 'TPHYSTND'
-    else:
-        base_var = 'QAP'
-        phy_var = 'PHQ'
-    adiabatic = ds[base_var].diff('time', n=1) / (0.5 * 60 * 60) - ds[phy_var]  # Convert to s-1
-    return adiabatic
+    return (compute_bp(ds, base_var) - compute_c(ds, base_var)) / dt_sec
 
 
-def create_feature_da(ds, feature_vars, min_lev):
-    """Create feature dataArray
-    
+def create_feature_or_target_da(ds, vars, min_lev, feature_or_target, 
+                                factor=1.):
+    """Create feature or target dataset.
+
     Args:
         ds: xarray DataSet
         feature_vars: list of feature variables
         min_lev: min lev
+        feature_or_target: string
+        factor: factor to multiply variables with
 
     Returns:
-        feature_ds: Dataset with feature variables
+        ds: Dataset with variables
     """
-    # Get list of all feature DataArrays
     features_list = []
     name_list = []
-    for var in feature_vars:
-        if var == 'dTdt_adiabatic':
-            features_list.append(compute_adiabatic(ds, 'dTdt_adiabatic'))
-        elif var == 'dQdt_adiabatic':
-            features_list.append(compute_adiabatic(ds, 'dQdt_adiabatic'))
+    for var in vars:
+        # Compute derived quantities if necessary
+        # I should do this more cleverly with regular experssions...
+        if 'dt_adiabatic' in var:
+            base_var = var[:-12][1:] + 'AP'
+            da = compute_adiabatic(ds, base_var)
+        elif 'BP' in var:
+            base_var = var[:-2] + 'AP'
+            da = compute_bp(ds, base_var)
+        elif '_C' in var:
+            base_var = var[:-2] + 'AP'
+            da = compute_c(ds, base_var)
         else:
             features_list.append(ds[var][:-1])
+
+        # Figure out which name to add
         if 'lev' in features_list[-1].coords:
             name_list += [(var + '_lev%02i') % lev
                           for lev in range(min_lev, 30)]
@@ -129,31 +180,6 @@ def create_feature_da(ds, feature_vars, min_lev):
 
     return rename_time_lev_and_cut_times(ds, features_list, name_list,
                                          'feature')
-
-
-def create_target_da(ds, target_vars, min_lev, target_factor):
-    """Create target DataArray
-
-    Args:
-        ds: xarray DataSet
-        target_vars: list of target variables
-        min_lev: min lev
-
-    Returns:
-        target_ds: Dataset with feature variables
-    """
-    # Get list of all target DataArrays
-    targets_list = []
-    name_list = []
-    for var in target_vars:
-        targets_list.append(ds[var][1:] * conversion_dict[var] * target_factor)
-        if 'lev' in targets_list[-1].coords:
-            name_list += [(var + '_lev%02i') % lev
-                          for lev in range(min_lev, 30)]
-        else:
-            name_list += [var]
-
-    return rename_time_lev_and_cut_times(ds, targets_list, name_list, 'target')
 
 
 def rename_time_lev_and_cut_times(ds, da_list, name_list, feature_or_target):
@@ -325,10 +351,10 @@ def main(inargs):
 
     # Create stacked feature and target datasets
     feature_da, feature_names = create_feature_da(merged_ds,
-                                                  inargs.feature_vars,
+                                                  inargs.inputs,
                                                   inargs.min_lev)
     target_da, target_names = create_target_da(merged_ds,
-                                               inargs.target_vars,
+                                               inargs.outputs,
                                                inargs.min_lev,
                                                inargs.target_factor)
 
@@ -389,14 +415,14 @@ if __name__ == '__main__':
           is_config_file=True,
           help='Name of config file in this directory. '
                'Must contain feature and target variable lists.')
-    p.add_argument('--feature_vars',
+    p.add_argument('--inputs',
                    type=str,
                    nargs='+',
-                   help='All variables. Features and targets')
-    p.add_argument('--target_vars',
+                   help='Feature variables')
+    p.add_argument('--outputs',
                    type=str,
                    nargs='+',
-                   help='Variables to take ffrom current time step.')
+                   help='Target variables')
     p.add_argument('--in_dir',
                    type=str,
                    help='Directory with input (aqua) files.')
@@ -418,8 +444,8 @@ if __name__ == '__main__':
                    help='Name of external normalization file')
     p.add_argument('--min_lev',
                    type=int,
-                   default=9,
-                   help='Minimum level index. Default = 9')
+                   default=0,
+                   help='Minimum level index. Default = 0')
     p.add_argument('--lat_range',
                    type=int,
                    nargs='+',
@@ -429,7 +455,7 @@ if __name__ == '__main__':
                    type=float,
                    default=1.,
                    help='Factor to multiply targets with. For TF comparison '
-                        ' set to 1e-3. Default = 1.')
+                        'set to 1e-3. Default = 1.')
     p.add_argument('--random_seed',
                    type=int,
                    default=42,
@@ -442,7 +468,7 @@ if __name__ == '__main__':
     p.add_argument('--only_norm',
                    dest='only_norm',
                    action='store_true',
-                   help='If given, Only compute and save normalization file.')
+                   help='If given, only compute and save normalization file.')
     p.set_defaults(only_norm=False)
     p.add_argument('--verbose',
                    dest='verbose',

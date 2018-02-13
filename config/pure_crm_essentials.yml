@@ -1,0 +1,2 @@
+inputs : [T_C, Q_C, V_C, dTdt_adiabatic, dQdt_adiabatic, PS, SOLIN]
+outputs : [SPDQ, SPDT, QRL, QRS]
