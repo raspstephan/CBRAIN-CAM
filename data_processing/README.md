@@ -35,10 +35,24 @@ outputs : [TPHYSTND, PHQ]
 #### Process the training file and produce a new normalization file
 
 ```commandline
-python preprocess_aqua.py --config_file ../config/full_physics_essentials.yml --in_dir /project/meteo/w2w/A6/S.Rasp/SP-CAM/Aquaplanet_enhance05/ --aqua_names AndKua_aqua_SPCAM3.0.cam2.h1.0000-01-* --out_dir /local/S.Rasp/cbrain_data/ --out_pref full_physics_essentials_train_month01
+python preprocess_aqua.py --config_file ../config/full_physics_essentials.yml --in_dir /beegfs/DATA/pritchard/srasp/Aquaplanet_enhance05/ --aqua_names AndKua_aqua_SPCAM3.0_enhance05.cam2.h1.0000-01-* --out_dir /beegfs/DATA/pritchard/srasp/preprcessed_data/ --out_pref full_physics_essentials_train_month01
+```
+
+Which will produce the files ... and ... in the specified out_dir.
+
+
+#### Process the validation file with the training normalization file
+
+```commandline
+python preprocess_aqua.py --config_file ../config/full_physics_essentials.yml --in_dir /beegfs/DATA/pritchard/srasp/Aquaplanet_enhance05/ --aqua_names AndKua_aqua_SPCAM3.0_enhance05.cam2.h1.0000-02-* --out_dir /beegfs/DATA/pritchard/srasp/preprcessed_data/ --out_pref full_physics_essentials_valid_month02 --ext_norm 
 ```
 
 
+#### Shuffle the sample dimension in the training file
+
+```commandline
+python shuffle_ds.py --method fast --pref /local/S.Rasp/cbrain_data/train_year0 --chunk_size 10000000
+```
 
 
 First preprocess the aquaplanet files using the following config.yml

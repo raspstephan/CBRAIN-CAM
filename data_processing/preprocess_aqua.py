@@ -22,6 +22,10 @@ import pdb
 L_V = 2.5e6   # Latent heat of vaporization is actually 2.26e6
 C_P = 1e3   # Specific heat capacity of air at constant pressure
 conversion_dict = {
+    'TPHYSTND': C_P,
+    'PHQ': L_V,
+    'PHCLDLIQ' : L_V,
+    'PHCLDICE' : L_V,   # Is this correct? Or should it be L_I?
     'SPDT': C_P,
     'SPDQ': L_V,
     'QRL': C_P,
@@ -35,7 +39,9 @@ phy_dict = {
     'TAP': 'TPHYSTND',
     'QAP': 'PHQ',
     'QCAP': 'PHCLDLIQ',
-    'QIAP': 'PHCLDICE'
+    'QIAP': 'PHCLDICE',
+    'VAP': 'VPHYSTND',
+    'UAP': 'UPHYSTND'
 }
 # Define dictionary with vertical diffusion terms
 diff_dict = {
@@ -105,13 +111,18 @@ def compute_bp(ds, base_var):
     Returns:
         bp: xarray dataarray
     """
-    return ds[base_var] - ds[phy_dict[base_var]] * dt_sec
+    return (ds[base_var] - ds[phy_dict[base_var]] * dt_sec).\
+            isel(time=slice(1, None, 1))   # Not the first time step
 
 
 def compute_c(ds, base_var):
     """CRM state at beginning of time step before physics.
     ?_C = ?AP[t-1] - diffusion[t-1] * dt
-    
+
+    Note:
+    compute_c() is the only function that returns data from the previous
+    time step.
+
     Args:
         ds: xarray dataset
         base_var: Base variable to be computed
@@ -119,10 +130,10 @@ def compute_c(ds, base_var):
     Returns:
         c: xarray dataarray
     """
-    c = ds[base_var].isel(time=slice(0, -1, 1))
+    c = ds[base_var].isel(time=slice(0, -1, 1))   # Not the last time step
     if base_var in diff_dict.keys():
         c -= ds[diff_dict[base_var]].isel(time=slice(0, -1, 1)) * dt_sec
-    # Change time coordinate
+    # Change time coordinate. Necessary for later computation of adiabatic
     c['time'] = ds.isel(time=slice(1, None, 1))['time']
     return c
 
@@ -168,8 +179,13 @@ def create_feature_or_target_da(ds, vars, min_lev, feature_or_target,
         elif '_C' in var:
             base_var = var[:-2] + 'AP'
             da = compute_c(ds, base_var)
-        else:
-            features_list.append(ds[var][:-1])
+        elif var == 'PS':   # Take from previous time step
+            da = ds[var][:-1]
+        else:   # Take from current time step
+            da = ds[var][1:]
+        if feature_or_target == 'target':
+            da *= conversion_dict[var]
+        features_list.append(da * factor)
 
         # Figure out which name to add
         if 'lev' in features_list[-1].coords:
@@ -179,7 +195,7 @@ def create_feature_or_target_da(ds, vars, min_lev, feature_or_target,
             name_list += [var]
 
     return rename_time_lev_and_cut_times(ds, features_list, name_list,
-                                         'feature')
+                                         feature_or_target)
 
 
 def rename_time_lev_and_cut_times(ds, da_list, name_list, feature_or_target):
@@ -278,6 +294,7 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
             'target_names': target_names,
         })
         norm_ds.attrs['log'] = log_str
+        print('Saving normalization file:', norm_fn)
         norm_ds.to_netcdf(norm_fn)
         norm_ds.close()
         norm_ds = xr.open_dataset(norm_fn)
@@ -350,13 +367,19 @@ def main(inargs):
     merged_ds = crop_ds(inargs, merged_ds)
 
     # Create stacked feature and target datasets
-    feature_da, feature_names = create_feature_da(merged_ds,
-                                                  inargs.inputs,
-                                                  inargs.min_lev)
-    target_da, target_names = create_target_da(merged_ds,
-                                               inargs.outputs,
-                                               inargs.min_lev,
-                                               inargs.target_factor)
+    feature_da, feature_names = create_feature_or_target_da(
+        merged_ds,
+        inargs.inputs,
+        inargs.min_lev,
+        'feature'
+    )
+    target_da, target_names = create_feature_or_target_da(
+        merged_ds,
+        inargs.outputs,
+        inargs.min_lev,
+        'target',
+        inargs.target_factor,
+    )
 
     # Reshape
     feature_da = reshape_da(feature_da)
