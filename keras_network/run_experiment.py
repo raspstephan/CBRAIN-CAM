@@ -2,6 +2,7 @@
 
 Author: Stephan Rasp
 """
+import os
 from keras.callbacks import TensorBoard, LearningRateScheduler
 import tensorflow as tf
 from configargparse import ArgParser
@@ -114,6 +115,7 @@ def main(inargs):
             callbacks=callbacks_list,
         )
     if inargs.exp_name is not None:
+        if not os.path.exists(inargs.model_dir): os.mkdir(inargs.model_dir)
         model.save(inargs.model_dir + '/' + inargs.exp_name + '.h5')
 
 if __name__ == '__main__':
@@ -156,7 +158,7 @@ if __name__ == '__main__':
                    type=float,
                    help='Learning rate.')
     p.add_argument('--lr_step',
-                   default=50,
+                   default=5,
                    type=int,
                    help='Step at which to divide learning rate by factor.')
     p.add_argument('--lr_divide',
