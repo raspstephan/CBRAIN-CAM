@@ -11,7 +11,7 @@ clc;
 flag = 0;
 % FOLDER = '../gentine_aqua_3';
 % FOLDER = 'Pritchard_Aquaplanet';
-FOLDER = '/project/meteo/w2w/A6/S.Rasp/SP-CAM/Aquaplanet_sample'
+FOLDER = '/beegfs/DATA/pritchard/srasp/Aquaplanet_enhance05/'
 list_files = dir(FOLDER);
 Nfiles  = 0;
 for i=1:length(list_files)
