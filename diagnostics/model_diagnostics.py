@@ -16,7 +16,7 @@ keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
 import h5py
 from tqdm import tqdm
 import pandas as pd
-import sys
+import sys, os
 sys.path.append('../keras_network/')
 sys.path.append('../data_processing/')
 from data_generator import DataGenerator
@@ -25,15 +25,24 @@ from keras.utils.generic_utils import get_custom_objects
 metrics_dict = dict([(f.__name__, f) for f in metrics])
 get_custom_objects().update(metrics_dict)
 from preprocess_aqua import L_V, C_P, conversion_dict
+import pickle
+import pdb
 
-# define global dictionaries
+# define global dictionaries and constants
 range_dict = {
     'SPDT': [-5e-4, 5e-4],
     'SPDQ': [-5e-7, 5e-7],
     'QRL': [-2e-4, 2e-4],
     'QRS': [-1.2e-4, 1.2e-4],
 }
-
+L_V = 2.501e6   # Latent heat of vaporization
+L_I = 3.337e5   # Latent heat of freezing
+L_S = L_V + L_I # Sublimation
+C_P = 1e3 # Specific heat capacity of air at constant pressure
+G = 9.81
+P0 = 1e5
+with open(os.path.join(os.path.dirname(__file__), 'hyai_hybi.pkl'), 'rb') as f:
+    hyai, hybi = pickle.load(f)
 
 class ModelDiagnostics(object):
     """
@@ -129,16 +138,27 @@ class ModelDiagnostics(object):
         x = x.reshape(self.nlat, self.nlon, x.shape[-1])  # [lat, lon, z]
         if var is None: var_idxs = slice(0, None, 1)
         else:
-            var_idxs = [
-                i for i, s in
-                enumerate(list(self.keras_targets['target_names'][:]))
-                if var in s]
+            var_idxs = self._get_var_idxs('target', var)
         x = x[:, :, var_idxs]
         # Unscale
         if unscale: x /= conversion_dict[var]
         return x
 
-    def compute_stats(self, n_iter=None):
+    def _get_var_idxs(self, feature_or_target, var):
+        return [
+            i for i, s in
+            enumerate(list(self.keras_norm[f'{feature_or_target}_names'][:]))
+            if var in s]
+
+    def _get_dP(self, f):
+        PS_idxs = self._get_var_idxs('feature', 'PS')
+        PS = (
+            f[:, PS_idxs] * self.keras_norm['feature_stds'][PS_idxs] +
+            self.keras_norm['feature_means'][PS_idxs]
+        )
+        return np.diff(P0 * hyai + PS * hybi, axis=1)
+
+    def compute_stats(self, n_iter=None, compute_SPDT_SPDQ=False):
         """
         Compute statistics over entire dataset [lat, lon, lev].
         bias = mean(preds) - mean(true)
@@ -159,6 +179,8 @@ class ModelDiagnostics(object):
         psum = np.zeros((self.ngeo, gen_obj.target_shape))
         tsum = np.copy(psum); sse = np.copy(psum)
         psqsum = np.copy(psum); tsqsum = np.copy(psum)
+        if compute_SPDT_SPDQ:
+            SPpred = np.zeros(self.ngeo); SPtrue = np.copy(SPpred)
         n = gen_obj.n_batches if n_iter is None else n_iter
         for t in tqdm(range(n)):  # Every batch is one time step!
             # Load features and targets
@@ -171,17 +193,41 @@ class ModelDiagnostics(object):
             psum += p; tsum += t
             psqsum += p ** 2; tsqsum += t ** 2
             sse += (t - p) ** 2
+            if compute_SPDT_SPDQ:
+                tmp = self._compute_SPDT_SPDQ(f, t, p)
+                SPpred += tmp[0]; SPtrue += tmp[1]
 
         # Compute average statistics
         self.stats_dict = {}
         pmean = psum / n; tmean = tsum / n
         self.bias = pmean - tmean; self.stats_dict['bias'] = self.bias
         self.mse = sse / n; self.stats_dict['mse'] = self.mse
-        self.pred_var = (psqsum / n - pmean ** 2) * n / (
-        n - 1)  # Sample variance
+        self.pred_var = (psqsum / n - pmean ** 2) * n / (n - 1)  # Sample variance
         self.stats_dict['pred_var'] = self.pred_var
         self.true_var = (tsqsum / n - tmean ** 2) * n / (n - 1)
         self.stats_dict['true_var'] = self.true_var
+        if compute_SPDT_SPDQ:
+            self.en_err_p = np.mean(SPpred / n)
+            self.en_err_t = np.mean(SPtrue / n)
+            print('Mean absolute energy violation. True:', self.en_err_t)
+            print('Mean absolute energy violation. Pred:', self.en_err_p)
+
+    def _compute_SPDT_SPDQ(self, f, t, p):
+        # Get dP
+        dP = self._get_dP(f)
+        SPDT_pred = self.vint((p[:, self._get_var_idxs('target', 'SPDT')]),
+                              C_P, dP)
+        SPDQ_pred = self.vint((p[:, self._get_var_idxs('target', 'SPDQ')]),
+                              L_V, dP)
+        SPDT_true = self.vint((t[:, self._get_var_idxs('target', 'SPDT')]),
+                              C_P, dP)
+        SPDQ_true = self.vint((t[:, self._get_var_idxs('target', 'SPDQ')]),
+                              L_V, dP)
+        return np.abs(SPDT_pred + SPDQ_pred), np.abs(SPDT_true + SPDQ_true)
+
+    @staticmethod
+    def vint(x, factor, dP):
+        return np.sum(x * factor * dP / G, -1)
 
     def mean_stats(self, cutoff_level=9):
         expl_var_str = f'expl_var_cut{cutoff_level}'

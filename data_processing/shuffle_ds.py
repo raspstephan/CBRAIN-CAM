@@ -24,7 +24,8 @@ def create_log_str():
     pwd = getoutput(['pwd']).rstrip()  # Need to remove trailing /n
     try:
         from git import Repo
-        git_dir = pwd.rsplit('/', 1)[0]
+        repo_name = 'CBRAIN-Keras-Diagnostics'
+        git_dir = pwd.rsplit(repo_name)[0] + repo_name
         git_hash = Repo(git_dir).heads[0].commit
     except ModuleNotFoundError:
         print('GitPython not found. Please install for better reproducibility.')
