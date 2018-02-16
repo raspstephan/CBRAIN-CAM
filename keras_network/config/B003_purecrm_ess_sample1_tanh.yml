@@ -1,0 +1,7 @@
+exp_name: B003_purecrm_ess_sample1_tanh
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: purecrm_ess_train_sample1_shuffle
+valid_fn: purecrm_ess_valid_sample1
+hidden_layers: [512]
+activation: tanh
+log_dir: ../logs/
