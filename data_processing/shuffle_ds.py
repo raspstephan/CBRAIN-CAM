@@ -124,6 +124,7 @@ if __name__ == '__main__':
     p = ArgParser()
     p.add_argument('--method',
                    type=str,
+                   default='fast',
                    help='[Meticulous or fast]')
     p.add_argument('--pref',
                    type=str,
@@ -134,7 +135,7 @@ if __name__ == '__main__':
                    help='Random seed for shuffling of data.')
     p.add_argument('--chunk_size',
                    type=int,
-                   default=None,
+                   default=10000000,
                    help='Size of chunks for fast method')
     p.add_argument('--verbose',
                    type=int,

@@ -17,3 +17,4 @@
 __pycache__
 models/
 /saveNet/
+/logs/old_logs/

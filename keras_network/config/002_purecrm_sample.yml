@@ -1,6 +1,0 @@
-exp_name: 002_purecrm_sample
-data_dir: /scratch/srasp/preprocessed_data/
-train_fn: pure_crm_essentials_train_month01_shuffle
-valid_fn: pure_crm_essentials_valid_month02
-hidden_layers: [512]
-log_dir: ../logs/

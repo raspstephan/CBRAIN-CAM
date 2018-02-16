@@ -1,6 +1,0 @@
-exp_name: 001_fullphy_sample
-data_dir: /scratch/srasp/preprocessed_data/
-train_fn: full_physics_essentials_train_month01_shuffle
-valid_fn: full_physics_essentials_valid_month02
-hidden_layers: [512]
-log_dir: ../logs/
