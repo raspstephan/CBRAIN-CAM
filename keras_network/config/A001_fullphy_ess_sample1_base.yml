@@ -1,4 +1,4 @@
-exp_name: 001_fullphy_ess_sample1_base
+exp_name: A001_fullphy_ess_sample1_base
 data_dir: /scratch/srasp/preprocessed_data/
 train_fn: fullphy_ess_train_sample1_shuffle
 valid_fn: fullphy_ess_valid_sample1
