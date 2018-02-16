@@ -207,10 +207,12 @@ class ModelDiagnostics(object):
         self.true_var = (tsqsum / n - tmean ** 2) * n / (n - 1)
         self.stats_dict['true_var'] = self.true_var
         if compute_SPDT_SPDQ:
-            self.en_err_p = np.mean(SPpred / n)
-            self.en_err_t = np.mean(SPtrue / n)
-            print('Mean absolute energy violation. True:', self.en_err_t)
-            print('Mean absolute energy violation. Pred:', self.en_err_p)
+            self.en_err_p = SPpred / n
+            self.en_err_t = SPtrue / n
+            print('Mean squared energy violation. True:',
+                  np.mean(self.en_err_t))
+            print('Mean squared energy violation. Pred:',
+                  np.mean(self.en_err_p))
 
     def _compute_SPDT_SPDQ(self, f, t, p):
         # Get dP
@@ -223,7 +225,7 @@ class ModelDiagnostics(object):
                               C_P, dP)
         SPDQ_true = self.vint((t[:, self._get_var_idxs('target', 'SPDQ')]),
                               L_V, dP)
-        return np.abs(SPDT_pred + SPDQ_pred), np.abs(SPDT_true + SPDQ_true)
+        return np.square(SPDT_pred + SPDQ_pred), np.square(SPDT_true + SPDQ_true)
 
     @staticmethod
     def vint(x, factor, dP):
