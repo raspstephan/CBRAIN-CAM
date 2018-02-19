@@ -1,0 +1,7 @@
+exp_name: B013_purecrm_ess_sample1_mse_var
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: purecrm_ess_train_sample1_shuffle
+valid_fn: purecrm_ess_valid_sample1
+hidden_layers: [512]
+loss: mse_var
+log_dir: ../logs/

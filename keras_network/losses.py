@@ -52,6 +52,30 @@ def rsquared_avgAx0(y_true, y_pred):
                   total_error_avgAx0(y_true, y_pred)))
 
 
+def var_true(y_true, y_pred): return K.mean(K.var(y_true, axis=(0,1)))
+def var_pred(y_true, y_pred): return K.mean(K.var(y_pred, axis=(0,1)))
+
+
+def var_ratio(y_true, y_pred):
+    vt = var_true(y_true, y_pred)
+    vp = var_pred(y_true, y_pred)
+    return vp / vt
+
+
+def var_loss(y_true, y_pred):
+    vt = var_true(y_true, y_pred)
+    vp = var_pred(y_true, y_pred)
+    return K.square(vp - vt)
+
+
+def mse_var(ratio):
+    """
+    specify ratio to multiply var loss with
+    """
+    def loss(y_true, y_pred):
+        return K.mean(mse(y_true, y_pred)) + ratio * var_loss(y_true, y_pred)
+    return loss
+
+
 # Define metrics list
-metrics = [rmse, log_loss, total_error, unexplained_error, rsquared,
-           total_error_avgAx0, rsquared_avgAx0]
+metrics = [rmse, log_loss, var_ratio, mse, var_loss]

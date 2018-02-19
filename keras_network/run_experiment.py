@@ -149,6 +149,10 @@ if __name__ == '__main__':
                    default='mae',
                    type=str,
                    help='Loss function.')
+    p.add_argument('--mse_var_ratio',
+                   default=10,
+                   type=float,
+                   help='If mse_var loss function, multiplier for var.')
     p.add_argument('--activation',
                    default='relu',
                    type=str,
@@ -218,5 +222,12 @@ if __name__ == '__main__':
     p.set_defaults(verbose=False)
 
     args = p.parse_args()
+
+    loss_dict = {
+        'mae': 'mae',
+        'mse': 'mse',
+        'log_loss': log_loss,
+        'mse_var': mse_var(args.mse_var_ratio)
+    }
 
     main(args)
