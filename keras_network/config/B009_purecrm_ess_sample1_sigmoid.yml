@@ -1,0 +1,7 @@
+exp_name: B009_purecrm_ess_sample1_sigmoid
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: purecrm_ess_train_sample1_shuffle
+valid_fn: purecrm_ess_valid_sample1
+hidden_layers: [512]
+activation: sigmoid
+log_dir: ../logs/

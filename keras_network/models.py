@@ -8,7 +8,7 @@ import keras
 import tensorflow as tf
 from keras.models import Sequential, Model
 from keras.layers import Dense, Conv1D, Input, Flatten, Concatenate, \
-    BatchNormalization, LocallyConnected1D
+    BatchNormalization, LocallyConnected1D, LeakyReLU
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
 from losses import *
@@ -30,6 +30,7 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
     Returns:
         model: compiled Keras model
     """
+    activation = LeakyReLU() if activation == 'LeakyReLU' else activation
     # First hidden layer
     model = Sequential([
         Dense(hidden_layers[0], input_shape=(feature_shape,),
