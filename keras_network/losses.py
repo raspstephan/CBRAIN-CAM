@@ -78,4 +78,7 @@ def mse_var(ratio):
 
 
 # Define metrics list
+all_metrics = [rmse, log_loss, total_error, unexplained_error, rsquared,
+               total_error_avgAx0, rsquared_avgAx0, var_ratio, var_loss,
+               mse_var, mse_var(10)]
 metrics = [rmse, log_loss, var_ratio, mse, var_loss]

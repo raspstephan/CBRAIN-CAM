@@ -7,7 +7,7 @@ from keras.models import load_model
 from configargparse import ArgParser
 from losses import *
 from keras.utils.generic_utils import get_custom_objects
-metrics_dict = dict([(f.__name__, f) for f in metrics])
+metrics_dict = dict([(f.__name__, f) for f in all_metrics])
 get_custom_objects().update(metrics_dict)
 
 def main(inargs):

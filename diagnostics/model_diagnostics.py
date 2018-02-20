@@ -20,9 +20,9 @@ import sys, os
 sys.path.append('../keras_network/')
 sys.path.append('../data_processing/')
 from data_generator import DataGenerator
-from losses import metrics
+from losses import metrics, all_metrics
 from keras.utils.generic_utils import get_custom_objects
-metrics_dict = dict([(f.__name__, f) for f in metrics])
+metrics_dict = dict([(f.__name__, f) for f in all_metrics])
 get_custom_objects().update(metrics_dict)
 from preprocess_aqua import L_V, C_P, conversion_dict
 import pickle
