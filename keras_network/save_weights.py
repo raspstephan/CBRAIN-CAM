@@ -10,11 +10,12 @@ from keras.utils.generic_utils import get_custom_objects
 metrics_dict = dict([(f.__name__, f) for f in all_metrics])
 get_custom_objects().update(metrics_dict)
 import h5py
+import netCDF4 as nc
 import numpy as np
+fmt = '%.6e'
 
 
 def save2txt(weight_file, save_dir):
-    fmt = '%.6e'
     weights = []; biases = []
     with h5py.File(weight_file, 'r') as f:
         layer_names = [n.decode('utf8') for n in f.attrs['layer_names']]
@@ -27,6 +28,16 @@ def save2txt(weight_file, save_dir):
                        delimiter=',')
             np.savetxt(save_dir + f'/layer{il+1}_bias.txt', b.reshape(1, -1),
                        fmt=fmt, delimiter=',')
+
+
+def save_norm(norm_path, save_dir):
+    with nc.Dataset(norm_path) as ds:
+        np.savetxt(
+            save_dir + '/means.txt', ds['feature_means'][:].reshape(1, -1),
+            fmt=fmt, delimiter=',')
+        np.savetxt(
+            save_dir + '/stds.txt', ds['feature_stds'][:].reshape(1, -1),
+            fmt=fmt, delimiter=',')
 
 
 def main(inargs):
@@ -43,6 +54,8 @@ def main(inargs):
 
     if inargs.save_txt is not None:
         save2txt(inargs.save_path, inargs.save_txt)
+    if inargs.save_norm is not None:
+        save_norm(inargs.save_norm, inargs.save_txt)
 
 
 if __name__ == '__main__':
@@ -58,6 +71,10 @@ if __name__ == '__main__':
                    type=str,
                    default=None,
                    help='Save weights and biases as textfiles for F90')
+    p.add_argument('--save_norm',
+                   type=str,
+                   default=None,
+                   help='Save mean and std as textfiles for F90')
 
     args = p.parse_args()
     main(args)
