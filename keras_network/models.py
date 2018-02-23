@@ -8,10 +8,17 @@ import keras
 import tensorflow as tf
 from keras.models import Sequential, Model
 from keras.layers import Dense, Conv1D, Input, Flatten, Concatenate, \
-    BatchNormalization, LocallyConnected1D, LeakyReLU
+    BatchNormalization, LocallyConnected1D, LeakyReLU, Activation
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
 from losses import *
+act_dict = keras.activations.__dict__
+lyr_dict = keras.layers.__dict__
+
+
+def act_layer(act):
+    """Helper function to return regular and advanced activation layers"""
+    return Activation(act) if act in act_dict.keys() else lyr_dict[act]()
 
 
 def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
@@ -30,18 +37,18 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
     Returns:
         model: compiled Keras model
     """
-    activation = LeakyReLU() if activation == 'LeakyReLU' else activation
     # First hidden layer
     model = Sequential([
-        Dense(hidden_layers[0], input_shape=(feature_shape,),
-              activation=activation)
+        Dense(hidden_layers[0], input_shape=(feature_shape,))
     ])
+    model.add(act_layer(activation))
     if batch_norm:
         model.add(BatchNormalization())
     # All other hidden layers
     if len(hidden_layers) > 1:
         for h in hidden_layers[1:]:
-            model.add(Dense(h, activation=activation))
+            model.add(Dense(h))
+            model.add(act_layer(activation))
             if batch_norm:
                 model.add(BatchNormalization())
     # Output layer

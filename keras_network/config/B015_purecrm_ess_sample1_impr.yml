@@ -1,0 +1,8 @@
+exp_name: B015_purecrm_ess_sample1_impr
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: purecrm_ess_train_sample1_shuffle
+valid_fn: purecrm_ess_valid_sample1
+hidden_layers: [256,256,256,256,256,256,256,256,256]
+loss: mse
+activation: LeakyReLU
+log_dir: ../logs/

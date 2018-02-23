@@ -181,8 +181,8 @@ def create_feature_or_target_da(ds, vars, min_lev, feature_or_target,
         elif '_C' in var:
             base_var = var[:-2] + 'AP'
             da = compute_c(ds, base_var)
-        elif var == 'PS':   # Take from previous time step
-            da = ds[var][:-1]
+        #elif var == 'PS':   # Take from previous time step
+        #    da = ds[var][:-1]   # NOTE: Do NOT do this. cloudbrain fortran routine has access to what is PS!
         else:   # Take from current time step
             da = ds[var][1:]
         if feature_or_target == 'target':
@@ -260,15 +260,19 @@ def reshape_da(da):
 
 
 def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
-                 feature_names=None, target_names=None):
-    """Normalize feature arrays
+                 feature_names=None, target_names=None, norm_target=None):
+    """Normalize feature arrays, and optionally target array
     
     Args:
-        feature_ds: feature Dataset
-        target_ds: target Dataset
+        feature_da: feature Dataset
+        target_da: target Dataset
         log_str: log string
         norm_fn: Name of normalization file to be saved, only if not ext_norm
         ext_norm: Path to external normalization file
+        feature_names: Feature name strings
+        target_names: target name strings
+        norm_target: If 'norm', regular mean-std normalization, if 'scale'
+                     scale between -1 and 1 where
 
     Returns:
         da: Normalized DataArray
@@ -279,8 +283,8 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
         feature_stds = feature_da.std(axis=0)
         target_means = target_da.mean(axis=0)
         target_stds = target_da.std(axis=0)
-        #target_01 = target_da.quantile(0.01, dim='sample')
-        #target_99 = target_da.quantile(0.99, dim='sample')
+        target_mins = target_da.min(axis=0)
+        target_maxs = target_da.max(axis=0)
         feature_names = feature_names
         target_names = target_names
 
@@ -290,8 +294,8 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
             'feature_stds': feature_stds,
             'target_means': target_means,
             'target_stds': target_stds,
-            #'target_01': target_01,
-            #'target_99': target_99,
+            'target_mins': target_mins,
+            'target_maxs': target_maxs,
             'feature_names': feature_names,
             'target_names': target_names,
         })
@@ -306,7 +310,16 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
 
     feature_da = ((feature_da - norm_ds['feature_means']) /
                   norm_ds['feature_stds'])
-    return feature_da
+    if norm_target == 'norm':
+        target_da = ((target_da - norm_ds['target_means']) /
+                      norm_ds['target_stds'])
+    elif norm_target == 'scale':
+        half_range = (norm_ds['target_maxs'] - norm_ds['target_mins']) / 2
+        target_da = (target_da - half_range) / (1.1 * half_range)
+    elif norm_target is not None:
+        raise Exception('Wrong argument for norm_target')
+
+    return feature_da, target_da
 
 
 def shuffle_da(feature_da, target_da, seed):
@@ -393,8 +406,9 @@ def main(inargs):
 
     # Normalize features
     norm_fn = inargs.out_dir + inargs.out_pref + '_norm.nc'
-    feature_da = normalize_da(feature_da, target_da, log_str, norm_fn,
-                              inargs.ext_norm, feature_names, target_names)
+    feature_da, target_da = normalize_da(
+        feature_da, target_da, log_str, norm_fn,inargs.ext_norm, feature_names,
+        target_names, inargs.norm_target)
 
     if not inargs.only_norm:
         # Shuffle along sample dimension
@@ -495,6 +509,10 @@ if __name__ == '__main__':
                    action='store_true',
                    help='If given, only compute and save normalization file.')
     p.set_defaults(only_norm=False)
+    p.add_argument('--norm_target',
+                   type=str,
+                   default=None,
+                   help='norm or scale')
     p.add_argument('--verbose',
                    dest='verbose',
                    action='store_true',

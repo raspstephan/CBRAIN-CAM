@@ -1,0 +1,7 @@
+exp_name: B014_purecrm_essv2_sample1_base
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: purecrm_essv2_train_sample1_shuffle
+valid_fn: purecrm_essv2_valid_sample1
+hidden_layers: [512]
+loss: mse
+log_dir: ../logs/
