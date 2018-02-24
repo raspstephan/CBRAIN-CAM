@@ -259,8 +259,16 @@ def reshape_da(da):
     return da
 
 
+def get_feature_idxs(feature_names, var):
+    return [
+        i for i, s in
+        enumerate(list(feature_names.data))
+        if var in s]
+
+
 def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
-                 feature_names=None, target_names=None, norm_target=None):
+                 feature_names=None, target_names=None, norm_target=None,
+                 inputs=None, norm_by_var=False):
     """Normalize feature arrays, and optionally target array
     
     Args:
@@ -290,6 +298,14 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
         feature_names = feature_names
         target_names = target_names
 
+        # Create feature da by var
+        feature_stds.load()
+        feature_stds_by_var = feature_stds.copy(True)   # Deep copy
+        for inp in inputs:
+            var_idxs = get_feature_idxs(feature_names, inp)
+            feature_stds_by_var[var_idxs] = feature_stds[var_idxs].mean()
+
+
         # Store means and variables
         norm_ds = xr.Dataset({
             'feature_means': feature_means,
@@ -302,6 +318,7 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
             'target_maxs': target_maxs,
             'feature_names': feature_names,
             'target_names': target_names,
+            'feature_stds_by_var': feature_stds_by_var,
         })
         norm_ds.attrs['log'] = log_str
         print('Saving normalization file:', norm_fn)
@@ -312,8 +329,12 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
         print('Load external normalization file')
         norm_ds = xr.open_dataset(ext_norm).load()
 
-    feature_da = ((feature_da - norm_ds['feature_means']) /
-                  norm_ds['feature_stds'])
+    if norm_by_var:
+        feature_da = ((feature_da - norm_ds['feature_means']) /
+                      norm_ds['feature_stds'])
+    else:
+        feature_da = ((feature_da - norm_ds['feature_means']) /
+                      norm_ds['feature_stds_by_var'])
     if norm_target == 'norm':
         target_da = ((target_da - norm_ds['target_means']) /
                       norm_ds['target_stds'])
@@ -412,7 +433,7 @@ def main(inargs):
     norm_fn = inargs.out_dir + inargs.out_pref + '_norm.nc'
     feature_da, target_da = normalize_da(
         feature_da, target_da, log_str, norm_fn,inargs.ext_norm, feature_names,
-        target_names, inargs.norm_target)
+        target_names, inargs.norm_target, inargs.inputs, inargs.norm_by_var)
 
     if not inargs.only_norm:
         # Shuffle along sample dimension
@@ -513,6 +534,11 @@ if __name__ == '__main__':
                    action='store_true',
                    help='If given, only compute and save normalization file.')
     p.set_defaults(only_norm=False)
+    p.add_argument('--norm_by_var',
+                   dest='norm_by_var',
+                   action='store_true',
+                   help='If given, Divide by mean std for each feature var.')
+    p.set_defaults(norm_by_var=False)
     p.add_argument('--norm_target',
                    type=str,
                    default=None,
