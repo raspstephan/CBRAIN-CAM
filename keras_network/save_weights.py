@@ -41,6 +41,12 @@ def save_norm(norm_path, save_dir):
             save_dir + '/inp_stds.txt', ds['feature_stds'][:].reshape(1, -1),
             fmt=fmt, delimiter=',')
         np.savetxt(
+            save_dir + '/inp_mins.txt', ds['feature_mins'][:].reshape(1, -1),
+            fmt=fmt, delimiter=',')
+        np.savetxt(
+            save_dir + '/inp_maxs.txt', ds['feature_maxs'][:].reshape(1, -1),
+            fmt=fmt, delimiter=',')
+        np.savetxt(
             save_dir + '/outp_mins.txt', ds['target_mins'][:].reshape(1, -1),
             fmt=fmt, delimiter=',')
         np.savetxt(
