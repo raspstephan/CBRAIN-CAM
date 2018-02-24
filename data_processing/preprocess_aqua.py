@@ -281,6 +281,8 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
         print('Compute means and stds')
         feature_means = feature_da.mean(axis=0)
         feature_stds = feature_da.std(axis=0)
+        feature_mins = feature_da.min(axis=0)
+        feature_maxs = feature_da.max(axis=0)
         target_means = target_da.mean(axis=0)
         target_stds = target_da.std(axis=0)
         target_mins = target_da.min(axis=0)
@@ -292,6 +294,8 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
         norm_ds = xr.Dataset({
             'feature_means': feature_means,
             'feature_stds': feature_stds,
+            'feature_mins': feature_mins,
+            'feature_maxs': feature_maxs,
             'target_means': target_means,
             'target_stds': target_stds,
             'target_mins': target_mins,
