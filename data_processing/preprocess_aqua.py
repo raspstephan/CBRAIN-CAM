@@ -331,10 +331,10 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
 
     if norm_by_var:
         feature_da = ((feature_da - norm_ds['feature_means']) /
-                      norm_ds['feature_stds'])
+                      norm_ds['feature_stds_by_var'])
     else:
         feature_da = ((feature_da - norm_ds['feature_means']) /
-                      norm_ds['feature_stds_by_var'])
+                      norm_ds['feature_stds'])
     if norm_target == 'norm':
         target_da = ((target_da - norm_ds['target_means']) /
                       norm_ds['target_stds'])
