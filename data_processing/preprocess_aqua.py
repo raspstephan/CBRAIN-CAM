@@ -185,8 +185,8 @@ def create_feature_or_target_da(ds, vars, min_lev, feature_or_target,
         #    da = ds[var][:-1]   # NOTE: Do NOT do this. cloudbrain fortran routine has access to what is PS!
         else:   # Take from current time step
             da = ds[var][1:]
-        if feature_or_target == 'target':
-            da *= conversion_dict[var]
+        # if feature_or_target == 'target':
+        #     da *= conversion_dict[var]
         features_list.append(da * factor)
 
         # Figure out which name to add
@@ -267,8 +267,8 @@ def get_feature_idxs(feature_names, var):
 
 
 def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
-                 feature_names=None, target_names=None, norm_target=None,
-                 inputs=None, norm_by_var=False):
+                 feature_names=None, target_names=None, norm_targets=None,
+                 inputs=None, targets = None, norm_features=None):
     """Normalize feature arrays, and optionally target array
     
     Args:
@@ -279,7 +279,7 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
         ext_norm: Path to external normalization file
         feature_names: Feature name strings
         target_names: target name strings
-        norm_target: If 'norm', regular mean-std normalization, if 'scale'
+        norm_targets: If 'norm', regular mean-std normalization, if 'scale'
                      scale between -1 and 1 where
 
     Returns:
@@ -304,7 +304,12 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
         for inp in inputs:
             var_idxs = get_feature_idxs(feature_names, inp)
             feature_stds_by_var[var_idxs] = feature_stds[var_idxs].mean()
-
+            
+        # Create target energy conversion dictionary
+        target_conv = feature_stds.copy(True)
+        for tar in targets:
+            var_idxs = get_feature_idxs(target_names, tar)
+            target_conv[var_idxs] = conversion_dict[tar]
 
         # Store means and variables
         norm_ds = xr.Dataset({
@@ -319,6 +324,7 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
             'feature_names': feature_names,
             'target_names': target_names,
             'feature_stds_by_var': feature_stds_by_var,
+            'target_conv': target_conv
         })
         norm_ds.attrs['log'] = log_str
         print('Saving normalization file:', norm_fn)
@@ -329,20 +335,22 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
         print('Load external normalization file')
         norm_ds = xr.open_dataset(ext_norm).load()
 
-    if norm_by_var:
+    if norm_features == 'by_var':
         feature_da = ((feature_da - norm_ds['feature_means']) /
                       norm_ds['feature_stds_by_var'])
-    else:
+    elif norm_features == 'by_lev':
         feature_da = ((feature_da - norm_ds['feature_means']) /
                       norm_ds['feature_stds'])
-    if norm_target == 'norm':
+    elif norm_features is not None:
+        raise Exception('Wrong argument for norm_features')
+    if norm_targets == 'norm':
         target_da = ((target_da - norm_ds['target_means']) /
                       norm_ds['target_stds'])
-    elif norm_target == 'scale':
+    elif norm_targets == 'scale':
         half_range = (norm_ds['target_maxs'] - norm_ds['target_mins']) / 2
         target_da = (target_da - half_range) / (1.1 * half_range)
-    elif norm_target is not None:
-        raise Exception('Wrong argument for norm_target')
+    elif norm_targets is not None:
+        raise Exception('Wrong argument for norm_targets')
 
     return feature_da, target_da
 
@@ -433,7 +441,7 @@ def main(inargs):
     norm_fn = inargs.out_dir + inargs.out_pref + '_norm.nc'
     feature_da, target_da = normalize_da(
         feature_da, target_da, log_str, norm_fn,inargs.ext_norm, feature_names,
-        target_names, inargs.norm_target, inargs.inputs, inargs.norm_by_var)
+        target_names, inargs.norm_targets, inargs.inputs, inargs.outputs, inargs.norm_features)
 
     if not inargs.only_norm:
         # Shuffle along sample dimension
@@ -534,12 +542,11 @@ if __name__ == '__main__':
                    action='store_true',
                    help='If given, only compute and save normalization file.')
     p.set_defaults(only_norm=False)
-    p.add_argument('--norm_by_var',
-                   dest='norm_by_var',
-                   action='store_true',
-                   help='If given, Divide by mean std for each feature var.')
-    p.set_defaults(norm_by_var=False)
-    p.add_argument('--norm_target',
+    p.add_argument('--norm_features',
+                   type=str,
+                   default=None,
+                   help='by_var or by_lev')
+    p.add_argument('--norm_targets',
                    type=str,
                    default=None,
                    help='norm or scale')
