@@ -11,7 +11,7 @@ from keras.layers import Dense, Conv1D, Input, Flatten, Concatenate, \
     BatchNormalization, LocallyConnected1D, LeakyReLU, Activation
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
-from losses import *
+from .losses import *
 act_dict = keras.activations.__dict__
 lyr_dict = keras.layers.__dict__
 

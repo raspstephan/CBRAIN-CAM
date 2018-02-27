@@ -8,4 +8,6 @@ tdiv: target_conv
 activation: LeakyReLU
 hidden_layers: [512]
 loss: mse
-log_dir: ../logs/
+log_dir: ./logs/
+epochs: 20
+valid_after: True

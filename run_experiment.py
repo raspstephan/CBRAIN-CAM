@@ -2,14 +2,9 @@
 
 Author: Stephan Rasp
 """
-import os
-from keras.callbacks import TensorBoard, LearningRateScheduler
-import tensorflow as tf
-from configargparse import ArgParser
-from models import conv_model, fc_model, conv_model_tile
-from losses import *
-from utils import *
-from data_generator import DataGenerator
+from cbrain.imports import *
+from cbrain.data_generator import DataGenerator
+from cbrain.models import *
 
 # Loss dictionary. TODO: Solve this more cleverly (not Tom...)
 loss_dict = {
@@ -116,7 +111,7 @@ def main(inargs):
             validation_data=valid_gen.return_generator(inargs.convolution),
             validation_steps=valid_gen.n_batches,
             workers=inargs.n_workers,
-            max_queue_size=50,
+            max_queue_size=inargs.max_queue_size,
             callbacks=callbacks_list,
         )
     if inargs.exp_name is not None:
@@ -135,7 +130,7 @@ if __name__ == '__main__':
                    help='Experiment name.')
     p.add_argument('--model_dir',
                    type=str,
-                   default='./models/',
+                   default='./saved_models/',
                    help='Directory to save model to.')
     p.add_argument('--data_dir',
                    type=str,
@@ -213,9 +208,13 @@ if __name__ == '__main__':
                    type=int,
                    help='List with feature maps')
     p.add_argument('--n_workers',
-                   default=8,
+                   default=16,
                    type=int,
                    help='Workers for generator queue')
+    p.add_argument('--max_queue_size',
+                   default=50,
+                   type=int,
+                   help='Generator queue size')
     p.add_argument('--convolution',
                    dest='convolution',
                    action='store_true',

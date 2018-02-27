@@ -181,8 +181,8 @@ def create_feature_or_target_da(ds, vars, min_lev, feature_or_target,
         elif '_C' in var:
             base_var = var[:-2] + 'AP'
             da = compute_c(ds, base_var)
-        #elif var == 'PS':   # Take from previous time step
-        #    da = ds[var][:-1]   # NOTE: Do NOT do this. cloudbrain fortran routine has access to what is PS!
+        elif var in ['LHFLX', 'SHFLX']:   # Take from previous time step
+            da = ds[var][:-1]
         else:   # Take from current time step
             da = ds[var][1:]
         # if feature_or_target == 'target':

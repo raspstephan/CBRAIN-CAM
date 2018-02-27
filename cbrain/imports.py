@@ -4,6 +4,7 @@ Just all the imports for all other scripts and notebooks.
 import numpy as np
 import matplotlib.pyplot as plt
 import keras
+from keras.callbacks import *
 import tensorflow as tf
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
@@ -23,6 +24,7 @@ from .losses import *
 from keras.utils.generic_utils import get_custom_objects
 metrics_dict = dict([(f.__name__, f) for f in all_metrics])
 get_custom_objects().update(metrics_dict)
+from configargparse import ArgParser
 
 from ipykernel.kernelapp import IPKernelApp
 def in_notebook(): return IPKernelApp.initialized()
