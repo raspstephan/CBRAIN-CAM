@@ -33,7 +33,7 @@ def main(inargs):
         inargs.train_fn + '_features.nc',
         inargs.train_fn + '_targets.nc',
         inargs.batch_size,
-        inargs.train_fn + '_norm.nc',
+        inargs.train_fn.split('_shuffle')[0] + '_norm.nc', # Ugly hack!
         inargs.fsub, inargs.fdiv, inargs.tsub, inargs.tdiv,
         shuffle=True,
 
@@ -43,7 +43,7 @@ def main(inargs):
         inargs.valid_fn + '_features.nc',
         inargs.valid_fn + '_targets.nc',
         16384,  # Large batch size for speed!
-        inargs.train_fn + '_norm.nc',
+        inargs.train_fn.split('_shuffle')[0] + '_norm.nc',
         inargs.fsub, inargs.fdiv, inargs.tsub, inargs.tdiv,
         shuffle=False,
     )
@@ -162,10 +162,10 @@ if __name__ == '__main__':
                    default=None,
                    type=str,
                    help='Subtract target array by. Default: None')
-    p.add_argument('--tsub',
+    p.add_argument('--tdiv',
                    default=None,
                    type=str,
-                   help='Divide target array by. Default: None')
+                   help='Divide target array by, e.g. target_conv. Default: None')
     p.add_argument('--loss',
                    default='mae',
                    type=str,

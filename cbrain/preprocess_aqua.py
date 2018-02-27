@@ -306,7 +306,8 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
             feature_stds_by_var[var_idxs] = feature_stds[var_idxs].mean()
             
         # Create target energy conversion dictionary
-        target_conv = feature_stds.copy(True)
+        target_stds.load()
+        target_conv = target_stds.copy(True)
         for tar in targets:
             var_idxs = get_feature_idxs(target_names, tar)
             target_conv[var_idxs] = conversion_dict[tar]

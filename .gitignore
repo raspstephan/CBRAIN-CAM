@@ -3,4 +3,4 @@
 __pycache__
 .ipynb_checkpoints
 logs/
-keras_network/models/
+saved_models/

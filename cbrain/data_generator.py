@@ -152,12 +152,12 @@ class DataGenerator(object):
                 if fsub is not None: self.feature_norms[0] = norm_file[fsub][:]
                 if fdiv is not None:
                     if fdiv == 'range':
-                        self.feature_norms[1] = (norm_file['target_maxs'][:] -
-                                                 norm_file['target_mins'][:])
+                        self.feature_norms[1] = (norm_file['feature_maxs'][:] -
+                                                 norm_file['feature_mins'][:])
                     if fdiv == 'max_rs':  # Max range, std_by_var
                         self.feature_norms[1] = np.maximum(
-                            norm_file['target_maxs'][:] - norm_file['target_mins'][:],
-                            norm_file['std_by_var']
+                            norm_file['feature_maxs'][:] - norm_file['feature_mins'][:],
+                            norm_file['feature_stds_by_var']
                         )
                     else:
                         self.feature_norms[1] = norm_file[fdiv][:]
@@ -165,7 +165,7 @@ class DataGenerator(object):
             self.target_norms = [0., 1.]   # Thiss does nothing...
             with h5py.File(data_dir + norm_fn, 'r') as norm_file:
                 if tsub is not None: self.target_norms[0] = norm_file[tsub][:]
-                if tdiv is not None: self.target_norms[1] = norm_file[tdiv][:]
+                if tdiv is not None: self.target_norms[1] = norm_file[tdiv][:120]
         if verbose:
             print('Generator will have %i samples in %i batches' %
                   (n_samples, self.n_batches))
