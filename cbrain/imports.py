@@ -12,14 +12,14 @@ import pandas as pd
 import pickle
 import pdb
 import netCDF4 as nc
+import xarray as xr
+import h5py
 from glob import glob
 import sys, os
 base_dir = os.getcwd().split('CBRAIN-Keras-Diagnostics/')[0] + 'CBRAIN-Keras-Diagnostics/'
 sys.path.append(f'{base_dir}keras_network/')
 sys.path.append(f'{base_dir}data_processing/')
-from data_generator import *
-from losses import *
-from preprocess_aqua import *
+from .losses import *
 from keras.utils.generic_utils import get_custom_objects
 metrics_dict = dict([(f.__name__, f) for f in all_metrics])
 get_custom_objects().update(metrics_dict)

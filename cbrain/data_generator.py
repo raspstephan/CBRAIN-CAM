@@ -73,7 +73,7 @@ def data_generator(data_dir, feature_fn, target_fn, shuffle=True,
             x = feature_file['features'][batch_idx:batch_idx + batch_size, :]
             y = target_file['targets'][batch_idx:batch_idx + batch_size, :]
             if feature_norms is not None: x = (x - feature_norms[0]) / feature_norms[1]
-            if target_norms is not None: y = (y - target_norms[0]) / target_norms[1]
+            if target_norms is not None: y = (y - target_norms[0]) * target_norms[1]
             yield x, y
 
 
@@ -121,7 +121,7 @@ class DataGenerator(object):
     """
 
     def __init__(self, data_dir, feature_fn, target_fn, batch_size, norm_fn=None,
-                 fsub=None, fdiv=None, tsub=None, tdiv=None, shuffle=True, verbose=True):
+                 fsub=None, fdiv=None, tsub=None, tmult=None, shuffle=True, verbose=True):
         """Initialize DataGenerator object
 
         Args:
@@ -161,11 +161,11 @@ class DataGenerator(object):
                         )
                     else:
                         self.feature_norms[1] = norm_file[fdiv][:]
-        if tsub is not None or tdiv is not None:
-            self.target_norms = [0., 1.]   # Thiss does nothing...
+        if tsub is not None or tmult is not None:
+            self.target_norms = [0., 1.]   # This does nothing...
             with h5py.File(data_dir + norm_fn, 'r') as norm_file:
                 if tsub is not None: self.target_norms[0] = norm_file[tsub][:]
-                if tdiv is not None: self.target_norms[1] = norm_file[tdiv][:120]
+                if tmult is not None: self.target_norms[1] = norm_file[tmult][:120]
         if verbose:
             print('Generator will have %i samples in %i batches' %
                   (n_samples, self.n_batches))
