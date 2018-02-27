@@ -384,7 +384,7 @@ def shuffle_da(feature_da, target_da, seed):
     return feature_da, target_da
 
 
-def rechunk_da(da, sample_chunks=100000):
+def rechunk_da(da, sample_chunks=1000000):
     """
 
     Args:
@@ -408,7 +408,7 @@ def main(inargs):
     # Create log string
     log_str = create_log_str()
 
-    # Load dataset
+    # Load dataset`
     merged_ds = xr.open_mfdataset(inargs.in_dir + inargs.aqua_names,
                                   decode_times=False)
     print('Number of time steps:', merged_ds.coords['time'].size)
