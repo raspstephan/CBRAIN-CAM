@@ -1,0 +1,13 @@
+exp_name: B019_purecrm_essv2_noadiab_sample1_max_rs
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: purecrm_essv2_noadiab_train_sample1_shuffle
+valid_fn: purecrm_essv2_noadiab_valid_sample1
+fsub: feature_means
+fdiv: max_rs
+tdiv: target_conv
+activation: LeakyReLU
+hidden_layers: [512]
+loss: mse
+log_dir: ./logs/
+epochs: 20
+valid_after: True
