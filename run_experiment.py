@@ -29,7 +29,7 @@ def main(inargs):
         inargs.train_fn + '_targets.nc',
         inargs.batch_size,
         inargs.train_fn.split('_shuffle')[0] + '_norm.nc', # Ugly hack!
-        inargs.fsub, inargs.fdiv, inargs.tsub, inargs.tdiv,
+        inargs.fsub, inargs.fdiv, inargs.tsub, inargs.tmult,
         shuffle=True,
 
     )
@@ -39,7 +39,7 @@ def main(inargs):
         inargs.valid_fn + '_targets.nc',
         16384,  # Large batch size for speed!
         inargs.train_fn.split('_shuffle')[0] + '_norm.nc',
-        inargs.fsub, inargs.fdiv, inargs.tsub, inargs.tdiv,
+        inargs.fsub, inargs.fdiv, inargs.tsub, inargs.tmult,
         shuffle=False,
     )
     feature_shape = train_gen.feature_shape
@@ -157,7 +157,7 @@ if __name__ == '__main__':
                    default=None,
                    type=str,
                    help='Subtract target array by. Default: None')
-    p.add_argument('--tdiv',
+    p.add_argument('--tmult',
                    default=None,
                    type=str,
                    help='Divide target array by, e.g. target_conv. Default: None')

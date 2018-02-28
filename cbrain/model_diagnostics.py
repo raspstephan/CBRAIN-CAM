@@ -6,27 +6,10 @@ TODO:
 """
 
 # Imports
-import numpy as np
-import matplotlib.pyplot as plt
-import keras
-import tensorflow as tf
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
-keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
-import h5py
-from tqdm import tqdm
-import pandas as pd
-import sys, os
-sys.path.append('../keras_network/')
-sys.path.append('../data_processing/')
-from data_generator import DataGenerator
-from losses import metrics, all_metrics
-from keras.utils.generic_utils import get_custom_objects
-metrics_dict = dict([(f.__name__, f) for f in all_metrics])
-get_custom_objects().update(metrics_dict)
-from preprocess_aqua import L_V, C_P, conversion_dict
+from .imports import *
+from .data_generator import DataGenerator
+from .preprocess_aqua import L_V, C_P, conversion_dict
 import pickle
-import pdb
 
 # define global dictionaries and constants
 range_dict = {
@@ -49,7 +32,8 @@ class ModelDiagnostics(object):
     Model diagnostics class.
     """
     def __init__(self, model_path, keras_features_fn, keras_targets_fn,
-                 keras_norm_fn, nlat=64, nlon=128, nlev=30):
+                 keras_norm_fn, fsub=None, fdiv=None, tsub=None, tmult=None,
+                 nlat=64, nlon=128, nlev=30):
         """
         keras_features [sample, input_z]
         keras_targets [sample, output_z]
@@ -62,10 +46,22 @@ class ModelDiagnostics(object):
         self.keras_features = h5py.File(keras_features_fn, 'r')
         self.keras_targets = h5py.File(keras_targets_fn, 'r')
         self.keras_norm = h5py.File(keras_norm_fn, 'r')
+        self.norm_names = (fsub, fdiv, tsub, tmult)
+        self._get_norm_arrs(fsub, fdiv, tsub, tmult)
         self.nlat = nlat; self.nlon = nlon; self.nlev = nlev
         self.ngeo = nlat * nlon
         self.feature_vars, self.target_vars = self._get_var_names()
-        self.unscale_arr = self._get_unscale_arr()
+
+    def _get_norm_arrs(self, fsub, fdiv, tsub, tmult):
+        self.fsub = 0. if fsub is None else self.keras_norm[fsub]
+        if fdiv is None: self.fdiv = 1.
+        elif fdiv == 'range': self.fdiv = self.keras_norm['feature_maxs'] - self.keras_norm['feature_mins']
+        elif fdiv == 'max_rs': self.fdiv = np.maximum(
+            self.keras_norm['feature_maxs'][:] - self.keras_norm['feature_mins'][:],
+            self.keras_norm['feature_stds_by_var'])
+        else: self.fdiv = self.keras_norm['fdiv']
+        self.tsub = 0. if tsub is None else self.keras_norm[tsub]
+        self.tmult = 1. if fsub is None else self.keras_norm[tmult]
 
     def _load_model(self):
         # For keras model
@@ -82,14 +78,6 @@ class ModelDiagnostics(object):
             )) for a in ['feature', 'target']
         ]
 
-    def _get_unscale_arr(self):
-        """
-        Returns an array of size z_output to unscale the entire output array
-        """
-        return np.array([
-            conversion_dict[v.split('_lev')[0]] for v in
-            list(self.keras_norm['target_names'])
-        ])
 
     def plot_double_lat_lev_slice(self, var, itime, ilon, **kwargs):
         # Get predictions and true values. THIS WILL BE DIFFERENT FOR TF
@@ -124,11 +112,11 @@ class ModelDiagnostics(object):
         plt.show()
 
     def _get_preds_and_truth(self, var, itime):
-        f = self.keras_features['features'][
-            itime * self.ngeo:(itime + 1) * self.ngeo]
+        f = (self.keras_features['features'][itime * self.ngeo:(itime + 1) * self.ngeo] -
+             self.fsub) / self.fdiv
         p = self.model.predict_on_batch(f)
-        t = self.keras_targets['targets'][
-            itime * self.ngeo:(itime + 1) * self.ngeo]
+        t = (self.keras_targets['targets'][itime * self.ngeo:(itime + 1) * self.ngeo] -
+             self.tsub) * self.tmult
         return self.reshape_output(p, var), self.reshape_output(t, var)
 
     def reshape_output(self, x, var=None, unscale=True):
@@ -153,8 +141,7 @@ class ModelDiagnostics(object):
     def _get_dP(self, f):
         PS_idxs = self._get_var_idxs('feature', 'PS')
         PS = (
-            f[:, PS_idxs] * self.keras_norm['feature_stds'][PS_idxs] +
-            self.keras_norm['feature_means'][PS_idxs]
+            f[:, PS_idxs]
         )
         return np.diff(P0 * hyai + PS * hybi, axis=1)
 
@@ -167,12 +154,15 @@ class ModelDiagnostics(object):
         std_error = std(preds) - std(true)
         """
         # Get data generator without shuffling!
+        tmp = self.norm_names
         gen_obj = DataGenerator(
             '/',
             self.keras_features_fn,
             self.keras_targets_fn,
             shuffle=False,
             batch_size=self.ngeo,  # time step sized batches
+            norm_fn=self.keras_norm_fn,
+            fsub=tmp[0], fdiv=tmp[1], tsub=tmp[2], tmult=tmp[3],
             verbose=True,
         )
         gen = gen_obj.return_generator()
@@ -188,7 +178,7 @@ class ModelDiagnostics(object):
             # Get predictions
             p = self.model.predict_on_batch(f)  # [ngeo samples, z]
             # Unscale outputs at this level
-            p /= self.unscale_arr; t /= self.unscale_arr
+            p /= self.tmult; t /= self.tmult
             # Compute statistics
             psum += p; tsum += t
             psqsum += p ** 2; tsqsum += t ** 2
