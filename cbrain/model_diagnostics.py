@@ -27,219 +27,251 @@ P0 = 1e5
 with open(os.path.join(os.path.dirname(__file__), 'hyai_hybi.pkl'), 'rb') as f:
     hyai, hybi = pickle.load(f)
 
+
 class ModelDiagnostics(object):
     """
-    Model diagnostics class.
+    Two basic functionalities:
+    1. Plotting --> need preds and truth of selected time step in original values for one var
+    2. Global statistics --> also from denormalized values
+
+    Differences between TF and Keras:
+    1. Data loading: For Keras I will use my data_generator (much faster),
+                     for TF I will read and process the raw aqua files
+    2. Output normalization
+    3. Output shape: 1D for Keras, 2D for TF --> Use TF convention
+    NOTE: This cannot handle outputs with one level.
     """
-    def __init__(self, model_path, keras_features_fn, keras_targets_fn,
-                 keras_norm_fn, fsub=None, fdiv=None, tsub=None, tmult=None,
-                 nlat=64, nlon=128, nlev=30):
-        """
-        keras_features [sample, input_z]
-        keras_targets [sample, output_z]
-        """
-        self.model_path = model_path
-        self.model = self._load_model()
-        self.keras_features_fn = keras_features_fn
-        self.keras_targets_fn = keras_targets_fn
-        self.keras_norm_fn = keras_norm_fn
-        self.keras_features = h5py.File(keras_features_fn, 'r')
-        self.keras_targets = h5py.File(keras_targets_fn, 'r')
-        self.keras_norm = h5py.File(keras_norm_fn, 'r')
-        self.norm_names = (fsub, fdiv, tsub, tmult)
-        self._get_norm_arrs(fsub, fdiv, tsub, tmult)
-        self.nlat = nlat; self.nlon = nlon; self.nlev = nlev
+    def __init__(self, is_tf, model_path,
+                 k_fpath=None, k_tpath=None, k_npath=None, k_norms=None,
+                 tf_filepattern=None, tf_fvars=None, tf_tvars=None, tf_meanpath=None,
+                 tf_stdpath=None, nlat=64, nlon=128, nlev=30, ntime=48):
+        # Basic setup
+        self.is_tf = is_tf; self.is_k = not is_tf
+        self.model = keras.models.load_model(model_path, custom_objects={"tf": tf})
+        self.nlat, self.nlon, self.nlev = (nlat, nlon, nlev)
         self.ngeo = nlat * nlon
-        self.feature_vars, self.target_vars = self._get_var_names()
+        self.ntime = ntime
+        # Get variable names and open arrays
+        if self.is_k:
+            self.k_norm = h5py.File(k_npath, 'r')
+            self._get_k_norm_arrs(*k_norms)
+            self.k_features = h5py.File(k_fpath, 'r')
+            self.k_targets = h5py.File(k_tpath, 'r')
+            self.fvars, self.tvars = self._get_k_vars()
+        else:
+            self.fvars, self.tvars = (tf_fvars, tf_tvars)
+            self.tf_mean, self.tf_std = (nc.Dataset(tf_meanpath), nc.Dataset(tf_stdpath))
+            self.tf_files = sorted(glob(tf_filepattern))
 
-    def _get_norm_arrs(self, fsub, fdiv, tsub, tmult):
-        self.fsub = 0. if fsub is None else self.keras_norm[fsub]
-        if fdiv is None: self.fdiv = 1.
-        elif fdiv == 'range': self.fdiv = self.keras_norm['feature_maxs'] - self.keras_norm['feature_mins']
-        elif fdiv == 'max_rs': self.fdiv = np.maximum(
-            self.keras_norm['feature_maxs'][:] - self.keras_norm['feature_mins'][:],
-            self.keras_norm['feature_stds_by_var'])
-        else: self.fdiv = self.keras_norm['fdiv']
-        self.tsub = 0. if tsub is None else self.keras_norm[tsub]
-        self.tmult = 1. if fsub is None else self.keras_norm[tmult]
-
-    def _load_model(self):
-        # For keras model
-        return keras.models.load_model(self.model_path)
-
-    def _get_var_names(self):
+    # Init helper functions
+    def _get_k_vars(self):
         """
         Return unique variable names for features and targets in correct order.
         """
-        return [
-            list(dict.fromkeys(
-                [f.split('_lev')[0] for f in
-                 list(self.keras_norm[f'{a}_names'][:])]
-            )) for a in ['feature', 'target']
-        ]
+        return [list(dict.fromkeys(
+            [f.split('_lev')[0] for f in list(self.k_norm[f'{a}_names'][:])]
+            )) for a in ['feature', 'target']]
 
+    def _get_k_norm_arrs(self, fsub, fdiv, tsub, tmult):
+        """
+        Allocate normalization arrays for keras.
+        """
+        self.fsub = 0. if fsub is None else self.k_norm[fsub]
+        if fdiv is None: self.fdiv = 1.
+        elif fdiv == 'range':
+            self.fdiv = self.k_norm['feature_maxs'] - self.k_norm['feature_mins']
+        elif fdiv == 'max_rs': self.fdiv = np.maximum(
+            self.k_norm['feature_maxs'][:] - self.k_norm['feature_mins'][:],
+            self.k_norm['feature_stds_by_var'])
+        else: self.fdiv = self.k_norm['fdiv']
+        self.tsub = 0. if tsub is None else self.k_norm[tsub]
+        self.tmult = 1. if fsub is None else self.k_norm[tmult]
 
-    def plot_double_lat_lev_slice(self, var, itime, ilon, **kwargs):
-        # Get predictions and true values. THIS WILL BE DIFFERENT FOR TF
-        preds, true = self._get_preds_and_truth(var, itime)
-        preds = preds[:, ilon, :]; true = true[:, ilon, :]
-        self.plot_double_slice(preds.T, true.T, var, **kwargs)
+    def get_pt(self, itime, var=None):
+        """
+        Returns denormalized predictions and truth for a given time step and var.
+        [lat, lon, lev] or [lat, lon, var, lev] if var is None
+        """
+        if self.is_k: p, t = self._get_k_pt(itime, var)
+        else: p, t = self._get_tf_pt(itime, var)
+        return p, t
 
-    def plot_double_lat_lon_slice(self, var, itime, ilev, **kwargs):
-        # Get predictions and true values. THIS WILL BE DIFFERENT FOR TF
-        preds, true = self._get_preds_and_truth(var, itime)
-        preds = preds[:, :, ilev]; true = true[:, :, ilev]
-        self.plot_double_slice(preds, true, var, **kwargs)
-
-    @staticmethod
-    def plot_double_slice(p, t, var=None, **kwargs):
-        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-        if var is None or var not in range_dict.keys():
-            mn = None; mx = None
-        else:
-            mn = range_dict[var][0]; mx = range_dict[var][1]
-        axes[0].imshow(p, **kwargs)
-        axes[1].imshow(t, **kwargs)
-        axes[0].set_title('CBRAIN Predictions')
-        axes[1].set_title('SP-CAM Truth')
-        plt.show()
-
-    @staticmethod
-    def plot_slice(x, title, **kwargs):
-        fig, ax = plt.subplots(1, 1, figsize=(6, 5))
-        ax.imshow(x, **kwargs)
-        ax.set_title(title)
-        plt.show()
-
-    def _get_preds_and_truth(self, var, itime):
-        f = (self.keras_features['features'][itime * self.ngeo:(itime + 1) * self.ngeo] -
+    def _get_k_pt(self, itime, var=None):
+        """Keras version"""
+        f = (self.k_features['features'][itime*self.ngeo:(itime+1)*self.ngeo] -
              self.fsub) / self.fdiv
-        p = self.model.predict_on_batch(f)
-        t = (self.keras_targets['targets'][itime * self.ngeo:(itime + 1) * self.ngeo] -
-             self.tsub) * self.tmult
-        return self.reshape_output(p, var), self.reshape_output(t, var)
+        p = self.model.predict_on_batch(f) / self.tmult + self.tsub
+        t = self.k_targets['targets'][itime*self.ngeo:(itime+1)*self.ngeo]
+        # At this stage they have shape [ngeo, stacked_levs]
+        return self._k_reshape(p, var), self._k_reshape(t, var)
 
-    def reshape_output(self, x, var=None, unscale=True):
+    def _get_tf_pt(self, itime=None, var=None, idate=None):
+        """Tensorflow version
+        If idate is given, instead of itime, return the entire file
         """
-        Assumes [sample, z] for one time step
-        """
-        x = x.reshape(self.nlat, self.nlon, x.shape[-1])  # [lat, lon, z]
-        if var is None: var_idxs = slice(0, None, 1)
+        if idate is None:
+            idate = itime // self.ntime; itime_tmp = itime % self.ntime
+        else: itime_tmp = None
+        f = self._get_tf_f_or_t(idate, itime_tmp, 'f')
+        p = self.model.predict_on_batch(f)
+        t = self._get_tf_f_or_t(idate, itime_tmp, 't', normalize=False)
+        p, t = (self._tf_reshape(p), self._tf_reshape(t))
+        if var is None:
+            return self._tf_denorm(p), t
         else:
-            var_idxs = self._get_var_idxs('target', var)
-        x = x[:, :, var_idxs]
-        # Unscale
-        if unscale: x /= conversion_dict[var]
+            var_idx = self.tvars.index(var)
+            return self._tf_denorm(p)[..., var_idx, :], t[..., var_idx, :]
+
+    def _k_reshape(self, x, var=None):
+        """For targets only atm.
+        [ngeo, stacked_levs] --> [lat, lon, var, lev]
+        Select var if not None.
+        """
+        x = x.reshape(self.nlat, self.nlon, -1, self.nlev)
+        if var is not None: x = x[:, :, self.tvars.index(var), :]
         return x
 
-    def _get_var_idxs(self, feature_or_target, var):
-        return [
-            i for i, s in
-            enumerate(list(self.keras_norm[f'{feature_or_target}_names'][:]))
-            if var in s]
-
-    def _get_dP(self, f):
-        PS_idxs = self._get_var_idxs('feature', 'PS')
-        PS = (
-            f[:, PS_idxs]
-        )
-        return np.diff(P0 * hyai + PS * hybi, axis=1)
-
-    def compute_stats(self, n_iter=None, compute_SPDT_SPDQ=False):
+    def _tf_reshape(self, x):
+        """[ngeo, var, nlev] -- > [lat, lon, var, lev]
+        or [ngeo*ntime, var, nlev] --> [ntime, lat, lon, var, lev]
         """
-        Compute statistics over entire dataset [lat, lon, lev].
-        bias = mean(preds) - mean(true)
-        mse = sse(preds, true) / n_samples
-        rel_mse = mse / std(true)
-        std_error = std(preds) - std(true)
-        """
-        # Get data generator without shuffling!
-        tmp = self.norm_names
-        gen_obj = DataGenerator(
-            '/',
-            self.keras_features_fn,
-            self.keras_targets_fn,
-            shuffle=False,
-            batch_size=self.ngeo,  # time step sized batches
-            norm_fn=self.keras_norm_fn,
-            fsub=tmp[0], fdiv=tmp[1], tsub=tmp[2], tmult=tmp[3],
-            verbose=True,
-        )
-        gen = gen_obj.return_generator()
-        psum = np.zeros((self.ngeo, gen_obj.target_shape))
+        ntar = len(self.tvars)
+        if x.shape[0] == self.ngeo:
+            return x.reshape(self.nlat, self.nlon, ntar, self.nlev)[:, :, :, ::-1]
+        else:
+            return x.reshape(self.ntime, self.nlat, self.nlon, ntar, self.nlev)[..., ::-1]
+
+    def _get_tf_f_or_t(self, idate, itime, f_or_t, normalize=True):
+        with nc.Dataset(self.tf_files[idate], 'r') as ds:
+            arr = []
+            vars = self.fvars if f_or_t == 'f' else self.tvars
+            for var in vars:
+                da = ds[var][:]
+                if normalize: da = (da - self.tf_mean[var][:]) / self.tf_std[var][:]
+                if da.ndim == 4:   # 3D variables [time, lev, lat, lon] --> [sample, lev]
+                    a = np.rollaxis(da, 1, 4).reshape(-1, self.nlev)
+                elif da.ndim == 3:   # 2D variables [time, lat, lon]
+                    a = np.rollaxis(np.tile(da.reshape(-1), (self.nlev, 1)), 0, 2)
+                elif da.ndim == 1:   # lat
+                    a = np.rollaxis(np.tile(da, (self.ntime, self.nlev, self.nlon, 1)),
+                                    1, 4).reshape(-1, self.nlev)
+                else:
+                    raise Exception('Incompatible number of dimensions')
+                arr.append(a)
+            arr = np.expand_dims(np.rollaxis(np.array(arr), 0, 2), 3) # [sample, feature, lev, 1]
+        arr =  arr[:, :, -self.nlev:][:, :, ::-1]
+        if itime is not None: arr = arr[itime*self.ngeo:(itime+1)*self.ngeo]
+        return arr
+
+    def _tf_denorm(self, x, f_or_t='t'):
+        for i, var in enumerate(self.fvars if f_or_t == 'f' else self.tvars):
+            m, s = [np.rollaxis(ds[var][-self.nlev:], 0, 3)
+                    for ds in [self.tf_mean, self.tf_std]]
+            x[..., i, :] = x[..., i, :] * s + m
+        return x
+
+    # Plotting functions
+    def plot_double_xy(self, itime, ilev, var, **kwargs):
+        p, t = self.get_pt(itime, var)
+        return self.plot_double_slice(p[:, :, ilev], t[:, :, ilev], **kwargs)
+
+    def plot_double_yz(self, itime, ilon, var, **kwargs):
+        p, t = self.get_pt(itime, var)
+        return self.plot_double_slice(p[:, ilon, :].T, t[:, ilon, :].T, **kwargs)
+
+    def plot_double_slice(self, p, t, title='', unit='', **kwargs):
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+        I1 = axes[0].imshow(p, **kwargs)
+        I2 = axes[1].imshow(t, **kwargs)
+        cb1 = fig.colorbar(I1, ax=axes[0], orientation='horizontal')
+        cb2 = fig.colorbar(I2, ax=axes[1], orientation='horizontal')
+        cb1.set_label(unit); cb2.set_label(unit)
+        axes[0].set_title('CBRAIN Predictions')
+        axes[1].set_title('SP-CAM Truth')
+        fig.suptitle(title)
+        return fig
+
+    def plot_slice(self, x, title='', unit='', **kwargs):
+        fig, ax = plt.subplots(1, 1, figsize=(6, 5))
+        I = ax.imshow(x, **kwargs)
+        cb = fig.colorbar(I, ax=ax, orientation='horizontal')
+        cb.set_label(unit)
+        ax.set_title(title)
+        return fig
+
+    # Statistics computation
+    def compute_stats(self, niter=None):
+        """Compute statistics in for [lat, lon, var, lev]"""
+        if self.is_k: nt = self.k_features['features'].shape[0] // self.ngeo
+        else: nt = len(self.tf_files) * self.ntime
+        if niter is not None: nt = niter
+        # Allocate stats arrays
+        psum = np.zeros((self.nlat, self.nlon, len(self.tvars), self.nlev))
         tsum = np.copy(psum); sse = np.copy(psum)
         psqsum = np.copy(psum); tsqsum = np.copy(psum)
-        if compute_SPDT_SPDQ:
-            SPpred = np.zeros(self.ngeo); SPtrue = np.copy(SPpred)
-        n = gen_obj.n_batches if n_iter is None else n_iter
-        for t in tqdm(range(n)):  # Every batch is one time step!
-            # Load features and targets
-            f, t = next(gen)
-            # Get predictions
-            p = self.model.predict_on_batch(f)  # [ngeo samples, z]
-            # Unscale outputs at this level
-            p /= self.tmult; t /= self.tmult
+        for itime in tqdm(range(nt)):
+            if self.is_k:
+                p, t = self.get_pt(itime)   # [lat, lon, var, lev]
+            else:   # For TF load entire aqua file at once!
+                itmp = itime % self.ntime; idate = itime // self.ntime
+                if itmp == 0:
+                    pday, tday = self._get_tf_pt(idate=idate)
+                p, t = (pday[itmp], tday[itmp])
             # Compute statistics
             psum += p; tsum += t
             psqsum += p ** 2; tsqsum += t ** 2
             sse += (t - p) ** 2
-            if compute_SPDT_SPDQ:
-                tmp = self._compute_SPDT_SPDQ(f, t, p)
-                SPpred += tmp[0]; SPtrue += tmp[1]
-
         # Compute average statistics
-        self.stats_dict = {}
-        pmean = psum / n; tmean = tsum / n
-        self.bias = pmean - tmean; self.stats_dict['bias'] = self.bias
-        self.mse = sse / n; self.stats_dict['mse'] = self.mse
-        self.pred_var = (psqsum / n - pmean ** 2) * n / (n - 1)  # Sample variance
-        self.stats_dict['pred_var'] = self.pred_var
-        self.true_var = (tsqsum / n - tmean ** 2) * n / (n - 1)
-        self.stats_dict['true_var'] = self.true_var
-        if compute_SPDT_SPDQ:
-            self.en_err_p = SPpred / n
-            self.en_err_t = SPtrue / n
-            print('Mean squared energy violation. True:',
-                  np.mean(self.en_err_t))
-            print('Mean squared energy violation. Pred:',
-                  np.mean(self.en_err_p))
+        self.stats = {}
+        pmean = psum / nt; tmean = tsum / nt
+        self.stats['bias'] = pmean - tmean
+        self.stats['mse'] = sse / nt
+        # -1 for sample variance
+        self.stats['pred_var'] = (psqsum / nt - pmean ** 2) * nt / (nt - 1)
+        self.stats['true_var'] = (tsqsum / nt - tmean ** 2) * nt / (nt - 1)
+        self.stats['r2'] = 1. - (self.stats['mse'] / self.stats['true_var'])
 
-    def _compute_SPDT_SPDQ(self, f, t, p):
-        # Get dP
-        dP = self._get_dP(f)
-        SPDT_pred = self.vint((p[:, self._get_var_idxs('target', 'SPDT')]),
-                              C_P, dP)
-        SPDQ_pred = self.vint((p[:, self._get_var_idxs('target', 'SPDQ')]),
-                              L_V, dP)
-        SPDT_true = self.vint((t[:, self._get_var_idxs('target', 'SPDT')]),
-                              C_P, dP)
-        SPDQ_true = self.vint((t[:, self._get_var_idxs('target', 'SPDQ')]),
-                              L_V, dP)
-        return np.square(SPDT_pred + SPDQ_pred), np.square(SPDT_true + SPDQ_true)
-
-    @staticmethod
-    def vint(x, factor, dP):
-        return np.sum(x * factor * dP / G, -1)
-
-    def mean_stats(self, cutoff_level=9):
-        expl_var_str = f'expl_var_cut{cutoff_level}'
-        df = pd.DataFrame(
-            index=self.target_vars + ['all'],
-            columns=list(self.stats_dict.keys()) + [expl_var_str])
-        # Compute statistics for each variable
-        for var in self.target_vars + ['all']:
-            for stat_name, stat in self.stats_dict.items():
-                v = None if var == 'all' else var
-                df.loc[var, stat_name] = np.mean(self.reshape_output(
-                    stat, var=v, unscale=False))
-
-                df.loc[var, expl_var_str] = np.mean((1. - (
-                     np.mean(self.reshape_output(self.mse, v, unscale=False), axis=(0, 1)) /
-                     np.mean(self.reshape_output(self.true_var, v, unscale=False), axis=(0, 1))
-                ).reshape(-1, self.nlev))[:, cutoff_level:])
+    def mean_stats(self, cutoff_level=0):
+        """Get average statistics for each variable and returns dataframe"""
+        df = pd.DataFrame(index=self.tvars + ['all'],
+            columns=list(self.stats.keys()))
+        for ivar, var in enumerate(self.tvars):
+            for stat_name, stat in self.stats.items():
+                # Stats have shape [lat, lon, var, lev]
+                df.loc[var, stat_name] = np.mean(stat[:, :, ivar])
+            # compute r2
+            df.loc[var, 'r2_v2'] = self._compute_r2(
+                self.stats['mse'][:, :, ivar], self.stats['true_var'][:, :, ivar], cutoff_level)
+        # Compute r2 for all vars
+        df.loc['all', 'r2_v2'] = self._compute_r2(
+            self.stats['mse'], self.stats['true_var'], cutoff_level)
+        self.stats_df = df
         return df
 
-    def plot_stat_lat_lev_mean(self, stat_name, var, **kwargs):
-        arr = np.mean(self.reshape_output(
-            self.stats_dict[stat_name], var=var, unscale=False), axis=1).T
-        self.plot_slice(arr, var + ' ' + stat_name, **kwargs)
+    # Stats helper functions
+    def _compute_r2(self, mse, true_var, cutoff_level=0):
+        """r2 here is defined as the average r2 over each level
+        mse and true_var have dims [lat, lon, lev]
+        """
+        lev_r2 = 1. - (np.mean(mse, axis=(0, 1)) / np.mean(true_var, axis=(0, 1)))
+        return np.mean(lev_r2[..., cutoff_level:])
+
+
+
+
+    # def _compute_SPDT_SPDQ(self, f, t, p):
+    #     # Get dP
+    #     dP = self._get_dP(f)
+    #     SPDT_pred = self.vint((p[:, self._get_var_idxs('target', 'SPDT')]),
+    #                           C_P, dP)
+    #     SPDQ_pred = self.vint((p[:, self._get_var_idxs('target', 'SPDQ')]),
+    #                           L_V, dP)
+    #     SPDT_true = self.vint((t[:, self._get_var_idxs('target', 'SPDT')]),
+    #                           C_P, dP)
+    #     SPDQ_true = self.vint((t[:, self._get_var_idxs('target', 'SPDQ')]),
+    #                           L_V, dP)
+    #     return np.square(SPDT_pred + SPDQ_pred), np.square(SPDT_true + SPDQ_true)
+    #
+    # @staticmethod
+    # def vint(x, factor, dP):
+    #     return np.sum(x * factor * dP / G, -1)
