@@ -1,2 +1,2 @@
-inputs : [T_C, Q_C, V_C, SHFLX, LHFLX, PS, SOLIN]
+inputs : [T_C, Q_C, V_C, SHFLX, LxHFLX, PS, SOLIN]
 outputs : [SPDQ, SPDT, QRL, QRS]

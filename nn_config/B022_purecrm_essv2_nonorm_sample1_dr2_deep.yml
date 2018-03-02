@@ -1,13 +1,14 @@
-exp_name: B018_purecrm_essv2_nonorm_sample1_max_rs
+exp_name: B022_purecrm_essv2_nonorm_sample1_dr2_deep
 data_dir: /scratch/srasp/preprocessed_data/
 train_fn: purecrm_essv2_nonorm_train_sample1_shuffle
 valid_fn: purecrm_essv2_nonorm_valid_sample1
 fsub: feature_means
 fdiv: max_rs
-tdiv: target_conv
+tmult: target_conv
 activation: LeakyReLU
-hidden_layers: [512]
+hidden_layers: [512, 512]
 loss: mse
 log_dir: ./logs/
 epochs: 20
-pvalid_after: True
+valid_after: True
+dr: 0.3

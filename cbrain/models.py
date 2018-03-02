@@ -7,8 +7,7 @@ Author: Stephan Rasp
 import keras
 import tensorflow as tf
 from keras.models import Sequential, Model
-from keras.layers import Dense, Conv1D, Input, Flatten, Concatenate, \
-    BatchNormalization, LocallyConnected1D, LeakyReLU, Activation
+from keras.layers import *
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
 from .losses import *
@@ -22,7 +21,7 @@ def act_layer(act):
 
 
 def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
-             activation='relu', batch_norm=False):
+             activation='relu', batch_norm=False, dr=None):
     """Creates a simple fully connected neural net and compiles it
 
     Args:
@@ -44,6 +43,8 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
     model.add(act_layer(activation))
     if batch_norm:
         model.add(BatchNormalization())
+    if dr is not None:
+        model.add(Dropout(dr))
     # All other hidden layers
     if len(hidden_layers) > 1:
         for h in hidden_layers[1:]:
@@ -51,6 +52,8 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
             model.add(act_layer(activation))
             if batch_norm:
                 model.add(BatchNormalization())
+            if dr is not None:
+                model.add(Dropout(dr))
     # Output layer
     model.add(Dense(target_shape, activation='linear'))
 

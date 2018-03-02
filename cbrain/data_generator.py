@@ -51,7 +51,7 @@ class threadsafe_iter(object):
 
 @threadsafe_generator
 def data_generator(data_dir, feature_fn, target_fn, shuffle=True,
-                   batch_size=512, feature_norms=None, target_norms=None):
+                   batch_size=512, feature_norms=None, target_norms=None, noise=None):
     """Works on pre-stacked targets with truely random batches
     """
     # Open files
@@ -74,6 +74,8 @@ def data_generator(data_dir, feature_fn, target_fn, shuffle=True,
             y = target_file['targets'][batch_idx:batch_idx + batch_size, :]
             if feature_norms is not None: x = (x - feature_norms[0]) / feature_norms[1]
             if target_norms is not None: y = (y - target_norms[0]) * target_norms[1]
+            if noise is not None:
+                x += np.random.normal(0, noise, x.shape)
             yield x, y
 
 
@@ -121,7 +123,8 @@ class DataGenerator(object):
     """
 
     def __init__(self, data_dir, feature_fn, target_fn, batch_size, norm_fn=None,
-                 fsub=None, fdiv=None, tsub=None, tmult=None, shuffle=True, verbose=True):
+                 fsub=None, fdiv=None, tsub=None, tmult=None, shuffle=True, verbose=True,
+                 noise=None):
         """Initialize DataGenerator object
 
         Args:
@@ -138,6 +141,7 @@ class DataGenerator(object):
         self.shuffle = shuffle
         self.feature_norms = None
         self.target_norms = None
+        self.noise = noise
 
         # Determine n_batches and shapes
         with h5py.File(data_dir + feature_fn, 'r') as feature_file:
@@ -193,5 +197,6 @@ class DataGenerator(object):
                 self.shuffle,
                 self.batch_size,
                 self.feature_norms,
-                self.target_norms
+                self.target_norms,
+                self.noise
             )

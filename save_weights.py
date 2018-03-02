@@ -117,7 +117,7 @@ if __name__ == '__main__':
                    default=None,
                    type=str,
                    help='Subtract target array by. Default: None')
-    p.add_argument('--tdiv',
+    p.add_argument('--tmult',
                    default=None,
                    type=str,
                    help='Divide target array by, e.g. target_conv. Default: None')
@@ -162,6 +162,14 @@ if __name__ == '__main__':
                    nargs='+',
                    type=int,
                    help='List with hidden nodes.')
+    p.add_argument('--dr',
+                   default=None,
+                   type=float,
+                   help='Dropout rate.')
+    p.add_argument('--noise',
+                   default=None,
+                   type=float,
+                   help='Training noise std')
     p.add_argument('--conv_layers',
                    default=[],
                    nargs='+',

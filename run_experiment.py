@@ -30,8 +30,7 @@ def main(inargs):
         inargs.batch_size,
         inargs.train_fn.split('_shuffle')[0] + '_norm.nc', # Ugly hack!
         inargs.fsub, inargs.fdiv, inargs.tsub, inargs.tmult,
-        shuffle=True,
-
+        shuffle=True, noise=inargs.noise,
     )
     valid_gen = DataGenerator(
         inargs.data_dir,
@@ -66,7 +65,8 @@ def main(inargs):
             inargs.lr,
             loss_dict[inargs.loss],
             batch_norm=inargs.batch_norm,
-            activation=inargs.activation
+            activation=inargs.activation,
+            dr=inargs.dr
         )
     if inargs.verbose: print(model.summary())
 
@@ -202,6 +202,14 @@ if __name__ == '__main__':
                    nargs='+',
                    type=int,
                    help='List with hidden nodes.')
+    p.add_argument('--dr',
+                   default=None,
+                   type=float,
+                   help='Dropout rate.')
+    p.add_argument('--noise',
+                   default=None,
+                   type=float,
+                   help='Training noise std')
     p.add_argument('--conv_layers',
                    default=[],
                    nargs='+',
