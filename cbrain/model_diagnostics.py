@@ -44,13 +44,13 @@ class ModelDiagnostics(object):
     def __init__(self, is_tf, model_path,
                  k_fpath=None, k_tpath=None, k_npath=None, k_norms=None,
                  tf_filepattern=None, tf_fvars=None, tf_tvars=None, tf_meanpath=None,
-                 tf_stdpath=None, nlat=64, nlon=128, nlev=30, ntime=48):
+                 tf_stdpath=None, nlat=64, nlon=128, nlev=30, ntime=48, raw_nlev=30):
         # Basic setup
         self.is_tf = is_tf; self.is_k = not is_tf
         self.model = keras.models.load_model(model_path, custom_objects={"tf": tf})
         self.nlat, self.nlon, self.nlev = (nlat, nlon, nlev)
         self.ngeo = nlat * nlon
-        self.ntime = ntime
+        self.ntime = ntime; self.raw_nlev=30
         # Get variable names and open arrays
         if self.is_k:
             self.k_norm = h5py.File(k_npath, 'r')
@@ -149,12 +149,12 @@ class ModelDiagnostics(object):
                 da = ds[var][:]
                 if normalize: da = (da - self.tf_mean[var][:]) / self.tf_std[var][:]
                 if da.ndim == 4:   # 3D variables [time, lev, lat, lon] --> [sample, lev]
-                    a = np.rollaxis(da, 1, 4).reshape(-1, self.nlev)
+                    a = np.rollaxis(da, 1, 4).reshape(-1, self.raw_nlev)
                 elif da.ndim == 3:   # 2D variables [time, lat, lon]
-                    a = np.rollaxis(np.tile(da.reshape(-1), (self.nlev, 1)), 0, 2)
+                    a = np.rollaxis(np.tile(da.reshape(-1), (self.raw_nlev, 1)), 0, 2)
                 elif da.ndim == 1:   # lat
-                    a = np.rollaxis(np.tile(da, (self.ntime, self.nlev, self.nlon, 1)),
-                                    1, 4).reshape(-1, self.nlev)
+                    a = np.rollaxis(np.tile(da, (self.ntime, self.raw_nlev, self.nlon, 1)),
+                                    1, 4).reshape(-1, self.raw_nlev)
                 else:
                     raise Exception('Incompatible number of dimensions')
                 arr.append(a)
