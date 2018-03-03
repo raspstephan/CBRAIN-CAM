@@ -1,7 +1,7 @@
-exp_name: B018_purecrm_essv2_nonorm_sample1_max_rs
+exp_name: C001_tfcomp_sample1_base
 data_dir: /scratch/srasp/preprocessed_data/
-train_fn: purecrm_essv2_nonorm_train_sample1_shuffle
-valid_fn: purecrm_essv2_nonorm_valid_sample1
+train_fn: tfcomp_train_sample1_shuffle
+valid_fn: tfcomp_valid_sample1
 fsub: feature_means
 fdiv: max_rs
 tdiv: target_conv

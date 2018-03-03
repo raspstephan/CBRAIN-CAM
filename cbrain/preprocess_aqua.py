@@ -24,6 +24,7 @@ L_V = 2.5e6   # Latent heat of vaporization is actually 2.26e6
 C_P = 1e3   # Specific heat capacity of air at constant pressure
 conversion_dict = {
     'TPHYSTND': C_P,
+    'TPHYSTND_NORAD': C_P,
     'PHQ': L_V,
     'PHCLDLIQ' : L_V,
     'PHCLDICE' : L_V,   # Is this correct? Or should it be L_I?
@@ -153,6 +154,20 @@ def compute_adiabatic(ds, base_var):
     return (compute_bp(ds, base_var) - compute_c(ds, base_var)) / dt_sec
 
 
+def compute_adiabatic_tf(ds, base_var):
+    """Compute adiabatic tendencies as in Pierre's TF version
+
+    Args:
+        ds: xarray dataset
+        base_var: Base variable to be computed
+
+    Returns:
+        adiabatic: xarray dataarray
+    """
+    adiab = (ds[base_var].diff(dim='time', n=1) / dt_sec - ds[phy_dict[base_var]])[1:]
+    return adiab
+
+
 def create_feature_or_target_da(ds, vars, min_lev, feature_or_target, 
                                 factor=1.):
     """Create feature or target dataset.
@@ -172,7 +187,10 @@ def create_feature_or_target_da(ds, vars, min_lev, feature_or_target,
     for var in vars:
         # Compute derived quantities if necessary
         # I should do this more cleverly with regular experssions...
-        if 'dt_adiabatic' in var:
+        if 'dt_adiabatic_tf' in var:
+            base_var = var[:-15][1:] + 'AP'
+            da = compute_adiabatic_tf(ds, base_var)
+        elif 'dt_adiabatic' in var:
             base_var = var[:-12][1:] + 'AP'
             da = compute_adiabatic(ds, base_var)
         elif 'BP' in var:
@@ -183,9 +201,11 @@ def create_feature_or_target_da(ds, vars, min_lev, feature_or_target,
             da = compute_c(ds, base_var)
         elif var in ['LHFLX', 'SHFLX']:   # Take from previous time step
             da = ds[var][:-1]
+        elif var == 'TPHYSTND_NORAD':
+            da = (ds['TPHYSTND'] - ds['QRL'] - ds['QRS'])[1:]
         else:   # Take from current time step
             da = ds[var][1:]
-        # if feature_or_target == 'target':
+        # if feature_or_target == 'target':  # we are not normalizing anymore!
         #     da *= conversion_dict[var]
         features_list.append(da * factor)
 
