@@ -44,13 +44,15 @@ class ModelDiagnostics(object):
     def __init__(self, is_tf, model_path,
                  k_fpath=None, k_tpath=None, k_npath=None, k_norms=None,
                  tf_filepattern=None, tf_fvars=None, tf_tvars=None, tf_meanpath=None,
-                 tf_stdpath=None, nlat=64, nlon=128, nlev=30, ntime=48, raw_nlev=30):
+                 tf_stdpath=None, nlat=64, nlon=128, nlev=30, ntime=48, raw_nlev=30,
+                 watch_mem=False):
         # Basic setup
         self.is_tf = is_tf; self.is_k = not is_tf
         self.model = keras.models.load_model(model_path, custom_objects={"tf": tf})
         self.nlat, self.nlon, self.nlev = (nlat, nlon, nlev)
         self.ngeo = nlat * nlon
         self.ntime = ntime; self.raw_nlev=30
+        self.watch_mem = watch_mem
         # Get variable names and open arrays
         if self.is_k:
             self.k_norm = h5py.File(k_npath, 'r')
@@ -113,7 +115,8 @@ class ModelDiagnostics(object):
             idate = itime // self.ntime; itime_tmp = itime % self.ntime
         else: itime_tmp = None
         f = self._get_tf_f_or_t(idate, itime_tmp, 'f')
-        p = self.model.predict_on_batch(f)
+        if self.watch_mem: p = self.model.predict(f, 1024)
+        else: p = self.model.predict_on_batch(f)
         t = self._get_tf_f_or_t(idate, itime_tmp, 't', normalize=False)
         p, t = (self._tf_reshape(p), self._tf_reshape(t))
         if var is None:

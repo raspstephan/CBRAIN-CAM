@@ -5,20 +5,7 @@ Author: Stephan Rasp
 """
 
 # Imports
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import h5py
-from collections import OrderedDict
-from scipy.stats import binned_statistic
-import xarray as xr
-from losses import metrics
-from data_generator import DataGenerator
-import keras
-from keras.utils.generic_utils import get_custom_objects
-metrics_dict = dict([(f.__name__, f) for f in metrics])
-get_custom_objects().update(metrics_dict)
-from tqdm import tqdm
+from .imports import *
 
 # Define conversion dict
 L_V = 2.5e6   # Latent heat of vaporization is actually 2.26e6
@@ -261,3 +248,8 @@ def run_diagnostics(model_fn, data_dir, valid_pref, norm_fn, verbose=False,
 
 def reshape_geo(x):
     return x.reshape((-1, n_lat, n_lon, x.shape[-1]))
+
+def limit_mem():
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    keras.backend.tensorflow_backend.set_session(tf.Session(config=config))

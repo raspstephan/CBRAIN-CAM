@@ -164,7 +164,7 @@ def compute_adiabatic_tf(ds, base_var):
     Returns:
         adiabatic: xarray dataarray
     """
-    adiab = (ds[base_var].diff(dim='time', n=1) / dt_sec - ds[phy_dict[base_var]])[1:]
+    adiab = (ds[base_var].diff(dim='time', n=1) / dt_sec - ds[phy_dict[base_var]])
     return adiab
 
 

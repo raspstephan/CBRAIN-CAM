@@ -6,9 +6,6 @@ import matplotlib.pyplot as plt
 import keras
 from keras.callbacks import *
 import tensorflow as tf
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
-keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
 import pandas as pd
 import pickle
 import pdb
@@ -33,3 +30,7 @@ if in_notebook():
     from tqdm import tqdm
 else:
     from tqdm import tqdm_notebook as tqdm
+
+
+L_V = 2.5e6   # Latent heat of vaporization
+C_P = 1e3 # Specific heat capacity of air at constant pressure
