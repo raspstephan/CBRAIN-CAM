@@ -241,7 +241,7 @@ class ModelDiagnostics(object):
         for ivar, var in enumerate(self.tvars):
             for stat_name, stat in self.stats.items():
                 # Stats have shape [lat, lon, var, lev]
-                df.loc[var, stat_name] = np.mean(stat[:, :, ivar])
+                df.loc[var, stat_name] = np.mean(stat[:, :, ivar, cutoff_level:])
             # compute r2
             df.loc[var, 'r2_v2'] = self._compute_r2(
                 self.stats['mse'][:, :, ivar], self.stats['true_var'][:, :, ivar], cutoff_level)
