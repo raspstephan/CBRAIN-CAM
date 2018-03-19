@@ -1,4 +1,4 @@
-exp_name: B023_purecrm_essv2_nonorm_sample1_noise1_deep1
+exp_name: B024_purecrm_essv2_nonorm_sample1_noise2_deep1
 data_dir: /scratch/srasp/preprocessed_data/
 train_fn: purecrm_essv2_nonorm_train_sample1_shuffle
 valid_fn: purecrm_essv2_nonorm_valid_sample1
@@ -11,4 +11,4 @@ loss: mse
 log_dir: ./logs/
 epochs: 20
 valid_after: True
-noise: 0.005
+noise: 0.05

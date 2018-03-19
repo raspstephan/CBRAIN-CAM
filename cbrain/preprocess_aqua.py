@@ -404,7 +404,7 @@ def shuffle_da(feature_da, target_da, seed):
     return feature_da, target_da
 
 
-def rechunk_da(da, sample_chunks=1000000):
+def rechunk_da(da, sample_chunks):
     """
 
     Args:
@@ -455,8 +455,8 @@ def main(inargs):
     target_da = reshape_da(target_da)
 
     # Rechunk 1, not sure if this is good or necessary
-    feature_da = rechunk_da(feature_da)
-    target_da = rechunk_da(target_da)
+    feature_da = rechunk_da(feature_da, inargs.chunk_size)
+    target_da = rechunk_da(target_da, inargs.chunk_size)
 
     # Normalize features
     norm_fn = inargs.out_dir + inargs.out_pref + '_norm.nc'
@@ -477,8 +477,8 @@ def main(inargs):
             target_da = target_da.reset_index('sample')
 
         # Rechunk 2, not sure if this is good or necessary at all...
-        feature_da = rechunk_da(feature_da)
-        target_da = rechunk_da(target_da)
+        feature_da = rechunk_da(feature_da, inargs.chunk_size)
+        target_da = rechunk_da(target_da, inargs.chunk_size)
 
         # Convert to Datasets
         feature_ds = xr.Dataset({'features': feature_da},
@@ -531,6 +531,10 @@ if __name__ == '__main__':
                    type=str,
                    default='test',
                    help='Prefix for all file names')
+    p.add_argument('--chunk_size',
+                   type=int,
+                   default=100_000,
+                   help='size of chunks')
     p.add_argument('--ext_norm',
                    type=str,
                    default=None,

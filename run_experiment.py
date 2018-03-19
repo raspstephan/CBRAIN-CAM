@@ -66,7 +66,8 @@ def main(inargs):
             loss_dict[inargs.loss],
             batch_norm=inargs.batch_norm,
             activation=inargs.activation,
-            dr=inargs.dr
+            dr=inargs.dr,
+            l2=inargs.l2
         )
     if inargs.verbose: print(model.summary())
 
@@ -210,6 +211,10 @@ if __name__ == '__main__':
                    default=None,
                    type=float,
                    help='Training noise std')
+    p.add_argument('--l2',
+                   default=None,
+                   type=float,
+                   help='L2 regularization for dense layers')
     p.add_argument('--conv_layers',
                    default=[],
                    nargs='+',
