@@ -430,7 +430,7 @@ def main(inargs):
 
     # Load dataset`
     merged_ds = xr.open_mfdataset(inargs.in_dir + inargs.aqua_names,
-                                  decode_times=False)
+                                  decode_times=False, decode_cf=False)
     print('Number of time steps:', merged_ds.coords['time'].size)
     # Crop levels and latitude range
     merged_ds = crop_ds(inargs, merged_ds)

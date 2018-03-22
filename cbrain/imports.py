@@ -3,6 +3,7 @@ Just all the imports for all other scripts and notebooks.
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import keras
 from keras.callbacks import *
 import tensorflow as tf

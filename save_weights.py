@@ -170,6 +170,10 @@ if __name__ == '__main__':
                    default=None,
                    type=float,
                    help='Training noise std')
+    p.add_argument('--l2',
+                   default=None,
+                   type=float,
+                   help='L2 regularization for dense layers')
     p.add_argument('--conv_layers',
                    default=[],
                    nargs='+',
