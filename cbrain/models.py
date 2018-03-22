@@ -50,7 +50,7 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
     # All other hidden layers
     if len(hidden_layers) > 1:
         for h in hidden_layers[1:]:
-            model.add(Dense(h), kernel_regularizer=l2)
+            model.add(Dense(h, kernel_regularizer=l2))
             model.add(act_layer(activation))
             if batch_norm:
                 model.add(BatchNormalization())

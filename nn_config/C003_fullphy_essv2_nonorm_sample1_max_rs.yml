@@ -1,0 +1,13 @@
+exp_name: C003_fullphy_essv2_nonorm_sample1_max_rs
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: fullphy_essv2_nonorm_train_sample1_shuffle
+valid_fn: fullphy_essv2_nonorm_valid_sample1
+fsub: feature_means
+fdiv: max_rs
+tdiv: target_conv
+activation: LeakyReLU
+hidden_layers: [512]
+loss: mse
+log_dir: ./logs/
+epochs: 20
+valid_after: True

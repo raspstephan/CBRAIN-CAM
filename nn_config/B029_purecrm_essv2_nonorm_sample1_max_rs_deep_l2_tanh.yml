@@ -1,0 +1,14 @@
+exp_name: B029_purecrm_essv2_nonorm_sample1_max_rs_deep_l2_tanh
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: purecrm_essv2_nonorm_train_sample1_shuffle
+valid_fn: purecrm_essv2_nonorm_valid_sample1
+fsub: feature_means
+fdiv: max_rs
+tmult: target_conv
+activation: tanh
+hidden_layers: [256,256,256,256,256,256,256,256,256]
+loss: mse
+log_dir: ./logs/
+epochs: 20
+valid_after: True
+l2: 5e-6
