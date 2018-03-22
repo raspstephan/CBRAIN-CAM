@@ -1,0 +1,14 @@
+exp_name: B027_purecrm_essv2_nonorm_fullyear_max_rs
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: purecrm_essv2_nonorm_train_fullyear_shuffle
+valid_fn: purecrm_essv2_nonorm_valid_fullyear
+fsub: feature_means
+fdiv: max_rs
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [512]
+loss: mse
+log_dir: ./logs/
+epochs: 10
+valid_after: True
+lr_step: 2

@@ -21,7 +21,7 @@ def act_layer(act):
 
 
 def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
-             activation='relu', batch_norm=False, dr=None):
+             activation='relu', batch_norm=False, dr=None, l2=None):
     """Creates a simple fully connected neural net and compiles it
 
     Args:
@@ -36,9 +36,11 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
     Returns:
         model: compiled Keras model
     """
+    if l2 is not None:
+        l2 = keras.regularizers.l2(l2)
     # First hidden layer
     model = Sequential([
-        Dense(hidden_layers[0], input_shape=(feature_shape,))
+        Dense(hidden_layers[0], input_shape=(feature_shape,), kernel_regularizer=l2)
     ])
     model.add(act_layer(activation))
     if batch_norm:
@@ -48,14 +50,14 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
     # All other hidden layers
     if len(hidden_layers) > 1:
         for h in hidden_layers[1:]:
-            model.add(Dense(h))
+            model.add(Dense(h, kernel_regularizer=l2))
             model.add(act_layer(activation))
             if batch_norm:
                 model.add(BatchNormalization())
             if dr is not None:
                 model.add(Dropout(dr))
     # Output layer
-    model.add(Dense(target_shape, activation='linear'))
+    model.add(Dense(target_shape, activation='linear', kernel_regularizer=l2))
 
     # Compile model
     model.compile(Adam(lr), loss=loss, metrics=metrics)
