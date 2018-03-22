@@ -4,7 +4,7 @@ train_fn: fullphy_essv2_nonorm_train_sample1_shuffle
 valid_fn: fullphy_essv2_nonorm_valid_sample1
 fsub: feature_means
 fdiv: max_rs
-tdiv: target_conv
+tmult: target_conv
 activation: LeakyReLU
 hidden_layers: [256,256,256,256,256,256,256,256,256]
 loss: mse
