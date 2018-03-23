@@ -15,6 +15,7 @@ import xarray as xr
 import h5py
 from glob import glob
 import sys, os
+import seaborn as sns
 base_dir = os.getcwd().split('CBRAIN-Keras-Diagnostics/')[0] + 'CBRAIN-Keras-Diagnostics/'
 sys.path.append(f'{base_dir}keras_network/')
 sys.path.append(f'{base_dir}data_processing/')

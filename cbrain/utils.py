@@ -253,3 +253,66 @@ def limit_mem():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
+
+def global_mean(ds, var):
+    return ds[var].mean(dim=('lat', 'lon', 'lev')) 
+
+def basic_debug(debug, ref=False, data_dir='/scratch/05488/tg847872/cloudbrain_ctrl_aquaplanet_03/'):
+    if not ref: ds = xr.open_mfdataset(f'{data_dir}*{debug}*', decode_times=False)
+    else: ds = xr.open_mfdataset(f'{REF_DIR}AndKua_aqua_SPCAM3.0_enhance05.cam2.h1.0000-01-0[1-5]-00000.nc', decode_times=False)
+    plot_global_stats(ds)
+    ds['TAP'].max(('lat', 'lon')).T.plot(yincrease=False, robust=True)
+    plt.title('Max TAP'); plt.show()
+    ds['QAP'].max(('lat', 'lon')).T.plot(yincrease=False, robust=True)
+    plt.title('Max QAP'); plt.show()
+    return ds
+
+def plot_time_lev(ds, var, func=np.mean, **kwargs):
+    fig = plt.figure(figsize=(12, 5))
+    plt.imshow(func(ds[var], axis=(2, 3)).T, **kwargs)
+    plt.colorbar(shrink=0.3)
+    plt.show()
+
+def get2Didxs(a, func): return(np.unravel_index(func(a), a.shape))
+
+def get_cb_inps(ds, t, m, s):
+    x = np.concatenate(
+        [ds['NNTC'][t], ds['NNQC'][t], ds['NNVC'][t], ds['dTdtadia'][t], ds['dQdtadia'][t],
+         np.expand_dims(ds['NNPS'][t], 0), np.expand_dims(ds['NNSOLIN'][t], 0)]
+    )
+    return normalize(x, m, s)
+
+def normalize(x, m, s):
+    return (x - m[:, None, None]) / s[:, None, None]
+
+def stack_outps(ds, t):
+    x = np.concatenate(
+        [ds['BRAINDQ'].isel(time=t)*L_V, ds['BRAINDT'].isel(time=t)*C_P, 
+         ds['QRL'].isel(time=t)*C_P, ds['QRS'].isel(time=t)*C_P])
+    return x
+
+def get_P_from_ds(ds):
+    return ds.P0 * ds.hyai + ds.PS * ds.hybi
+
+def get_dP_from_ds(ds):
+    p = get_P_from_ds(ds)
+    p_diff = p.diff(dim='ilev')
+    return p_diff.rename({'ilev':'lev'})
+
+def vint(ds, var, factor):
+    dP = get_dP_from_ds(ds)
+    x = ds[var]
+    dP['lev'] = x['lev']
+    return (dP * x * factor / G).sum(dim='lev')
+
+def gw_avg(ds, var=None, da=None):
+    da = ds[var] if da is None else da
+    return (da * ds['gw']).mean(dim=('lat', 'lon'))
+
+def plot_global_stats(ds):
+    gw_avg(ds, da=vint(ds, 'TAP', C_P)[1:]).plot()
+    plt.title('Global Dry Static Energy')
+    plt.show()
+    gw_avg(ds, da=vint(ds, 'QAP', 1.)[1:]).plot()
+    plt.title('Global Water Vapor')
+    plt.show()
