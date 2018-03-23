@@ -229,6 +229,10 @@ class ModelDiagnostics(object):
         pmean = psum / nt; tmean = tsum / nt
         self.stats['bias'] = pmean - tmean
         self.stats['mse'] = sse / nt
+        self.stats['pred_mean'] = psum / nt
+        self.stats['true_mean'] = tsum / nt
+        self.stats['pred_sqmean'] = psqsum / nt
+        self.stats['true_sqmean'] = tsqsum / nt
         # -1 for sample variance
         self.stats['pred_var'] = (psqsum / nt - pmean ** 2) * nt / (nt - 1)
         self.stats['true_var'] = (tsqsum / nt - tmean ** 2) * nt / (nt - 1)
