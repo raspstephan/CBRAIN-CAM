@@ -20,7 +20,7 @@ import pdb
 from glob import glob
 
 # Define conversion dict
-L_V = 2.5e6   # Latent heat of vaporization is actually 2.26e6
+L_V = 2.5e6   # Latent heat of vaporization
 C_P = 1e3   # Specific heat capacity of air at constant pressure
 conversion_dict = {
     'TPHYSTND': C_P,

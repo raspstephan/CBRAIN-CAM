@@ -1,9 +1,9 @@
-exp_name: A002_fullphy_essv2_nonorm_sample1_max_rs
+exp_name: P002_512_sample1
 data_dir: /scratch/srasp/preprocessed_data/
-train_fn: fullphy_essv2_nonorm_train_sample1_shuffle
-valid_fn: fullphy_essv2_nonorm_valid_sample1
+train_fn: paper_nonorm_train_sample1_shuffle
+valid_fn: paper_nonorm_valid_sample1
 fsub: feature_means
-fdiv: max_rs
+fdiv: feature_stds
 tmult: target_conv
 activation: LeakyReLU
 hidden_layers: [512]
