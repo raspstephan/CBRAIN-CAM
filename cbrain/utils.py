@@ -21,10 +21,6 @@ conversion_dict = {
 
 # Basic setup
 np.random.seed(42)
-sns.set_style('dark')
-sns.set_palette('deep')
-sns.set_context('talk')
-plt.rcParams["figure.figsize"] = (10,7)
 
 
 # Plotting functions

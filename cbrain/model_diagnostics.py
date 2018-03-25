@@ -41,8 +41,8 @@ class ModelDiagnostics(object):
     3. Output shape: 1D for Keras, 2D for TF --> Use TF convention
     NOTE: This cannot handle outputs with one level.
     """
-    def __init__(self, is_tf, model_path,
-                 k_fpath=None, k_tpath=None, k_npath=None, k_norms=None,
+    def __init__(self, model_path, is_tf=False,
+                 fpath=None, tpath=None, npath=None, norms=None,
                  tf_filepattern=None, tf_fvars=None, tf_tvars=None, tf_meanpath=None,
                  tf_stdpath=None, nlat=64, nlon=128, nlev=30, ntime=48, raw_nlev=30,
                  watch_mem=False):
@@ -53,12 +53,14 @@ class ModelDiagnostics(object):
         self.ngeo = nlat * nlon
         self.ntime = ntime; self.raw_nlev=30
         self.watch_mem = watch_mem
+        self.save_str = (model_path.split('/')[-1].split('.')[0] + '_' +
+                          fpath.split('/')[-1].split('.')[0].split('_features')[0] + '.pkl')
         # Get variable names and open arrays
         if self.is_k:
-            self.k_norm = h5py.File(k_npath, 'r')
-            self._get_k_norm_arrs(*k_norms)
-            self.k_features = h5py.File(k_fpath, 'r')
-            self.k_targets = h5py.File(k_tpath, 'r')
+            self.k_norm = h5py.File(npath, 'r')
+            self._get_k_norm_arrs(*norms)
+            self.k_features = h5py.File(fpath, 'r')
+            self.k_targets = h5py.File(tpath, 'r')
             self.fvars, self.tvars = self._get_k_vars()
         else:
             self.fvars, self.tvars = (tf_fvars, tf_tvars)
@@ -85,7 +87,7 @@ class ModelDiagnostics(object):
         elif fdiv == 'max_rs': self.fdiv = np.maximum(
             self.k_norm['feature_maxs'][:] - self.k_norm['feature_mins'][:],
             self.k_norm['feature_stds_by_var'])
-        else: self.fdiv = self.k_norm['fdiv']
+        else: self.fdiv = self.k_norm[fdiv]
         self.tsub = 0. if tsub is None else self.k_norm[tsub]
         self.tmult = 1. if fsub is None else self.k_norm[tmult]
 
@@ -192,7 +194,7 @@ class ModelDiagnostics(object):
         axes[0].set_title('CBRAIN Predictions')
         axes[1].set_title('SP-CAM Truth')
         fig.suptitle(title)
-        return fig
+        return fig, axes
 
     def plot_slice(self, x, title='', unit='', **kwargs):
         fig, ax = plt.subplots(1, 1, figsize=(6, 5))
@@ -254,6 +256,16 @@ class ModelDiagnostics(object):
             self.stats['mse'], self.stats['true_var'], cutoff_level)
         self.stats_df = df
         return df
+
+    def save_stats(self, path=None):
+        if path is None:
+            os.makedirs('./tmp', exist_ok=True)
+            path= './tmp/' + self.save_str
+        with open(path, 'wb') as f: pickle.dump(self.stats, f)
+
+    def load_stats(self, path=None):
+        if path is None: path= './tmp/' + self.save_str
+        with open(path, 'rb') as f: self.stats = pickle.load(f)
 
     # Stats helper functions
     def _compute_r2(self, mse, true_var, cutoff_level=0):
