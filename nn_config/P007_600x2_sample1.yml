@@ -1,0 +1,13 @@
+exp_name: P007_600x2_sample1
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: paper_nonorm_train_sample1_shuffle
+valid_fn: paper_nonorm_valid_sample1
+fsub: feature_means
+fdiv: feature_stds
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [600, 600]
+loss: mse
+log_dir: ./logs/
+epochs: 30
+valid_after: True

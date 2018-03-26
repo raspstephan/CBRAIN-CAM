@@ -1,4 +1,4 @@
-exp_name: C003_fullphy_essv2_nonorm_sample1_max_rs
+exp_name: A002_fullphy_essv2_nonorm_sample1_max_rs
 data_dir: /scratch/srasp/preprocessed_data/
 train_fn: fullphy_essv2_nonorm_train_sample1_shuffle
 valid_fn: fullphy_essv2_nonorm_valid_sample1
