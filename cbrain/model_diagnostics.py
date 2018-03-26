@@ -235,10 +235,15 @@ class ModelDiagnostics(object):
         self.stats['true_mean'] = tsum / nt
         self.stats['pred_sqmean'] = psqsum / nt
         self.stats['true_sqmean'] = tsqsum / nt
-        # -1 for sample variance
-        self.stats['pred_var'] = (psqsum / nt - pmean ** 2) * nt / (nt - 1)
-        self.stats['true_var'] = (tsqsum / nt - tmean ** 2) * nt / (nt - 1)
+        self.stats['pred_var'] = psqsum / nt - pmean ** 2
+        self.stats['true_var'] = tsqsum / nt - tmean ** 2
         self.stats['r2'] = 1. - (self.stats['mse'] / self.stats['true_var'])
+        # Compute horizontal stats [var, lev]
+        self.stats['hor_tsqmean'] = np.mean(self.stats['true_sqmean'], axis=(0,1))
+        self.stats['hor_tmean'] = np.mean(self.stats['true_mean'], axis=(0, 1))
+        self.stats['hor_mse'] = np.mean(self.stats['mse'], axis=(0, 1))
+        self.stats['hor_tvar'] = self.stats['hor_tsqmean'] - self.stats['hor_tmean'] ** 2
+        self.stats['hor_r2'] = 1 - (self.stats['hor_mse'] / self.stats['hor_tvar'])
 
     def mean_stats(self, cutoff_level=0):
         """Get average statistics for each variable and returns dataframe"""
@@ -247,13 +252,8 @@ class ModelDiagnostics(object):
         for ivar, var in enumerate(self.tvars):
             for stat_name, stat in self.stats.items():
                 # Stats have shape [lat, lon, var, lev]
-                df.loc[var, stat_name] = np.mean(stat[:, :, ivar, cutoff_level:])
-            # compute r2
-            df.loc[var, 'r2_v2'] = self._compute_r2(
-                self.stats['mse'][:, :, ivar], self.stats['true_var'][:, :, ivar], cutoff_level)
-        # Compute r2 for all vars
-        df.loc['all', 'r2_v2'] = self._compute_r2(
-            self.stats['mse'], self.stats['true_var'], cutoff_level)
+                df.loc[var, stat_name] = np.mean(stat[..., ivar, cutoff_level:])
+        df.loc['all']['hor_r2'] = np.mean(self.stats['hor_r2'][:, cutoff_level:].mean())
         self.stats_df = df
         return df
 
@@ -267,13 +267,6 @@ class ModelDiagnostics(object):
         if path is None: path= './tmp/' + self.save_str
         with open(path, 'rb') as f: self.stats = pickle.load(f)
 
-    # Stats helper functions
-    def _compute_r2(self, mse, true_var, cutoff_level=0):
-        """r2 here is defined as the average r2 over each level
-        mse and true_var have dims [lat, lon, lev]
-        """
-        lev_r2 = 1. - (np.mean(mse, axis=(0, 1)) / np.mean(true_var, axis=(0, 1)))
-        return np.mean(lev_r2[..., cutoff_level:])
 
 
 
