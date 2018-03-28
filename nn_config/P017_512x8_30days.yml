@@ -11,5 +11,5 @@ hidden_layers: [512, 512, 512, 512, 512, 512, 512, 512]
 loss: mse
 log_dir: ./logs/
 epochs: 60
-lr_divide: 10
+lr_step: 10
 valid_after: True
