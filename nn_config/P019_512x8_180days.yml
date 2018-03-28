@@ -12,4 +12,4 @@ loss: mse
 log_dir: ./logs/
 epochs: 20
 lr_step: 3
-valid_after: True
+valid_after: False
