@@ -163,6 +163,9 @@ class DataGenerator(object):
                             norm_file['feature_maxs'][:] - norm_file['feature_mins'][:],
                             norm_file['feature_stds_by_var']
                         )
+                    if fdiv == 'feature_stds_eps':
+                        eps = 1e-10
+                        self.feature_norms[1] = np.maximum(norm_file['feature_stds'][:], eps)
                     else:
                         self.feature_norms[1] = norm_file[fdiv][:]
         if tsub is not None or tmult is not None:
