@@ -22,13 +22,18 @@ def main(inargs):
     config.gpu_options.allow_growth = True
     keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
 
+    if inargs.norm_fn is None:
+        norm_fn = inargs.train_fn.split('_shuffle')[0] + '_norm.nc'
+    else:
+        norm_fn = inargs.norm_fn
+
     # Load train and valid set
     train_gen = DataGenerator(
         inargs.data_dir,
         inargs.train_fn + '_features.nc',
         inargs.train_fn + '_targets.nc',
         inargs.batch_size,
-        inargs.train_fn.split('_shuffle')[0] + '_norm.nc', # Ugly hack!
+        norm_fn,
         inargs.fsub, inargs.fdiv, inargs.tsub, inargs.tmult,
         shuffle=True, noise=inargs.noise,
     )
@@ -37,7 +42,7 @@ def main(inargs):
         inargs.valid_fn + '_features.nc',
         inargs.valid_fn + '_targets.nc',
         16384,  # Large batch size for speed!
-        inargs.train_fn.split('_shuffle')[0] + '_norm.nc',
+        norm_fn,
         inargs.fsub, inargs.fdiv, inargs.tsub, inargs.tmult,
         shuffle=False,
     )
@@ -142,6 +147,10 @@ if __name__ == '__main__':
     p.add_argument('--valid_fn',
                    type=str,
                    help='Validation set file.')
+    p.add_argument('--norm_fn',
+                   type=str,
+                   default=None,
+                   help='Normalization file. Default: None -> Infer')
     p.add_argument('--log_dir',
                    default=None,
                    type=str,

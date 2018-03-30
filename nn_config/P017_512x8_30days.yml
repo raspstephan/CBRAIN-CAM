@@ -1,0 +1,15 @@
+exp_name: P017_512x8_30days
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: paper_nonorm_train_30days_shuffle
+valid_fn: paper_nonorm_valid_sample1
+norm_fn: paper_nonorm_train_fullyear_norm.nc
+fsub: feature_means
+fdiv: feature_stds
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [512, 512, 512, 512, 512, 512, 512, 512]
+loss: mse
+log_dir: ./logs/
+epochs: 60
+lr_step: 10
+valid_after: True

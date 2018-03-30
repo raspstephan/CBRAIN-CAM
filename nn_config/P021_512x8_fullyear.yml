@@ -1,0 +1,14 @@
+exp_name: P021_512x8_fullyear
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: paper_nonorm_train_fullyear_shuffle
+valid_fn: paper_nonorm_valid_fullyear
+fsub: feature_means
+fdiv: feature_stds
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [512, 512, 512, 512, 512, 512, 512, 512]
+loss: mse
+log_dir: ./logs/
+epochs: 18
+lr_step: 3
+valid_after: True

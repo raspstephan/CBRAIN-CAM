@@ -1,0 +1,14 @@
+exp_name: P015_512x8_sample1_bs128
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: paper_nonorm_train_sample1_shuffle
+valid_fn: paper_nonorm_valid_sample1
+fsub: feature_means
+fdiv: feature_stds
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [512, 512, 512, 512, 512, 512, 512, 512]
+loss: mse
+log_dir: ./logs/
+epochs: 30
+batch_size: 128
+valid_after: True
