@@ -1,16 +1,9 @@
 # CBRAIN - Keras model framework and data analysis
 
-Author: Stephan Rasp <s.rasp@lmu.de>
+Author: Stephan Rasp <raspstephan@gmail.com>
 
-`config` contains config files specifying the input and output variables.
+This is my working directory containing Python code to pre-process the raw SP-CAM data, train neural networks and analyze results.
 
-`data_processing` contains pre-processing scripts that convert the raw climate model data to convenient input data for the neural net.
+For the GRL paper, all figures were produced here: https://github.com/raspstephan/CBRAIN-CAM/blob/master/notebooks/presentation/paper.ipynb
 
-`diagnostics` contains scripts to analyze the neural net predictions compared to the target data.
-
-`keras_network` contains the Keras neural network.
-
-`logs` contains Tensorboard logs. (They are saved so that I can access them remotely without having to tunnel...)
-
-`notebooks` contains Jupyter notebooks.
 
