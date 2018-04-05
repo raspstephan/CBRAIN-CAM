@@ -158,12 +158,12 @@ class DataGenerator(object):
                     if fdiv == 'range':
                         self.feature_norms[1] = (norm_file['feature_maxs'][:] -
                                                  norm_file['feature_mins'][:])
-                    if fdiv == 'max_rs':  # Max range, std_by_var
+                    elif fdiv == 'max_rs':  # Max range, std_by_var
                         self.feature_norms[1] = np.maximum(
                             norm_file['feature_maxs'][:] - norm_file['feature_mins'][:],
                             norm_file['feature_stds_by_var']
                         )
-                    if fdiv == 'feature_stds_eps':
+                    elif fdiv == 'feature_stds_eps':
                         eps = 1e-10
                         self.feature_norms[1] = np.maximum(norm_file['feature_stds'][:], eps)
                     else:

@@ -427,7 +427,6 @@ def main(inargs):
     t1 = timeit.default_timer()
     # Create log string
     log_str = create_log_str()
-
     # Load dataset`
     merged_ds = xr.open_mfdataset(inargs.in_dir + inargs.aqua_names,
                                   decode_times=False, decode_cf=False)
