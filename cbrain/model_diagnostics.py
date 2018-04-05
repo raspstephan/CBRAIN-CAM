@@ -87,7 +87,7 @@ class ModelDiagnostics(object):
         elif fdiv == 'max_rs': self.fdiv = np.maximum(
             self.k_norm['feature_maxs'][:] - self.k_norm['feature_mins'][:],
             self.k_norm['feature_stds_by_var'])
-        if fdiv == 'feature_stds_eps':
+        elif fdiv == 'feature_stds_eps':
             eps = 1e-10
             self.fdiv = np.maximum(self.k_norm['feature_stds'][:], eps)
         else: self.fdiv = self.k_norm[fdiv]

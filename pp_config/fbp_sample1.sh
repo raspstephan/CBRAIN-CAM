@@ -9,7 +9,7 @@ python $REPO/cbrain/preprocess_aqua.py \
 --out_pref fbp_train_sample1 &&
 python $REPO/cbrain/preprocess_aqua.py \
 --config_file $REPO/pp_config/fbp.yml \
---in_dir /scratch/srasp/Aquaplanet_enhance05/ \
+--in_dir /scratch/srasp/fluxbypass_aqua/ \
 --aqua_names='*.h1.0000-*-2[1-5]-*' \
 --out_dir /scratch/srasp/preprocessed_data/ \
 --out_pref fbp_valid_sample1 \
