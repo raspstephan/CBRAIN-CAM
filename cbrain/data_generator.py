@@ -172,7 +172,7 @@ class DataGenerator(object):
             self.target_norms = [0., 1.]   # This does nothing...
             with h5py.File(data_dir + norm_fn, 'r') as norm_file:
                 if tsub is not None: self.target_norms[0] = norm_file[tsub][:]
-                if tmult is not None: self.target_norms[1] = norm_file[tmult][:120]
+                if tmult is not None: self.target_norms[1] = norm_file[tmult][:]
         if verbose:
             print('Generator will have %i samples in %i batches' %
                   (n_samples, self.n_batches))

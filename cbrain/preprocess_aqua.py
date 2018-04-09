@@ -24,6 +24,7 @@ L_V = 2.5e6   # Latent heat of vaporization
 C_P = 1e3   # Specific heat capacity of air at constant pressure
 conversion_dict = {
     'TPHYSTND': C_P,
+    'TPHY_NOKE': C_P,
     'TPHYSTND_NORAD': C_P,
     'PHQ': L_V,
     'PHCLDLIQ' : L_V,
@@ -33,7 +34,13 @@ conversion_dict = {
     'QRL': C_P,
     'QRS': C_P,
     'PRECT': 1e3*24*3600 * 1e-3,
+    'TOT_PRECL': 1e3*24*3600 * 1e-3,
+    'TOT_PRECS': 1e3*24*3600 * 1e-3,
     'FLUT': 1. * 1e-5,
+    'FSNT': 1. * 1e-4,
+    'FSNS': 1. * 1e-4,
+    'FLNT': 1. * 1e-4,
+    'FLNS': 1. * 1e-4,
 }
 
 # Dictionary containing the physical tendencies
@@ -203,6 +210,12 @@ def create_feature_or_target_da(ds, vars, min_lev, feature_or_target,
             da = ds[var][:-1]
         elif var == 'TPHYSTND_NORAD':
             da = (ds['TPHYSTND'] - ds['QRL'] - ds['QRS'])[1:]
+        elif var == 'TPHY_NOKE':
+            da = (ds['TPHYSTND'] - ds['DTVKE']/1800.)[1:]
+        elif var == 'TOT_PRECL':
+            da = (ds['PRECT']*1e3 + ds['PRECTEND'])[1:]
+        elif var == 'TOT_PRECS':
+            da = ((ds['PRECSC'] + ds['PRECSL'])*1e3 + ds['PRECTEND'])[1:]
         else:   # Take from current time step
             da = ds[var][1:]
         # if feature_or_target == 'target':  # we are not normalizing anymore!
