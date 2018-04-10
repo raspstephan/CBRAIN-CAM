@@ -58,6 +58,7 @@ class ModelDiagnostics(object):
         # Get variable names and open arrays
         if self.is_k:
             self.k_norm = h5py.File(npath, 'r')
+            self.target_size = self.k_norm['target_names'][:].shape[0]
             self._get_k_norm_arrs(*norms)
             self.k_features = h5py.File(fpath, 'r')
             self.k_targets = h5py.File(tpath, 'r')
@@ -75,6 +76,11 @@ class ModelDiagnostics(object):
         return [list(dict.fromkeys(
             [f.split('_lev')[0] for f in list(self.k_norm[f'{a}_names'][:])]
             )) for a in ['feature', 'target']]
+
+    def _get_var_idxs(self, var, cutoff=0):
+        idxs = np.array([i for i, n in enumerate(self.k_norm['target_names'][:].flat) if var in n])
+        if not idxs.size == 1: idxs = idxs[cutoff:]
+        return idxs
 
     def _get_k_norm_arrs(self, fsub, fdiv, tsub, tmult):
         """
@@ -135,9 +141,10 @@ class ModelDiagnostics(object):
         [ngeo, stacked_levs] --> [lat, lon, var, lev]
         Select var if not None.
         """
-        x = x.reshape(self.nlat, self.nlon, -1, self.nlev)
-        if var is not None: x = x[:, :, self.tvars.index(var), :]
+        x = x.reshape(self.nlat, self.nlon, -1)
+        if var is not None: x = x[:, :, self._get_var_idxs(var)]
         return x
+
 
     def _tf_reshape(self, x):
         """[ngeo, var, nlev] -- > [lat, lon, var, lev]
@@ -181,7 +188,8 @@ class ModelDiagnostics(object):
     # Plotting functions
     def plot_double_xy(self, itime, ilev, var, **kwargs):
         p, t = self.get_pt(itime, var)
-        return self.plot_double_slice(p[:, :, ilev], t[:, :, ilev], **kwargs)
+        if p.ndim == 3: p, t = p[:, :, ilev], t[:, :, ilev]
+        return self.plot_double_slice(p, t, **kwargs)
 
     def plot_double_yz(self, itime, ilon, var, **kwargs):
         p, t = self.get_pt(itime, var)
@@ -214,7 +222,7 @@ class ModelDiagnostics(object):
         else: nt = len(self.tf_files) * self.ntime
         if niter is not None: nt = niter
         # Allocate stats arrays
-        psum = np.zeros((self.nlat, self.nlon, len(self.tvars), self.nlev))
+        psum = np.zeros((self.nlat, self.nlon, self.target_size))
         tsum = np.copy(psum); sse = np.copy(psum)
         psqsum = np.copy(psum); tsqsum = np.copy(psum)
         for itime in tqdm(range(nt)):
@@ -255,8 +263,8 @@ class ModelDiagnostics(object):
         for ivar, var in enumerate(self.tvars):
             for stat_name, stat in self.stats.items():
                 # Stats have shape [lat, lon, var, lev]
-                df.loc[var, stat_name] = np.mean(stat[..., ivar, cutoff_level:])
-        df.loc['all']['hor_r2'] = np.mean(self.stats['hor_r2'][:, cutoff_level:].mean())
+                df.loc[var, stat_name] = np.mean(stat[..., self._get_var_idxs(var, cutoff_level)])
+        df.loc['all']['hor_r2'] = np.mean(df['hor_r2'].mean())
         self.stats_df = df
         return df
 

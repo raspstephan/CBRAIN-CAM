@@ -1,4 +1,4 @@
-exp_name: F001_fullphy_fbp_sample1_max_rs_deep
+exp_name: F001_fbp_engy_cons_sample1_max_rs_deep
 data_dir: /scratch/srasp/preprocessed_data/
 train_fn: fbp_engy_cons_train_sample1_shuffle
 valid_fn: fbp_engy_cons_valid_sample1

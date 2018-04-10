@@ -5,3 +5,6 @@ __pycache__
 logs/
 saved_models/
 tmp
+*DS_Store
+figures/
+.vscode/
