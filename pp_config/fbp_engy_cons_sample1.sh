@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-REPO=/export/home/srasp/repositories/CBRAIN-Keras-Diagnostics/
+REPO=/export/home/srasp/repositories/CBRAIN-CAM/
 
 python $REPO/cbrain/preprocess_aqua.py \
 --config_file $REPO/pp_config/fbp_engy_cons.yml \
