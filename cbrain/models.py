@@ -14,6 +14,22 @@ from .losses import *
 act_dict = keras.activations.__dict__
 lyr_dict = keras.layers.__dict__
 
+class PartialReLU(Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def build(self, input_shape):
+        super().build(input_shape)  # Be sure to call this somewhere!
+
+    def call(self, x):
+        a = x[:, :60]
+        b = K.maximum(x[:, 60:120], 0)
+        c = x[:, 120:]
+        return K.concatenate([a, b, c], 1)
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
 
 def act_layer(act):
     """Helper function to return regular and advanced activation layers"""
@@ -21,7 +37,8 @@ def act_layer(act):
 
 
 def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
-             activation='relu', batch_norm=False, dr=None, l2=None):
+             activation='relu', batch_norm=False, dr=None, l2=None, 
+             partial_relu=False):
     """Creates a simple fully connected neural net and compiles it
 
     Args:
@@ -58,6 +75,9 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
                 model.add(Dropout(dr))
     # Output layer
     model.add(Dense(target_shape, activation='linear', kernel_regularizer=l2))
+
+    if partial_relu:
+        model.add(PartialReLU())
 
     # Compile model
     model.compile(Adam(lr), loss=loss, metrics=metrics)

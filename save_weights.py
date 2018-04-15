@@ -212,6 +212,11 @@ if __name__ == '__main__':
                    action='store_true',
                    help='Print additional information.')
     p.set_defaults(verbose=False)
+    p.add_argument('--partial_relu',
+                   dest='partial_relu',
+                   action='store_true',
+                   help='...')
+    p.set_defaults(partial_relu=False)
 
     args = p.parse_args()
 

@@ -20,27 +20,32 @@ import pdb
 from glob import glob
 
 # Define conversion dict
-L_V = 2.5e6   # Latent heat of vaporization
-C_P = 1e3   # Specific heat capacity of air at constant pressure
+L_V = 2.501e6   # Latent heat of vaporization
+L_I = 3.337e5   # Latent heat of freezing
+L_S = L_V + L_I # Sublimation
+C_P = 1e3 # Specific heat capacity of air at constant pressure
+DT = 1800.
 conversion_dict = {
     'TPHYSTND': C_P,
     'TPHY_NOKE': C_P,
     'TPHYSTND_NORAD': C_P,
-    'PHQ': L_V,
-    'PHCLDLIQ' : L_V,
-    'PHCLDICE' : L_V,   # Is this correct? Or should it be L_I?
+    'PHQ': L_S,
+    'PHCLDLIQ' : L_S,
+    'PHCLDICE' : L_S,
     'SPDT': C_P,
     'SPDQ': L_V,
     'QRL': C_P,
     'QRS': C_P,
     'PRECT': 1e3*24*3600 * 1e-3,
-    'TOT_PRECL': 1e3*24*3600 * 1e-3,
-    'TOT_PRECS': 1e3*24*3600 * 1e-3,
+    'TOT_PRECL': 24*3600 * 2e-2,
+    'TOT_PRECS': 24*3600 * 2e-2,
     'FLUT': 1. * 1e-5,
-    'FSNT': 1. * 1e-4,
-    'FSNS': 1. * 1e-4,
-    'FLNT': 1. * 1e-4,
-    'FLNS': 1. * 1e-4,
+    'FSNT': 1. * 1e-3,
+    'FSNS': -1. * 1e-3,
+    'FLNT': -1. * 1e-3,
+    'FLNS': 1. * 1e-3,
+    'QCAP': L_S/DT,
+    'QIAP': L_S/DT
 }
 
 # Dictionary containing the physical tendencies
