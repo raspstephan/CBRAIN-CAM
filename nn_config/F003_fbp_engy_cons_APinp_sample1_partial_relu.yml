@@ -1,0 +1,14 @@
+exp_name: F003_fbp_engy_cons_APinp_sample1_partial_relu
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: fbp_engy_cons_APinp_train_sample1_shuffle
+valid_fn: fbp_engy_cons_APinp_valid_sample1
+fsub: feature_means
+fdiv: max_rs
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [256,256,256,256,256,256,256,256,256]
+loss: mse
+log_dir: ./logs/
+epochs: 20
+valid_after: True
+partial_relu: True

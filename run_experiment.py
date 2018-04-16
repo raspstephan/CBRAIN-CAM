@@ -72,7 +72,8 @@ def main(inargs):
             batch_norm=inargs.batch_norm,
             activation=inargs.activation,
             dr=inargs.dr,
-            l2=inargs.l2
+            l2=inargs.l2,
+            partial_relu=inargs.partial_relu
         )
     if inargs.verbose: print(model.summary())
 
@@ -247,6 +248,11 @@ if __name__ == '__main__':
                    action='store_true',
                    help='Use batch_norm.')
     p.set_defaults(batch_norm=False)
+    p.add_argument('--partial_relu',
+                   dest='partial_relu',
+                   action='store_true',
+                   help='...')
+    p.set_defaults(partial_relu=False)
     p.add_argument('--valid_after',
                    dest='valid_after',
                    action='store_true',

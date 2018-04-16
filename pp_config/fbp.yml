@@ -1,2 +1,2 @@
-inputs : [TBP, QBP, PS, SOLIN, SHFLX, LHFLX]
-outputs : [TPHYSTND, PHQ]
+inputs : [TBP, QBP, VBP, PS, SOLIN, SHFLX, LHFLX]
+outputs : [TPHY_NOKE, PHQ]

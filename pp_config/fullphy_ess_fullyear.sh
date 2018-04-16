@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-PROC_ROOT=/export/home/srasp/repositories/CBRAIN-Keras-Diagnostics/data_processing/
+PROC_ROOT=/export/home/srasp/repositories/CBRAIN-CAM/data_processing/
 
 python $PROC_ROOT/preprocess_aqua.py \
 --config_file $PROC_ROOT/config/full_physics_essentials.yml \

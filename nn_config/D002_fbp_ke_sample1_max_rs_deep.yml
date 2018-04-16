@@ -1,0 +1,13 @@
+exp_name: D002_fbp_ke_sample1_max_rs_deep
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: fbp_ke_train_sample1_shuffle
+valid_fn: fbp_ke_valid_sample1
+fsub: feature_means
+fdiv: max_rs
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [256,256,256,256,256,256,256,256,256]
+loss: mse
+log_dir: ./logs/
+epochs: 20
+valid_after: True
