@@ -36,7 +36,7 @@ conversion_dict = {
     'SPDQ': L_V,
     'QRL': C_P,
     'QRS': C_P,
-    'PRECT': 1e3*24*3600 * 1e-3,
+    'PRECT': 1e3*24*3600 * 2e-2,
     'TOT_PRECL': 24*3600 * 2e-2,
     'TOT_PRECS': 24*3600 * 2e-2,
     'FLUT': 1. * 1e-5,
