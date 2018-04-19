@@ -10,19 +10,6 @@ import pdb
 import threading
 
 
-# Define conversion dict
-L_V = 2.5e6   # Latent heat of vaporization is actually 2.26e6
-C_P = 1e3 # Specific heat capacity of air at constant pressure
-conversion_dict = {
-    'SPDT': C_P,
-    'SPDQ': L_V,
-    'QRL': C_P,
-    'QRS': C_P,
-    'PRECT': 1e3*24*3600 * 1e-3,
-    'FLUT': 1. * 1e-5,
-}
-
-
 # To make generators thread safe for multithreading
 def threadsafe_generator(f):
     """A decorator that takes a generator function and makes it thread-safe.

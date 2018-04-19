@@ -18,12 +18,7 @@ range_dict = {
     'QRL': [-2e-4, 2e-4],
     'QRS': [-1.2e-4, 1.2e-4],
 }
-L_V = 2.501e6   # Latent heat of vaporization
-L_I = 3.337e5   # Latent heat of freezing
-L_S = L_V + L_I # Sublimation
-C_P = 1e3 # Specific heat capacity of air at constant pressure
-G = 9.81
-P0 = 1e5
+
 with open(os.path.join(os.path.dirname(__file__), 'hyai_hybi.pkl'), 'rb') as f:
     hyai, hybi = pickle.load(f)
 

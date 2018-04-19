@@ -9,21 +9,12 @@ TODO:
 - Read convesion dict from config file
 - Add list of variables to log and as variable in arrays
 """
+from .imports import *
 from configargparse import ArgParser
-import sys
-import numpy as np
 from datetime import datetime
 from subprocess import getoutput
-import xarray as xr
 import timeit
-import pdb
-from glob import glob
 
-# Define conversion dict
-L_V = 2.501e6   # Latent heat of vaporization
-L_I = 3.337e5   # Latent heat of freezing
-L_S = L_V + L_I # Sublimation
-C_P = 1e3 # Specific heat capacity of air at constant pressure
 DT = 1800.
 conversion_dict = {
     'TPHYSTND': C_P,

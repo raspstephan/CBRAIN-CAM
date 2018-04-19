@@ -39,8 +39,8 @@ else:
 L_V = 2.501e6   # Latent heat of vaporization
 L_I = 3.337e5   # Latent heat of freezing
 L_S = L_V + L_I # Sublimation
-C_P = 1e3 # Specific heat capacity of air at constant pressure
-G = 9.81
+C_P = 1.00464e3 # Specific heat capacity of air at constant pressure
+G = 9.80616
 P0 = 1e5
 
 with open(os.path.join(os.path.dirname(__file__), 'hyai_hybi.pkl'), 'rb') as f:

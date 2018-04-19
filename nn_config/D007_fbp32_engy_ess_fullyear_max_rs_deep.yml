@@ -1,7 +1,7 @@
-exp_name: D004_fbp_engy_ess_fullyear_max_rs_deep
+exp_name: D007_fbp32_engy_ess_fullyear_max_rs_deep
 data_dir: /local/S.Rasp/preprocessed_data/
-train_fn: fbp_engy_ess_train_fullyear_shuffle
-valid_fn: fbp_engy_ess_valid_fullyear
+train_fn: fbp32_engy_ess_train_fullyear_shuffle
+valid_fn: fbp32_engy_ess_valid_fullyear
 fsub: feature_means
 fdiv: max_rs
 tmult: target_conv
