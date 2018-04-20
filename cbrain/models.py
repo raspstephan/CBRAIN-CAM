@@ -52,7 +52,7 @@ class QLayer(Layer):
 
         f, a = arrs
         # Get pressure difference 
-        PS = f[:, 60] * self.fdiv[60] + self.fsub[60]
+        PS = f[:, 90] * self.fdiv[90] + self.fsub[90]
         P = P0 * self.hyai + PS[:, None] * self.hybi
         dP = P[:, 1:] - P[:, :-1]
 
@@ -64,7 +64,7 @@ class QLayer(Layer):
         dQCONV = vPHQ
 
         # Get surface flux
-        LHFLX = (f[:, 63] * self.fdiv[63] + self.fsub[63]) / L_V
+        LHFLX = (f[:, 93] * self.fdiv[93] + self.fsub[93]) / L_V
 
         # Get precipitation sink
         TOT_PRECL = a[:, 64] / (24*3600*2e-2)
@@ -105,7 +105,7 @@ class ELayer(Layer):
 
         f, a = arrs
         # Get pressure difference 
-        PS = f[:, 60] * self.fdiv[60] + self.fsub[60]
+        PS = f[:, 90] * self.fdiv[90] + self.fsub[90]
         P = P0 * self.hyai + PS[:, None] * self.hybi
         dP = P[:, 1:] - P[:, :-1]
 
@@ -115,8 +115,8 @@ class ELayer(Layer):
         absvTPHY, absvPHQ = K.sum(K.abs(iTPHY),1), K.sum(K.abs(iPHQ),1)
 
         # Get surface fluxes
-        SHFLX = f[:, 62] * self.fdiv[62] + self.fsub[62]
-        LHFLX = (f[:, 63] * self.fdiv[63] + self.fsub[63])
+        SHFLX = f[:, 92] * self.fdiv[92] + self.fsub[92]
+        LHFLX = (f[:, 93] * self.fdiv[93] + self.fsub[93])
 
         # Radiative fluxes
         dERADFLX = K.sum(a[:, -5:-1], 1) * 1e3
