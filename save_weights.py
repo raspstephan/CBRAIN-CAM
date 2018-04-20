@@ -217,6 +217,11 @@ if __name__ == '__main__':
                    action='store_true',
                    help='...')
     p.set_defaults(partial_relu=False)
+    p.add_argument('--eq',
+                   dest='eq',
+                   action='store_true',
+                   help='...')
+    p.set_defaults(eq=False)
 
     args = p.parse_args()
 
