@@ -73,7 +73,10 @@ def main(inargs):
             activation=inargs.activation,
             dr=inargs.dr,
             l2=inargs.l2,
-            partial_relu=inargs.partial_relu
+            partial_relu=inargs.partial_relu,
+	        eq=inargs.eq,
+            fsub=train_gen.feature_norms[0],
+            fdiv=train_gen.feature_norms[1],
         )
     if inargs.verbose: print(model.summary())
 
@@ -253,6 +256,11 @@ if __name__ == '__main__':
                    action='store_true',
                    help='...')
     p.set_defaults(partial_relu=False)
+    p.add_argument('--eq',
+                   dest='eq',
+                   action='store_true',
+                   help='...')
+    p.set_defaults(eq=False)
     p.add_argument('--valid_after',
                    dest='valid_after',
                    action='store_true',
