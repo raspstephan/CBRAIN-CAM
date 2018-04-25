@@ -38,6 +38,7 @@ conversion_dict = {
     'PRECT': 1e3*24*3600 * 2e-2,
     'TOT_PRECL': 24*3600 * 2e-2,
     'TOT_PRECS': 24*3600 * 2e-2,
+    'PRECS': 1e3*24*3600 * 2e-2,
     'FLUT': 1. * 1e-5,
     'FSNT': 1. * 1e-3,
     'FSDS': -1. * 1e-3,
@@ -221,6 +222,8 @@ def create_feature_or_target_da(ds, vars, min_lev, feature_or_target,
             da = (ds['PRECT']*1e3 + ds['PRECTEND'])[1:]
         elif var == 'TOT_PRECS':
             da = ((ds['PRECSC'] + ds['PRECSL'])*1e3 + ds['PRECTEND'])[1:]
+        elif var == 'PRECS':
+            da = (ds['PRECSC'] + ds['PRECSL'])[1:]
         else:   # Take from current time step
             da = ds[var][1:]
         # if feature_or_target == 'target':  # we are not normalizing anymore!
