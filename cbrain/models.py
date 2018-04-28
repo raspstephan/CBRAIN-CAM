@@ -203,7 +203,7 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
 
 
 def conv_model(feature_shape_conv, feature_shape_1d, target_shape, feature_maps,
-               hidden_layers, lr, loss, kernel_size=3, batch_norm=False,
+               hidden_layers, lr, loss, kernel_size=3, stride=1, batch_norm=False,
                activation='relu'):
     """
     Convolutional model that takes 3D and 2D variables separately as input.
@@ -217,12 +217,15 @@ def conv_model(feature_shape_conv, feature_shape_1d, target_shape, feature_maps,
     inp_conv = Input(shape=(feature_shape_conv[0],
                             feature_shape_conv[1],))
     # First convolutional layer
-    x_conv = Conv1D(feature_maps[0], kernel_size, padding='same',
-                    activation=activation)(inp_conv)
+    x_conv = Conv1D(feature_maps[0], kernel_size, padding='same')(inp_conv)
+    x_conv = act_layer(activation)(x_conv)
+    x_conv = BatchNormalization(axis=-1)(x_conv)
+
     if len(feature_maps) > 1:
         for fm in feature_maps[1:]:
-            x_conv = Conv1D(fm, kernel_size, padding='same',
-                            activation=activation)(x_conv)
+            x_conv = Conv1D(fm, kernel_size, padding='same')(x_conv)
+            x_conv = act_layer(activation)(x_conv)
+            x_conv = BatchNormalization(axis=-1)(x_conv)
     x_conv = Flatten()(x_conv)
 
     # Then the linear path
@@ -235,7 +238,8 @@ def conv_model(feature_shape_conv, feature_shape_1d, target_shape, feature_maps,
 
     # Fully connected layers at the end
     for h in hidden_layers:
-        x = Dense(h, activation=activation)(x)
+        x = Dense(h)(x)
+        x = act_layer(activation)(x)
         if batch_norm:
             x = BatchNormalization()(x)
 

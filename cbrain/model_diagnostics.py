@@ -40,16 +40,20 @@ class ModelDiagnostics(object):
                  fpath=None, tpath=None, npath=None, norms=None,
                  tf_filepattern=None, tf_fvars=None, tf_tvars=None, tf_meanpath=None,
                  tf_stdpath=None, nlat=64, nlon=128, nlev=30, ntime=48, raw_nlev=30,
-                 watch_mem=False):
+                 watch_mem=False, convo=False):
         # Basic setup
         self.is_tf = is_tf; self.is_k = not is_tf
-        self.model = keras.models.load_model(model_path, custom_objects={"tf": tf})
+        if type(model_path) is str:
+            self.model = keras.models.load_model(model_path, custom_objects={"tf": tf})
+            self.save_str = (model_path.split('/')[-1].split('.')[0] + '_' +
+                          fpath.split('/')[-1].split('.')[0].split('_features')[0] + '.pkl')
+        else: self.model = model_path; self.save_str = None
         self.nlat, self.nlon, self.nlev = (nlat, nlon, nlev)
         self.ngeo = nlat * nlon
         self.ntime = ntime; self.raw_nlev=30
         self.watch_mem = watch_mem
-        self.save_str = (model_path.split('/')[-1].split('.')[0] + '_' +
-                          fpath.split('/')[-1].split('.')[0].split('_features')[0] + '.pkl')
+        self.convo = True
+
         # Get variable names and open arrays
         if self.is_k:
             self.k_norm = h5py.File(npath, 'r')
@@ -108,6 +112,10 @@ class ModelDiagnostics(object):
         """Keras version"""
         f = (self.k_features['features'][itime*self.ngeo:(itime+1)*self.ngeo] -
              self.fsub) / self.fdiv
+        if self.convo:
+            f1 = f[:, :90].reshape((f.shape[0], 30, -1))
+            f2 = f[:, 90:]
+            f = [f1, f2]
         p = self.model.predict_on_batch(f) / self.tmult + self.tsub
         t = self.k_targets['targets'][itime*self.ngeo:(itime+1)*self.ngeo]
         # At this stage they have shape [ngeo, stacked_levs]

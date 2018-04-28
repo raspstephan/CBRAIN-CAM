@@ -182,7 +182,7 @@ def compute_adiabatic_tf(ds, base_var):
 
 
 def create_feature_or_target_da(ds, vars, min_lev, feature_or_target, 
-                                factor=1.):
+                                factor=1., flx_same_dt=False):
     """Create feature or target dataset.
 
     Args:
@@ -212,7 +212,7 @@ def create_feature_or_target_da(ds, vars, min_lev, feature_or_target,
         elif '_C' in var:
             base_var = var[:-2] + 'AP'
             da = compute_c(ds, base_var)
-        elif var in ['LHFLX', 'SHFLX']:   # Take from previous time step
+        elif var in ['LHFLX', 'SHFLX'] and not flx_same_dt:   # Take from previous time step
             da = ds[var][:-1]
         elif var == 'TPHYSTND_NORAD':
             da = (ds['TPHYSTND'] - ds['QRL'] - ds['QRS'])[1:]
@@ -238,10 +238,10 @@ def create_feature_or_target_da(ds, vars, min_lev, feature_or_target,
             name_list += [var]
 
     return rename_time_lev_and_cut_times(ds, features_list, name_list,
-                                         feature_or_target)
+                                         feature_or_target, flx_same_dt)
 
 
-def rename_time_lev_and_cut_times(ds, da_list, name_list, feature_or_target):
+def rename_time_lev_and_cut_times(ds, da_list, name_list, feature_or_target, flx_same_dt=False):
     """Create new time and lev coordinates and cut times for non-cont steps
 
     Args:
@@ -269,7 +269,10 @@ def rename_time_lev_and_cut_times(ds, da_list, name_list, feature_or_target):
     lev_str = feature_or_target + '_lev'
     da = xr.concat(da_list, dim='lev')
     # Cut out time steps
-    cut_time_steps = np.where(np.diff(ds.time) > 2.09e-2)[0]
+    if flx_same_dt:
+        cut_time_steps = []
+    else:
+        cut_time_steps = np.where(np.diff(ds.time) > 2.09e-2)[0]
     clean_time_steps = np.array(da.coords['time'])
     print('Cut time steps:', cut_time_steps)
     clean_time_steps = np.delete(clean_time_steps, cut_time_steps)
@@ -460,7 +463,8 @@ def main(inargs):
         merged_ds,
         inargs.inputs,
         inargs.min_lev,
-        'feature'
+        'feature',
+        flx_same_dt=inargs.flx_same_dt
     )
     target_da, target_names = create_feature_or_target_da(
         merged_ds,
@@ -468,6 +472,7 @@ def main(inargs):
         inargs.min_lev,
         'target',
         inargs.target_factor,
+        flx_same_dt=inargs.flx_same_dt
     )
 
     # Reshape
@@ -587,6 +592,11 @@ if __name__ == '__main__':
                    action='store_true',
                    help='If given, only compute and save normalization file.')
     p.set_defaults(only_norm=False)
+    p.add_argument('--flx_same_dt',
+                   dest='flx_same_dt',
+                   action='store_true',
+                   help='If given, take surface fluxes from same time step.')
+    p.set_defaults(flx_same_dt=False)
     p.add_argument('--norm_features',
                    type=str,
                    default=None,
