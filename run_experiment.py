@@ -51,16 +51,21 @@ def main(inargs):
 
     # Build and compile model
     if inargs.convolution:
-        raise Exception('Not up to date!')
-        model = conv_model_tile(
-            (21, 7),
+        model = conv_model(
+            (30, 7) if inargs.tile else (30, 3),
+            4,
             target_shape,
             inargs.conv_layers,
             inargs.hidden_layers,
             inargs.lr,
             loss_dict[inargs.loss],
-            kernel_size=inargs.kernel_size,
-            locally_connected=inargs.locally_connected
+            kernel_size=inargs.kernel_size, stride=inargs.stride,
+            batch_norm=inargs.batch_norm,
+            activation=inargs.activation,
+            tile=inargs.tile,
+            locally_connected=inargs.locally_connected,
+            padding=inargs.padding,
+            dr=inargs.dr,
         )
     else:   # Fully connected model
         model = fc_model(
@@ -97,11 +102,11 @@ def main(inargs):
 
     # Fit model
     model.fit_generator(
-        train_gen.return_generator(inargs.convolution),
+        train_gen.return_generator(inargs.convolution, inargs.tile),
         train_gen.n_batches,
         epochs=inargs.epochs - int(inargs.valid_after),
         validation_data=None if inargs.valid_after
-            else valid_gen.return_generator(inargs.convolution),
+            else valid_gen.return_generator(inargs.convolution, inargs.tile),
         validation_steps=valid_gen.n_batches,
         workers=inargs.n_workers,
         max_queue_size=50,
@@ -115,10 +120,10 @@ def main(inargs):
         else:
             callbacks_list = [callbacks_list[0]]   # No LR scheduler
         model.fit_generator(
-            train_gen.return_generator(inargs.convolution),
+            train_gen.return_generator(inargs.convolution, inargs.tile),
             train_gen.n_batches,
             epochs=1,
-            validation_data=valid_gen.return_generator(inargs.convolution),
+            validation_data=valid_gen.return_generator(inargs.convolution, inargs.tile),
             validation_steps=valid_gen.n_batches,
             workers=inargs.n_workers,
             max_queue_size=inargs.max_queue_size,
@@ -211,6 +216,10 @@ if __name__ == '__main__':
                    default=3,
                    type=int,
                    help='Size of convolution kernel.')
+    p.add_argument('--stride',
+                   default=1,
+                   type=int,
+                   help='stride')
     p.add_argument('--hidden_layers',
                    default=[],
                    nargs='+',
@@ -246,6 +255,15 @@ if __name__ == '__main__':
                    action='store_true',
                    help='Use convolutional net.')
     p.set_defaults(convolution=False)
+    p.add_argument('--tile',
+                   dest='tile',
+                   action='store_true',
+                   help='tile')
+    p.set_defaults(tile=False)
+    p.add_argument('--padding',
+                   default='same',
+                   type=str,
+                   help='padding')
     p.add_argument('--batch_norm',
                    dest='batch_norm',
                    action='store_true',

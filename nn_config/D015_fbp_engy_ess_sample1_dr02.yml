@@ -1,0 +1,13 @@
+exp_name: D015_fbp_engy_ess_sample1_dr02
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: fbp_engy_ess_train_sample1_shuffle
+valid_fn: fbp_engy_ess_valid_4k
+fsub: feature_means
+fdiv: max_rs
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [256,256,256,256,256,256,256,256,256]
+loss: mse
+log_dir: ./logs/
+epochs: 20
+dr: 0.2

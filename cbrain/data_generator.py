@@ -65,18 +65,15 @@ def data_generator(data_dir, feature_fn, target_fn, shuffle=True,
                 x += np.random.normal(0, noise, x.shape)
             yield x, y
 
-
 @threadsafe_generator
 def data_generator_convo(data_dir, feature_fn, target_fn, shuffle=True,
-                         batch_size=512):
+                         batch_size=512, feature_norms=None, target_norms=None, noise=None,
+                         tile=False):
     """Works on pre-stacked targets with truely random batches
     Hard coded right now for
-    features = [TAP, QAP, dTdt_adiabatic, dQdt_adiabatic, SHFLX, LHFLX, SOLIN]
-    targets = [SPDT, SPDQ, QRL, QRS, PRECT, FLUT]
-    and lev = 21
-    Create [sample, z, feature] with 1D arrays tiled to lev dim
+    features = [TBP, QBP, VBP, PS, SOLIN, SHFLX, LHFLX]
+    and lev = 30
     """
-    raise Exception('Not up to date!')
     # Open files
     feature_file = h5py.File(data_dir + feature_fn, 'r')
     target_file = h5py.File(data_dir + target_fn, 'r')
@@ -94,14 +91,21 @@ def data_generator_convo(data_dir, feature_fn, target_fn, shuffle=True,
         for i in range(n_batches):
             batch_idx = idxs[i]
             x = feature_file['features'][batch_idx:batch_idx + batch_size, :]
-            x = np.concatenate(
-                [
-                    x[:, :-3].reshape((x.shape[0], 21, -1)),
-                    np.rollaxis(np.tile(x[:, -3:], (21, 1, 1)), 0, 2)
-                ],
-                axis=-1,
-            )
+            if feature_norms is not None: x = (x - feature_norms[0]) / feature_norms[1]
+            if tile:
+                x = np.concatenate(
+                    [
+                        x[:, :90].reshape((x.shape[0], 30, -1)),
+                        np.rollaxis(np.tile(x[:, 90:], (30, 1, 1)), 0, 2)
+                    ],
+                    axis=-1,
+                )
+            else:
+                x1 = x[:, :90].reshape((x.shape[0], 30, -1))
+                x2 = x[:, 90:]
+                x = [x1, x2]
             y = target_file['targets'][batch_idx:batch_idx + batch_size, :]
+            if target_norms is not None: y = (y - target_norms[0]) * target_norms[1]
             yield x, y
 
 
@@ -166,7 +170,7 @@ class DataGenerator(object):
             print('Features have shape %i; targets have shape %i' %
                   (self.feature_shape, self.target_shape))
 
-    def return_generator(self, convo=False):
+    def return_generator(self, convo=False, tile=False):
         """Return data_generator
 
         Returns: data_generator
@@ -178,6 +182,10 @@ class DataGenerator(object):
                 self.target_fn,
                 self.shuffle,
                 self.batch_size,
+                self.feature_norms,
+                self.target_norms,
+                self.noise,
+                tile
             )
         else:
             return data_generator(

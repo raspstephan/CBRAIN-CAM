@@ -9,3 +9,4 @@ tmp
 figures/
 .vscode/
 wkspectra/figs/
+notebooks/presentation/saved_ds.pkl

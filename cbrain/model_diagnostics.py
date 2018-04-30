@@ -40,7 +40,7 @@ class ModelDiagnostics(object):
                  fpath=None, tpath=None, npath=None, norms=None,
                  tf_filepattern=None, tf_fvars=None, tf_tvars=None, tf_meanpath=None,
                  tf_stdpath=None, nlat=64, nlon=128, nlev=30, ntime=48, raw_nlev=30,
-                 watch_mem=False, convo=False):
+                 watch_mem=False, convo=False, convo_tile=False):
         # Basic setup
         self.is_tf = is_tf; self.is_k = not is_tf
         if type(model_path) is str:
@@ -52,7 +52,7 @@ class ModelDiagnostics(object):
         self.ngeo = nlat * nlon
         self.ntime = ntime; self.raw_nlev=30
         self.watch_mem = watch_mem
-        self.convo = True
+        self.convo, self.convo_tile = convo, convo_tile
 
         # Get variable names and open arrays
         if self.is_k:
@@ -116,6 +116,11 @@ class ModelDiagnostics(object):
             f1 = f[:, :90].reshape((f.shape[0], 30, -1))
             f2 = f[:, 90:]
             f = [f1, f2]
+        if self.convo_tile:
+            f = np.concatenate([
+                    f[:, :90].reshape((f.shape[0], 30, -1)),
+                    np.rollaxis(np.tile(f[:, 90:], (30, 1, 1)), 0, 2)
+                ], axis=-1)
         p = self.model.predict_on_batch(f) / self.tmult + self.tsub
         t = self.k_targets['targets'][itime*self.ngeo:(itime+1)*self.ngeo]
         # At this stage they have shape [ngeo, stacked_levs]

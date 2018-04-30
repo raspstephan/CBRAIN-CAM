@@ -204,112 +204,56 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
 
 def conv_model(feature_shape_conv, feature_shape_1d, target_shape, feature_maps,
                hidden_layers, lr, loss, kernel_size=3, stride=1, batch_norm=False,
-               activation='relu'):
+               activation='relu', tile=False, locally_connected=False, padding='same',
+               use_bias=True, dr=None):
     """
-    Convolutional model that takes 3D and 2D variables separately as input.
-
-
-
+    Convolutional model
     """
-    
+    Conv = LocallyConnected1D if locally_connected else Conv1D
+
     # Use the functional API
     # First, the convolutional part
     inp_conv = Input(shape=(feature_shape_conv[0],
                             feature_shape_conv[1],))
     # First convolutional layer
-    x_conv = Conv1D(feature_maps[0], kernel_size, padding='same')(inp_conv)
+    x_conv = Conv(
+        feature_maps[0], kernel_size, strides=stride, padding=padding, use_bias=use_bias)(inp_conv)
     x_conv = act_layer(activation)(x_conv)
-    x_conv = BatchNormalization(axis=-1)(x_conv)
+    if batch_norm: x_conv = BatchNormalization(axis=-1)(x_conv)
 
     if len(feature_maps) > 1:
         for fm in feature_maps[1:]:
-            x_conv = Conv1D(fm, kernel_size, padding='same')(x_conv)
+            x_conv = Conv(
+                fm, kernel_size, strides=stride, padding=padding, use_bias=use_bias)(x_conv)
             x_conv = act_layer(activation)(x_conv)
-            x_conv = BatchNormalization(axis=-1)(x_conv)
+            if batch_norm: x_conv = BatchNormalization(axis=-1)(x_conv)
     x_conv = Flatten()(x_conv)
 
-    # Then the linear path
-    inp_1d = Input(shape=(feature_shape_1d,))
+    if not tile:
+        # Then the linear path
+        inp_1d = Input(shape=(feature_shape_1d,))
 
-    # Concatenate the two
-    x = Concatenate()([x_conv, inp_1d])
-    if batch_norm:
-        x = BatchNormalization()(x)
+        # Concatenate the two
+        x = Concatenate()([x_conv, inp_1d])
+        inps = [inp_conv, inp_1d]
+    else:
+        x = x_conv
+        inps = inp_conv
 
     # Fully connected layers at the end
     for h in hidden_layers:
         x = Dense(h)(x)
         x = act_layer(activation)(x)
-        if batch_norm:
-            x = BatchNormalization()(x)
+        if batch_norm: x = BatchNormalization()(x)
+        if dr is not None: x = Dropout(dr)(x)
 
     # Final linear layer
     x = Dense(target_shape, activation='linear')(x)
 
     # Define the model
-    model = Model([inp_conv, inp_1d], x)
+    model = Model(inps, x)
 
     # Compile
     model.compile(Adam(lr), loss=loss, metrics=metrics)
     return model
 
-
-def conv_model_tile(feature_shape_conv, target_shape,
-                    feature_maps, hidden_layers, lr, loss, kernel_size=3,
-                    activation='relu', locally_connected=False):
-    """
-    TODO
-
-
-    """
-
-    # Use the functional API
-    # First, the convolutional part
-    inp_conv = Input(shape=(feature_shape_conv[0],
-                            feature_shape_conv[1],))
-    # First convolutional layer
-    if locally_connected:
-        x = LocallyConnected1D(
-            feature_maps[0],
-            kernel_size,
-            padding='valid',
-            activation=activation,
-        )(inp_conv)
-    else:
-        x = Conv1D(
-            feature_maps[0],
-            kernel_size,
-            padding='same',
-            activation=activation,
-        )(inp_conv)
-    if len(feature_maps) > 1:
-        for fm in feature_maps[1:]:
-            if locally_connected:
-                x = LocallyConnected1D(
-                    fm,
-                    kernel_size,
-                    padding='valid',
-                    activation=activation,
-                )(x)
-            else:
-                x = Conv1D(
-                    fm,
-                    kernel_size,
-                    padding='same',
-                    activation=activation,
-                )(x)
-    x = Flatten()(x)
-
-    # Fully connected layers at the end
-    for h in hidden_layers:
-        x = Dense(h, activation=activation)(x)
-
-    # Final linear layer
-    x = Dense(target_shape, activation='linear')(x)
-
-    # Define the model
-    model = Model(inp_conv, x)
-
-    # Compile
-    model.compile(Adam(lr), loss=loss, metrics=metrics)
-    return model
