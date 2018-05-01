@@ -16,6 +16,7 @@ from configargparse import ArgParser
 from datetime import datetime
 from subprocess import getoutput
 import timeit
+import pdb
 
 DT = 1800.
 L_V = 2.501e6   # Latent heat of vaporization
@@ -272,7 +273,7 @@ def rename_time_lev_and_cut_times(ds, da_list, name_list, feature_or_target, flx
     if flx_same_dt:
         cut_time_steps = []
     else:
-        cut_time_steps = np.where(np.diff(ds.time) > 2.09e-2)[0]
+        cut_time_steps = np.where(np.abs(np.diff(ds.time)) > 2.09e-2)[0]
     clean_time_steps = np.array(da.coords['time'])
     print('Cut time steps:', cut_time_steps)
     clean_time_steps = np.delete(clean_time_steps, cut_time_steps)
@@ -451,9 +452,26 @@ def main(inargs):
     t1 = timeit.default_timer()
     # Create log string
     log_str = create_log_str()
-    # Load dataset`
-    merged_ds = xr.open_mfdataset(inargs.in_dir + inargs.aqua_names,
-                                  decode_times=False, decode_cf=False)
+    # Load dataset
+    assert len(inargs.in_dir) == len(inargs.aqua_names), 'Number arguments must match!'
+    if len(inargs.in_dir) == 1:
+        merged_ds = xr.open_mfdataset(inargs.in_dir[0] + inargs.aqua_names[0],
+                                    decode_times=False, decode_cf=False)
+    else:
+        dslist = [xr.open_mfdataset(
+            inargs.in_dir[i] + inargs.aqua_names[i],decode_times=False, decode_cf=False)
+            for i in range(len(inargs.in_dir))]
+        # Change time coordinates
+        for i, ds in enumerate(dslist[1:]):
+            ds['time'] -= (i+1)*100*366
+        # Drop variables
+        common = list(set.intersection(*map(set,[list(ds.data_vars) for ds in dslist])))
+        for i in range(len(dslist)):
+            ds = dslist[i]
+            todrop = [v for v in list(ds.data_vars) if v not in common]
+            dslist[i] = ds.drop(todrop)
+        # Concatenate along time axis
+        merged_ds = xr.concat(dslist, 'time')
     print('Number of time steps:', merged_ds.coords['time'].size)
     # Crop levels and latitude range
     merged_ds = crop_ds(inargs, merged_ds)
@@ -543,15 +561,15 @@ if __name__ == '__main__':
                    help='Target variables')
     p.add_argument('--in_dir',
                    type=str,
+                   nargs='+',
                    help='Directory with input (aqua) files.')
     p.add_argument('--out_dir',
                    type=str,
                    help='Directory to write preprocessed file.')
     p.add_argument('--aqua_names',
                    type=str,
-                   default='AndKua_aqua_*',
-                   help='String with filenames to be processed. '
-                        'Default = "AndKua_aqua_*"')
+                   nargs='+',
+                   help='String with filenames to be processed.')
     p.add_argument('--out_pref',
                    type=str,
                    default='test',
