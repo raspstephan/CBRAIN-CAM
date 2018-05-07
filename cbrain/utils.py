@@ -285,7 +285,7 @@ def get_dP_from_ds(ds):
 
 def vint(ds, var, factor):
     dP = get_dP_from_ds(ds)
-    x = ds[var]
+    x = ds[var] if type(var) is str else var
     dP['lev'] = x['lev']
     return (dP * x * factor / G).sum(dim='lev')
 

@@ -76,7 +76,12 @@ def main(inargs):
     model.save_weights(save_dir + 'weights.h5')
 
     save2txt(save_dir + 'weights.h5', save_dir)
-    save_norm(inargs.data_dir + inargs.train_fn.split('_shuffle')[0] + '_norm.nc', save_dir)
+
+    if inargs.norm_fn is None:
+        norm_fn = inargs.train_fn.split('_shuffle')[0] + '_norm.nc'
+    else:
+        norm_fn = inargs.norm_fn
+    save_norm(norm_fn, save_dir)
 
 
 if __name__ == '__main__':
@@ -101,6 +106,10 @@ if __name__ == '__main__':
     p.add_argument('--valid_fn',
                    type=str,
                    help='Validation set file.')
+    p.add_argument('--norm_fn',
+                   type=str,
+                   default=None,
+                   help='Normalization file. Default: None -> Infer')
     p.add_argument('--log_dir',
                    default=None,
                    type=str,

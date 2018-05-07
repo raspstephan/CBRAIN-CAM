@@ -379,7 +379,8 @@ def normalize_da(feature_da, target_da, log_str, norm_fn=None, ext_norm=None,
         norm_ds = xr.open_dataset(norm_fn)
     else:
         print('Load external normalization file')
-        norm_ds = xr.open_dataset(ext_norm).load()
+        if norm_features is not None:
+            norm_ds = xr.open_dataset(ext_norm).load()
 
     if norm_features == 'by_var':
         feature_da = ((feature_da - norm_ds['feature_means']) /
