@@ -174,8 +174,8 @@ def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
     x = act_layer(activation)(x)
     if batch_norm:
         x = BatchNormalization()(x)    
-    if dr is not None:
-        x = Dropout(dr)(x)
+    # if dr is not None:
+    #     x = Dropout(dr)(x)
     # All other hidden layers
     if len(hidden_layers) > 1:
         for h in hidden_layers[1:]:
