@@ -1,6 +1,6 @@
 exp_name: D023_fbp_engy_ess_ref_fullyear_dr02
-data_dir: /local/S.Rasp/preprocessed_data/
-train_fn: fbp_engy_ess_ref_train_fullyear_shuffle
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: fbp_engy_ess_ref_fullyear_train_shuffle
 valid_fn: fbp_engy_ess_valid_sample1
 norm_fn: fbp_engy_ess_ref_train_sample1_norm.nc
 fsub: feature_means
