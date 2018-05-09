@@ -10,6 +10,6 @@ activation: LeakyReLU
 hidden_layers: [256,256,256,256,256,256,256,256,256]
 loss: mse
 log_dir: ./logs/
-epochs: 18
-lr_step: 3
+epochs: 12
+lr_step: 2
 valid_after: True

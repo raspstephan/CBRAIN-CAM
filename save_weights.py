@@ -81,7 +81,7 @@ def main(inargs):
         norm_fn = inargs.train_fn.split('_shuffle')[0] + '_norm.nc'
     else:
         norm_fn = inargs.norm_fn
-    save_norm(norm_fn, save_dir)
+    save_norm(inargs.data_dir + norm_fn, save_dir)
 
 
 if __name__ == '__main__':
