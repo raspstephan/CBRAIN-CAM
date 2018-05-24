@@ -136,7 +136,7 @@ if __name__ == '__main__':
                    help='Random seed for shuffling of data.')
     p.add_argument('--chunk_size',
                    type=int,
-                   default=10000000,
+                   default=10_000_000,
                    help='Size of chunks for fast method')
     p.add_argument('--verbose',
                    type=int,
