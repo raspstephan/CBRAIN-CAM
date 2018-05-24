@@ -1,0 +1,16 @@
+exp_name: D028_fbp_engy_ess_ref_sample1_bottleneck
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: fbp_engy_ess_ref_train_sample1_shuffle
+valid_fn: fbp_engy_ess_ref_valid
+norm_fn: fbp_engy_ess_ref_train_sample1_norm.nc
+fsub: feature_means
+fdiv: max_rs
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [128, 64, 32, 16, 32, 64, 128]
+loss: mse
+log_dir: ./logs/
+epochs: 30
+lr_step: 5
+valid_after: True
+verbose: True

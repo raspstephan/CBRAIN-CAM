@@ -1,8 +1,8 @@
-exp_name: D025_fbp_engy_ess_ref_fullyear_ref_longtrain
+exp_name: D030_fbp_engy_ess_ref_1k_sample1_ref
 data_dir: /scratch/srasp/preprocessed_data/
-train_fn: fbp_engy_ess_ref_train_fullyear_shuffle
-valid_fn: fbp_engy_ess_valid_sample1
-norm_fn: fbp_engy_ess_ref_train_sample1_norm.nc
+train_fn: fbp_engy_ess_ref_1k_sample1_train_shuffle
+valid_fn: fbp_engy_ess_ref_valid
+norm_fn: fbp_engy_ess_ref_1k_sample1_train_norm.nc
 fsub: feature_means
 fdiv: max_rs
 tmult: target_conv

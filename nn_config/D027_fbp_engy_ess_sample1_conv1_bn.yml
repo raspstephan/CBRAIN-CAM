@@ -1,4 +1,4 @@
-exp_name: D017_fbp_engy_ess_sample1_conv1
+exp_name: D027_fbp_engy_ess_sample1_conv1_bn
 data_dir: /scratch/srasp/preprocessed_data/
 train_fn: fbp_engy_ess_train_sample1_shuffle
 valid_fn: fbp_engy_ess_valid_4k
@@ -15,3 +15,4 @@ loss: mse
 log_dir: ./logs/
 epochs: 20
 verbose: True
+batch_norm: True
