@@ -289,9 +289,15 @@ def vint(ds, var, factor):
     dP['lev'] = x['lev']
     return (dP * x * factor / G).sum(dim='lev')
 
+def vavg(ds, var, factor):
+    dP = get_dP_from_ds(ds)
+    x = ds[var] if type(var) is str else var
+    dP['lev'] = x['lev']
+    return (dP * x * factor).sum(dim='lev') / dP.sum(dim='lev')
+
 def gw_avg(ds, var=None, da=None):
     da = ds[var] if da is None else da
-    return (da * ds['gw']).mean(dim=('lat', 'lon'))
+    return (da * ds['gw']).sum('lat').mean('lon') / 2.
 
 def plot_global_stats(ds):
     gw_avg(ds, da=vint(ds, 'TAP', C_P)[1:]).plot()
