@@ -1,13 +1,31 @@
-# CBRAIN - Keras model framework and data analysis
+# CBRAIN-CAM - a neural network climate model parameterization
 
 Author: Stephan Rasp <raspstephan@gmail.com>
 
-This is my working directory containing Python code to pre-process the raw SP-CAM data, train neural networks and analyze results.
+This is my working directory for the CBRAIN-CAM project. It contains all code used to preprocess the raw climate model data, run the neural networks and analyze the results.
 
-**FOR GRL PAPER:**
+The modified climate model code is available at https://gitlab.com/mspritch/spcam3.0-neural-net (branch: `nn_fbp_engy_ess`)
 
-See tag/release `grl_submission`.
+## Papers and code
 
-All figures for the paper were produced here: https://github.com/raspstephan/CBRAIN-CAM/blob/master/notebooks/presentation/grl_paper.ipynb
+The first paper showing offline performance is online now: 
+P. Gentine, M. Pritchard, S. Rasp, G. Reinaudi and G. Yacalis, 2018. Could machine learning break the convection parameterization deadlock? Geophysical Research Letters. http://doi.wiley.com/10.1029/2018GL078202
 
+For a snapshot of the repository as it was for the GRL paper, see release [grl_submission](https://github.com/raspstephan/CBRAIN-CAM/releases/tag/grl_submission). All figures for the paper were produced in [this Jupyter notebook](https://github.com/raspstephan/CBRAIN-CAM/blob/master/notebooks/presentation/grl_paper.ipynb)
+
+The second paper is submitted and available as a preprint.
+COMING SOON.
+
+The respective release is [paper2_submission]. All analysis and plotting is done in [this Jupyter notebook](https://github.com/raspstephan/CBRAIN-CAM/blob/master/notebooks/presentation/for-my-paper.ipynb). 
+
+## Repository description
+
+The main components of the repository are:
+
+- `cbrain`: Contains the cbrain module with all code to preprocess the raw data, run the neural network experiments and analyze the data.
+- `pp_config`: Contains configuration files and shell scripts to preprocess the climate model data to be used as neural network inputs
+- `nn_config`: Contains neural network configuration files to be used with `run_experiment.py`.
+- `notebooks`: Contains Jupyter notebooks used to analyze data. All plotting and data analysis for the papers is done in the subfolder `presentation`. `dev` contains development notebooks.
+- `wkspectra`: Contains code to compute Wheeler-Kiladis figures. These were created by [Mike S. Pritchard](http://sites.uci.edu/pritchard/)
+- `save_weights.py`: Saves the weights, biases and normalization vectors in text files. These are then used as input for the climate model.
 
