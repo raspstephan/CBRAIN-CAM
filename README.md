@@ -1,6 +1,6 @@
 # CBRAIN-CAM - a neural network climate model parameterization
 
-Author: Stephan Rasp <raspstephan@gmail.com>
+Author: Stephan Rasp - <raspstephan@gmail.com> - https://raspstephan.github.io
 
 This is my working directory for the CBRAIN-CAM project. It contains all code used to preprocess the raw climate model data, run the neural networks and analyze the results.
 
@@ -8,15 +8,24 @@ The modified climate model code is available at https://gitlab.com/mspritch/spca
 
 ## Papers and code
 
-The first paper showing offline performance is online now: 
-P. Gentine, M. Pritchard, S. Rasp, G. Reinaudi and G. Yacalis, 2018. Could machine learning break the convection parameterization deadlock? Geophysical Research Letters. http://doi.wiley.com/10.1029/2018GL078202
+### Climate model parameterization paper
+
+The second paper with the prognostic climate simulations is available as a preprint:
+> S. Rasp, M. Pritchard and P. Gentine, 2018.
+> Deep learning to represent sub-grid processes in climate models
+> https://arxiv.org/abs/1806.04731
+
+For a snapshot of the repository as it was for the GRL paper, see release [paper2_submission](https://github.com/raspstephan/CBRAIN-CAM/releases/tag/paper2_submission). All figures for the paper were produced in [this Jupyter notebook](https://github.com/raspstephan/CBRAIN-CAM/blob/master/notebooks/presentation/paper2.ipynb)
+
+
+### GRL paper
+
+The first paper showing offline performance has been published: 
+> P. Gentine, M. Pritchard, S. Rasp, G. Reinaudi and G. Yacalis, 2018. 
+> Could machine learning break the convection parameterization deadlock? 
+> Geophysical Research Letters. http://doi.wiley.com/10.1029/2018GL078202
 
 For a snapshot of the repository as it was for the GRL paper, see release [grl_submission](https://github.com/raspstephan/CBRAIN-CAM/releases/tag/grl_submission). All figures for the paper were produced in [this Jupyter notebook](https://github.com/raspstephan/CBRAIN-CAM/blob/master/notebooks/presentation/grl_paper.ipynb)
-
-The second paper is submitted and available as a preprint.
-COMING SOON.
-
-The respective release is [paper2_submission]. All analysis and plotting is done in [this Jupyter notebook](https://github.com/raspstephan/CBRAIN-CAM/blob/master/notebooks/presentation/for-my-paper.ipynb). 
 
 ## Repository description
 
