@@ -283,17 +283,17 @@ def get_dP_from_ds(ds):
     p_diff = p.diff(dim='ilev')
     return p_diff.rename({'ilev':'lev'})
 
-def vint(ds, var, factor):
+def vint(ds, var, factor, lev_sl=slice(0, None)):
     dP = get_dP_from_ds(ds)
     x = ds[var] if type(var) is str else var
     dP['lev'] = x['lev']
-    return (dP * x * factor / G).sum(dim='lev')
+    return (dP * x * factor / G).isel(lev=lev_sl).sum(dim='lev')
 
-def vavg(ds, var, factor):
+def vavg(ds, var, factor, lev_sl=slice(0, None)):
     dP = get_dP_from_ds(ds)
     x = ds[var] if type(var) is str else var
     dP['lev'] = x['lev']
-    return (dP * x * factor).sum(dim='lev') / dP.sum(dim='lev')
+    return (dP * x * factor).isel(lev=lev_sl).sum(dim='lev') / dP.isel(lev=lev_sl).sum(dim='lev')
 
 def gw_avg(ds, var=None, da=None):
     da = ds[var] if da is None else da
