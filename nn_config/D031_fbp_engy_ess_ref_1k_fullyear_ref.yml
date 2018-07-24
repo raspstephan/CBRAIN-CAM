@@ -1,0 +1,15 @@
+exp_name: D031_fbp_engy_ess_ref_1k_fullyear_ref
+data_dir: /local/S.Rasp/preprocessed_data/
+train_fn: fbp_engy_ess_ref_1k_fullyear_train_shuffle
+valid_fn: fbp_engy_ess_valid_sample1
+norm_fn: fbp_engy_ess_ref_1k_sample1_train_norm.nc
+fsub: feature_means
+fdiv: max_rs
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [256,256,256,256,256,256,256,256,256]
+loss: mse
+log_dir: ./logs/
+epochs: 18
+lr_step: 3
+valid_after: True
