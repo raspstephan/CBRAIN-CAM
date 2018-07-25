@@ -1,0 +1,14 @@
+exp_name: N001_fbp_nobeta_engy_ess_fullyear_max_rs_deep
+data_dir: /local/S.Rasp/preprocessed_data/
+train_fn: fbp_nobeta_engy_cons_train_fullyear_shuffle
+valid_fn: fbp_nobeta_engy_cons_valid_sample1
+fsub: feature_means
+fdiv: max_rs
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [256,256,256,256,256,256,256,256,256]
+loss: mse
+log_dir: ./logs/
+epochs: 18
+lr_step: 3
+valid_after: True

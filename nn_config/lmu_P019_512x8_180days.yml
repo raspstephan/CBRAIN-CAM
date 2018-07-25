@@ -1,0 +1,15 @@
+exp_name: P019_512x8_180days
+data_dir: /local/S.Rasp/preprocessed_data/
+train_fn: paper_nonorm_train_180days_shuffle
+valid_fn: paper_nonorm_valid_sample1
+norm_fn: paper_nonorm_train_fullyear_norm.nc
+fsub: feature_means
+fdiv: feature_stds_eps
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [512, 512, 512, 512, 512, 512, 512, 512]
+loss: mse
+log_dir: ./logs/
+epochs: 20
+lr_step: 3
+valid_after: False

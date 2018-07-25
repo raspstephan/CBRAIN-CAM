@@ -1,0 +1,15 @@
+exp_name: D035_fbp_engy_ess_ref_fullyear_ref_big_fluxes
+data_dir: /scratch/srasp/preprocessed_data/
+train_fn: fbp_engy_ess_ref_train_fullyear_shuffle
+valid_fn: fbp_engy_ess_valid_sample1
+norm_fn: fbp_engy_ess_ref_train_sample1_norm_big_fluxes.nc
+fsub: feature_means
+fdiv: max_rs
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [256,256,256,256,256,256,256,256,256]
+loss: mse
+log_dir: ./logs/
+epochs: 18
+lr_step: 3
+valid_after: True
