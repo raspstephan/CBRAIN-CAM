@@ -5,7 +5,7 @@ set varname='PRECT'
 set savedir="/beegfs/DATA/pritchard/srasp/wkdata"
 mkdir -p scratch
 mkdir -p $savedir
-foreach EXP ( 'nnatmonly_fbp8_D024_andkua_nofix_betafix35' 'nnatmonly_fbp8_D024_4k_nofix_betafix35' 'nnatmonly_fbp8_D024_3kw1_nofix_betafix35') 
+foreach EXP ( 'nnatmonly_fbp8_D040_andkua_nofix_betafix35' ) 
   mkdir -p figs/$EXP
   setenv FILENAME "./scratch/${varname}_rcat_${EXP}.nc"
   if ( ! -e $FILENAME ) then
