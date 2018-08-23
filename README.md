@@ -1,5 +1,7 @@
 # CBRAIN-CAM - a neural network climate model parameterization
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1402384.svg)](https://doi.org/10.5281/zenodo.1402384)
+
 Author: Stephan Rasp - <raspstephan@gmail.com> - https://raspstephan.github.io
 
 This is my working directory for the CBRAIN-CAM project. It contains all code used to preprocess the raw climate model data, run the neural networks and analyze the results.
