@@ -1,0 +1,15 @@
+exp_name: VAE02_ae
+data_dir: /local/S.Rasp/preprocessed_data/
+train_fn: fbp_engy_ess_train_sample1_shuffle
+valid_fn: fbp_engy_ess_valid_sample1
+norm_fn: fbp_engy_ess_train_sample1_norm.nc
+fsub: feature_means
+fdiv: max_rs
+tmult: target_conv
+activation: elu
+hidden_layers: [256,256,16,256,256]
+loss: mse
+log_dir: ./logs/
+epochs: 18
+lr_step: 3
+valid_after: True
