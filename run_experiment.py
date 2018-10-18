@@ -67,6 +67,17 @@ def main(inargs):
             padding=inargs.padding,
             dr=inargs.dr,
         )
+    elif inargs.vae:
+        model = vae_model(
+            feature_shape,
+            target_shape,
+            inargs.hidden_layers,
+            inargs.latent_dim,
+            inargs.lr,
+            inargs.loss,
+            activation=inargs.activation,
+            beta=inargs.beta
+        )
     else:   # Fully connected model
         model = fc_model(
             feature_shape,
@@ -294,6 +305,20 @@ if __name__ == '__main__':
                    action='store_true',
                    help='Print additional information.')
     p.set_defaults(verbose=False)
+
+    p.add_argument('--vae',
+                   dest='vae',
+                   action='store_true',
+                   help='VAE model.')
+    p.set_defaults(vae=False)
+    p.add_argument('--latent_dim',
+                   default=10,
+                   type=int,
+                   help='Number of nodes * 2 in latent layer')
+    p.add_argument('--beta',
+                   default=0.001,
+                   type=float,
+                   help='beta loss parameter')
 
     args = p.parse_args()
 

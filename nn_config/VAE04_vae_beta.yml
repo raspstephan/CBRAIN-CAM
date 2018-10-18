@@ -1,0 +1,20 @@
+exp_name: VAE04_vae_beta
+data_dir: /local/S.Rasp/preprocessed_data/
+train_fn: fbp_engy_ess_train_sample1_shuffle
+valid_fn: fbp_engy_ess_valid_sample1
+norm_fn: fbp_engy_ess_train_sample1_norm.nc
+fsub: feature_means
+fdiv: max_rs
+tmult: target_conv
+activation: elu
+hidden_layers: [256,256]
+latent_dim: 16
+loss: beta
+log_dir: ./logs/
+epochs: 18
+lr_step: 3
+valid_after: True
+verbose: 1
+vae: True
+beta: 0.001
+

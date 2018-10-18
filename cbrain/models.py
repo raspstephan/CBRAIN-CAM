@@ -257,3 +257,57 @@ def conv_model(feature_shape_conv, feature_shape_1d, target_shape, feature_maps,
     model.compile(Adam(lr), loss=loss, metrics=metrics)
     return model
 
+
+def vae_model(feature_shape, target_shape, hidden_layers, latent_dim,
+              lr, loss, activation='relu', beta=0.001):
+    inputs = Input(shape=(feature_shape,))
+    x = inputs
+    for h in hidden_layers:
+        x = Dense(h, activation=activation)(x)
+    z_mean = Dense(latent_dim, name='z_means')(x)
+    z_log_var = Dense(latent_dim, name='z_log_var')(x)
+    z = Lambda(sampling, output_shape=(latent_dim,), name='z')([z_mean, z_log_var])
+    encoder = Model(inputs, [z_mean, z_log_var, z], name='encoder')
+
+    latent_inputs = Input(shape=(latent_dim,), name='z_sampling')
+    x = latent_inputs
+    for h in hidden_layers[::-1]:
+        x = Dense(h, activation=activation)(x)
+    outputs = Dense(target_shape, activation='linear')(x)
+    decoder = Model(latent_inputs, outputs, name='decoder')
+
+    outputs = decoder(encoder(inputs)[2])
+    model = Model(inputs, outputs, name='vae')
+
+    if loss == 'beta':
+        def z_kl_loss(y_true, y_pred):
+            kl_loss = - 0.5 * K.mean(
+                1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
+            return kl_loss
+
+        def vae_loss(y_true, y_pred):
+            xent_loss = mse(y_true, y_pred)
+            kl_loss = z_kl_loss(y_true, y_pred)
+            return xent_loss + beta * kl_loss
+        loss = vae_loss
+
+    model.compile(Adam(lr), loss=loss, metrics=metrics + [z_kl_loss])
+
+    return model
+
+
+def sampling(args):
+    """Reparameterization trick by sampling fr an isotropic unit Gaussian.
+    # Arguments:
+        args (tensor): mean and log of variance of Q(z|X)
+    # Returns:
+        z (tensor): sampled latent vector
+    """
+
+    z_mean, z_log_var = args
+    batch = K.shape(z_mean)[0]
+    dim = K.int_shape(z_mean)[1]
+    # by default, random_normal has mean=0 and std=1.0
+    epsilon = K.random_normal(shape=(batch, dim))
+    return z_mean + K.exp(0.5 * z_log_var) * epsilon
+
