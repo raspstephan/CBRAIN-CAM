@@ -15,6 +15,7 @@ from .losses import *
 act_dict = keras.activations.__dict__
 lyr_dict = keras.layers.__dict__
 
+
 L_V = 2.501e6   # Latent heat of vaporization
 L_I = 3.337e5   # Latent heat of freezing
 L_S = L_V + L_I # Sublimation
