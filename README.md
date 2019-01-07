@@ -1,33 +1,26 @@
 # CBRAIN-CAM - a neural network climate model parameterization
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1402384.svg)](https://doi.org/10.5281/zenodo.1402384)
-
 Author: Stephan Rasp - <raspstephan@gmail.com> - https://raspstephan.github.io
 
-This is my working directory for the CBRAIN-CAM project. It contains all code used to preprocess the raw climate model data, run the neural networks and analyze the results.
+Hi, thanks for checking out this repository. This is a working repository, which means that the most corrent commit might not always be the most functional or documented. 
+
+If you are looking for the version of the code that corresponds to the PNAS paper. Check out this release: https://github.com/raspstephan/CBRAIN-CAM/releases/tag/PNAS_final
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1402384.svg)](https://doi.org/10.5281/zenodo.1402384)
 
 The modified climate model code is available at https://gitlab.com/mspritch/spcam3.0-neural-net (branch: `nn_fbp_engy_ess`)
 
-## Papers and code
 
-### Climate model parameterization paper
+### Papers
 
-The second paper with the prognostic climate simulations is available as a preprint:
 > S. Rasp, M. Pritchard and P. Gentine, 2018.
 > Deep learning to represent sub-grid processes in climate models
 > https://arxiv.org/abs/1806.04731
-
-For a snapshot of the repository as it was for the GRL paper, see release [paper2_submission](https://github.com/raspstephan/CBRAIN-CAM/releases/tag/paper2_submission). All figures for the paper were produced in [this Jupyter notebook](https://github.com/raspstephan/CBRAIN-CAM/blob/master/notebooks/presentation/paper2.ipynb)
-
-
-### GRL paper
-
-The first paper showing offline performance has been published: 
+ 
 > P. Gentine, M. Pritchard, S. Rasp, G. Reinaudi and G. Yacalis, 2018. 
 > Could machine learning break the convection parameterization deadlock? 
 > Geophysical Research Letters. http://doi.wiley.com/10.1029/2018GL078202
 
-For a snapshot of the repository as it was for the GRL paper, see release [grl_submission](https://github.com/raspstephan/CBRAIN-CAM/releases/tag/grl_submission). All figures for the paper were produced in [this Jupyter notebook](https://github.com/raspstephan/CBRAIN-CAM/blob/master/notebooks/presentation/grl_paper.ipynb)
 
 ## Repository description
 
