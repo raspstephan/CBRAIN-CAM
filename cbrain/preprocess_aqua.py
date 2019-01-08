@@ -457,7 +457,7 @@ def main(inargs):
     assert len(inargs.in_dir) == len(inargs.aqua_names), 'Number arguments must match!'
     if len(inargs.in_dir) == 1:
         merged_ds = xr.open_mfdataset(inargs.in_dir[0] + inargs.aqua_names[0],
-                                    decode_times=False, decode_cf=False)
+                                      decode_times=False, decode_cf=False, concat_dim='time')
     else:
         dslist = [xr.open_mfdataset(
             inargs.in_dir[i] + inargs.aqua_names[i],decode_times=False, decode_cf=False)

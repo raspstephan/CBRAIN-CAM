@@ -1,0 +1,14 @@
+exp_name: 001_32cols_engy_ess_3d_pnas
+data_dir: /local/S.Rasp/preprocessed_data/
+train_fn: 32_col_engy_ess_3d_train_shuffle
+valid_fn: 32_col_engy_ess_3d_valid
+norm_fn: 32_col_engy_ess_3d_train_norm.nc
+fsub: feature_means
+fdiv: max_rs
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [256,256,256,256,256,256,256,256,256]
+loss: mse
+log_dir: ./logs/
+epochs: 18
+lr_step: 3
