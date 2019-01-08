@@ -473,6 +473,7 @@ def main(inargs):
             dslist[i] = ds.drop(todrop)
         # Concatenate along time axis
         merged_ds = xr.concat(dslist, 'time')
+    print('Time checkpoint reading data: %.2f s' % (timeit.default_timer() - t1))
     print('Number of time steps:', merged_ds.coords['time'].size)
     # Crop levels and latitude range
     merged_ds = crop_ds(inargs, merged_ds)
@@ -493,6 +494,7 @@ def main(inargs):
         inargs.target_factor,
         flx_same_dt=inargs.flx_same_dt
     )
+    print('Time checkpoint create datasets: %.2f s' % (timeit.default_timer() - t1))
 
     # Reshape
     feature_da = reshape_da(feature_da)
@@ -501,12 +503,14 @@ def main(inargs):
     # Rechunk 1, not sure if this is good or necessary
     feature_da = rechunk_da(feature_da, inargs.chunk_size)
     target_da = rechunk_da(target_da, inargs.chunk_size)
+    print('Time checkpoint reshape and rechunk: %.2f s' % (timeit.default_timer() - t1))
 
     # Normalize features
     norm_fn = inargs.out_dir + inargs.out_pref + '_norm.nc'
     feature_da, target_da = normalize_da(
         feature_da, target_da, log_str, norm_fn,inargs.ext_norm, feature_names,
         target_names, inargs.norm_targets, inargs.inputs, inargs.outputs, inargs.norm_features)
+    print('Time checkpoint normalization arrays: %.2f s' % (timeit.default_timer() - t1))
 
     if not inargs.only_norm:
         # Shuffle along sample dimension
@@ -529,6 +533,7 @@ def main(inargs):
                                 {'feature_names': feature_names})
         target_ds = xr.Dataset({'targets': target_da,
                                 'target_names': target_names})
+        print('Time checkpoint rechunk and ds: %.2f s' % (timeit.default_timer() - t1))
 
         # Save data arrays
         feature_ds.attrs['log'] = log_str
