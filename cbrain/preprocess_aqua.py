@@ -46,6 +46,7 @@ conversion_dict = {
     'FSNS': -1. * 1e-3,
     'FLNT': -1. * 1e-3,
     'FLNS': 1. * 1e-3,
+    'QAP': L_S/DT,
     'QCAP': L_S/DT,
     'QIAP': L_S/DT
 }
