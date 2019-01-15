@@ -4,6 +4,9 @@ Author: Stephan Rasp - <raspstephan@gmail.com> - https://raspstephan.github.io
 
 Hi, thanks for checking out this repository. This is a working repository, which means that the most corrent commit might not always be the most functional or documented. 
 
+**A Guide for collaborators**
+People hoping to collaborate with me on this project, please check out some guidelines here: https://github.com/raspstephan/CBRAIN-CAM/wiki/A-guide-for-collaborators
+
 If you are looking for the version of the code that corresponds to the PNAS paper. Check out this release: https://github.com/raspstephan/CBRAIN-CAM/releases/tag/PNAS_final
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1402384.svg)](https://doi.org/10.5281/zenodo.1402384)
