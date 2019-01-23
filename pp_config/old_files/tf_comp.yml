@@ -1,2 +1,0 @@
-inputs : [TBP, QBP, PS, SHFLX, LHFLX, dTdt_adiabatic_tf, dQdt_adiabatic_tf]
-outputs : [TPHYSTND_NORAD, PHQ]

@@ -1,2 +1,0 @@
-feature_vars : [TAP, QAP, OMEGA, dTdt_adiabatic, dQdt_adiabatic, QRL, QRS, SHFLX, LHFLX, LAT]
-target_vars: [SPDT, SPDQ]

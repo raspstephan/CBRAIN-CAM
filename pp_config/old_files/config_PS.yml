@@ -1,5 +1,0 @@
-# Define input and output variables
-# Important: Do not include quatation marks!
-# Also important: the order!
-feature_vars: [TAP, QAP, dTdt_adiabatic, dQdt_adiabatic, SHFLX, LHFLX, SOLIN, PS]   # Features
-target_vars: [SPDT, SPDQ, QRL, QRS, PRECT, FLUT]          # Targets

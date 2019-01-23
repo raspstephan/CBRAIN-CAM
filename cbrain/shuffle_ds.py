@@ -11,35 +11,8 @@ import sys
 from datetime import datetime
 from subprocess import getoutput
 
-global verbose
 
-def create_log_str():
-    """Create a log string to add to the netcdf file for reproducibility.
-    See: https://raspstephan.github.io/2017/08/24/reproducibility-hack.html
 
-    Returns:
-        log_str: String with reproducibility information
-    """
-    time_stamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    pwd = getoutput(['pwd']).rstrip()  # Need to remove trailing /n
-    try:
-        from git import Repo
-        repo_name = 'CBRAIN-CAM'
-        git_dir = pwd.rsplit(repo_name)[0] + repo_name
-        git_hash = Repo(git_dir).heads[0].commit
-    except ModuleNotFoundError:
-        print('GitPython not found. Please install for better reproducibility.')
-        git_hash = 'N/A'
-    exe_str = ' '.join(sys.argv)
-
-    log_str = ("""
-    Time: %s\n
-    Executed command:\n
-    python %s\n
-    In directory: %s\n
-    Git hash: %s\n
-        """ % (time_stamp, exe_str, pwd, str(git_hash)))
-    return log_str
 
 
 def fast(features_orig, targets_orig, features_shuffle, targets_shuffle,
