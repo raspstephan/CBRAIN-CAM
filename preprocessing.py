@@ -8,6 +8,7 @@ Author: Stephan Rasp, raspstephan@gmail.com
 from cbrain.imports import *
 from cbrain.preprocessing.convert_dataset import preprocess
 from cbrain.preprocessing.shuffle_dataset import shuffle
+from cbrain.preprocessing.compute_normalization import normalize
 
 # Set up logging, mainly to get timings easily.
 logging.basicConfig(
@@ -37,6 +38,16 @@ def main(args):
         logging.info('Preprocess validation dataset')
         preprocess(args.in_dir, args.val_in_fns, args.out_dir, args.val_out_fn, args.vars)
 
+    if args.norm_fn is not None:
+        logging.info(f'Compute normalization file from {args.norm_train_or_valid}')
+        normalize(
+            args.out_dir,
+            args.out_fn if args.norm_train_or_valid == 'train' else args.val_out_fn,
+            args.norm_fn
+        )
+
+    logging.info('Finish entire preprocessing script.')
+
 
 # Create command line interface
 if __name__ == '__main__':
@@ -53,11 +64,16 @@ if __name__ == '__main__':
 
     # For shuffling
     p.add('--shuffle', dest='shuffle', action='store_true', help='Shuffle data along sample dimension.')
-    p.add('--chunk_size', type=int, default=10_000_000, help='Chunk size for shuffling/')
+    p.set_defaults(shuffle=True)
+    p.add('--chunk_size', type=int, default=10_000_000, help='Chunk size for shuffling.')
 
     # For potential validation file
     p.add('--val_in_fns', type=str, default=None, help='Validation: SPCAM file names, * is allowed.')
     p.add('--val_out_fn', type=str, default=None, help='Validation: Name of processed file.')
+
+    # For a potential normalization file
+    p.add('--norm_fn', type=str, default=None, help='Normalization: If given, compute normalization file.')
+    p.add('--norm_train_or_valid', type=str, default='train', help='Compute normalization values from train or valid?')
 
     args = p.parse_args()
     main(args)

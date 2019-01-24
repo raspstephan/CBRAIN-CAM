@@ -56,9 +56,12 @@ def create_stacked_da(ds, vars):
         names_list.extend([var] * nlev)
 
     concat_da = rename_time_lev_and_cut_times(ds, var_list)
-    names_da = xr.DataArray(names_list, coords=[concat_da.coords['stacked']])
 
-    return concat_da, names_da
+    # Delete unused coordinates and set var_names as coordinates
+    concat_da['var_names'] = np.array(names_list).astype('object')
+    #names_da = xr.DataArray(names_list, coords=[concat_da.coords['stacked']])
+    a = 3
+    return concat_da
 
 
 def rename_time_lev_and_cut_times(ds, da_list):
@@ -93,8 +96,8 @@ def rename_time_lev_and_cut_times(ds, da_list):
     clean_time_steps = np.delete(clean_time_steps, cut_time_steps)
     da = da.isel(time=clean_time_steps)
     # Rename
-    da = da.rename({'lev': 'stacked'})
-    da = da.rename('targets')
+    da = da.rename({'lev': 'var_names'})
+    da = da.rename('vars')
 
     return da
 
@@ -111,7 +114,7 @@ def reshape_da(da):
     da: dataarray with [sample, stacked]
     """
     da = da.stack(sample=('time', 'lat', 'lon'))
-    return da.transpose('sample', 'stacked')
+    return da.transpose('sample', 'var_names')
 
 
 def preprocess(in_dir, in_fns, out_dir, out_fn, vars, lev_range=(0, 30)):
@@ -133,18 +136,16 @@ def preprocess(in_dir, in_fns, out_dir, out_fn, vars, lev_range=(0, 30)):
     ds = ds.isel(lev=slice(*lev_range, 1))
 
     logging.info('Create stacked dataarray')
-    da, names_da = create_stacked_da(ds, vars)
+    da = create_stacked_da(ds, vars)
 
     logging.info('Stack and reshape dataarray')
     da = reshape_da(da).reset_index('sample')
 
-    logging.info('Convert to dataset')
-    out_ds = xr.Dataset(data_vars={'var': da}, coords={'var_names': names_da})
-
-    logging.info(f'Save dataset as {out_fn}')
-    out_ds.to_netcdf(out_fn)
+    logging.info(f'Save dataarray as {out_fn}')
+    da.to_netcdf(out_fn)
 
     logging.info('Done!')
+
 
 if __name__ == '__main__':
     fire.Fire(preprocess)

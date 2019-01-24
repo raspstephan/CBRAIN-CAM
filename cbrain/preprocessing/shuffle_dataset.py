@@ -24,9 +24,9 @@ def fast_shuffle(orig_ds, shuffle_ds, chunk_size):
         rand_idxs = np.arange(stop_idx - start_idx)
         np.random.shuffle(rand_idxs)
 
-        chunk = orig_ds.variables['var'][start_idx:stop_idx]
+        chunk = orig_ds.variables['vars'][start_idx:stop_idx]
         chunk = chunk[rand_idxs]
-        shuffle_ds.variables['var'][start_idx:stop_idx] = chunk
+        shuffle_ds.variables['vars'][start_idx:stop_idx] = chunk
 
 
 def shuffle(dir, fn, random_seed=42, chunk_size=10_000_000):
@@ -65,6 +65,7 @@ def shuffle(dir, fn, random_seed=42, chunk_size=10_000_000):
     shuffle_ds.close()
 
     logging.info('Done!')
+
 
 if __name__ == '__main__':
     fire.Fire(shuffle)
