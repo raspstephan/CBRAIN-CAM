@@ -28,11 +28,14 @@ if in_notebook():
 else:
     from tqdm import tqdm
 
+import tensorflow as tf
 
-def tf():
-    import keras
-    #from keras.callbacks import *
-    import tensorflow as tf
+def limit_mem():
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    tf.Session(config=config)
+
+limit_mem()
 
 
 

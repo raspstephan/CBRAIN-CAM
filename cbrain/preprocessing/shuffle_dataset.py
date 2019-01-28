@@ -55,10 +55,11 @@ def shuffle(dir, fn, random_seed=42, chunk_size=10_000_000):
         shuffle_ds.createDimension(dim_name, dim.size)
     for var_name, var in orig_ds.variables.items():
         shuffle_ds.createVariable(var_name, var.dtype, var.dimensions)
+        if var_name != 'vars':
+            shuffle_ds.variables[var_name][:] = var[:]
 
     logging.info('Shuffle!')
     fast_shuffle(orig_ds, shuffle_ds, chunk_size)
-
 
     logging.info('Closing datasets')
     orig_ds.close()
