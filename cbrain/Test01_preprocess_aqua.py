@@ -56,6 +56,10 @@ conversion_dict = {
     'QAP': L_S/DT,
     'QCAP': L_S/DT,
     'QIAP': L_S/DT
+#    'Qdt_adiabatic': L_V/G,
+#    'QCdt_adiabatic': L_V/G,
+#    'QIdt_adiabatic': L_V/G,
+#    'Tdt_adiabatic': C_P/G
 }
 
 # Dictionary containing the physical tendencies
@@ -210,10 +214,10 @@ def create_feature_or_target_da(ds, vars, min_lev, feature_or_target,
         # Compute derived quantities if necessary
         # I should do this more cleverly with regular expressions...
         if 'dt_adiabatic_tf' in var:
-            base_var = var[:-15][1:] + 'AP'
+            base_var = var[:-15] + 'AP'
             da = compute_adiabatic_tf(ds, base_var)
         elif 'dt_adiabatic' in var:
-            base_var = var[:-12][1:] + 'AP'
+            base_var = var[:-12] + 'AP'
             da = compute_adiabatic(ds, base_var)
         elif 'BP' in var:
             base_var = var[:-2] + 'AP'
