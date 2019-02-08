@@ -289,26 +289,40 @@ variables}\label{preprocess-all-the-necessary-variables}}
 files}\label{build-feature-target-and-initial-normalization-files}}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}6}]:} \PY{c+ch}{\PYZsh{}!ln \PYZhy{}s /filer/z\PYZhy{}sv\PYZhy{}pool12c/t/Tom.Beucler/SPCAM/CBRAIN\PYZhy{}CAM/cbrain \PYZbs{}}
-        \PY{c+c1}{\PYZsh{}/filer/z\PYZhy{}sv\PYZhy{}pool12c/t/Tom.Beucler/SPCAM/CBRAIN\PYZhy{}CAM/notebooks/tbeucler\PYZus{}devlog/cbrain}
-        \PY{k+kn}{from} \PY{n+nn}{cbrain}\PY{n+nn}{.}\PY{n+nn}{imports} \PY{k}{import} \PY{o}{*}
-        \PY{k+kn}{from} \PY{n+nn}{cbrain}\PY{n+nn}{.}\PY{n+nn}{data\PYZus{}generator} \PY{k}{import} \PY{o}{*}
-        \PY{k+kn}{from} \PY{n+nn}{cbrain}\PY{n+nn}{.}\PY{n+nn}{utils} \PY{k}{import} \PY{n}{limit\PYZus{}mem}
-        \PY{k+kn}{import} \PY{n+nn}{tensorflow} \PY{k}{as} \PY{n+nn}{tf}
-        \PY{k+kn}{import} \PY{n+nn}{tensorflow}\PY{n+nn}{.}\PY{n+nn}{math} \PY{k}{as} \PY{n+nn}{tfm}
-        \PY{k+kn}{import} \PY{n+nn}{xarray} \PY{k}{as} \PY{n+nn}{xr}
-        \PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
-        \PY{c+c1}{\PYZsh{} Otherwise tensorflow will use ALL your GPU RAM for no reason}
-        \PY{n}{limit\PYZus{}mem}\PY{p}{(}\PY{p}{)}
-        \PY{n}{TRAINDIR} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{/local/Tom.Beucler/SPCAM\PYZus{}PHYS/}\PY{l+s+s1}{\PYZsq{}}
-        \PY{n}{DATADIR} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{/project/meteo/w2w/A6/S.Rasp/SP\PYZhy{}CAM/sp32fbp\PYZus{}andkua/}\PY{l+s+s1}{\PYZsq{}}
-        \PY{n}{PREFIX} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{32\PYZus{}col\PYZus{}lgsc\PYZus{}12m\PYZus{}}\PY{l+s+s1}{\PYZsq{}}
-        \PY{o}{\PYZpc{}}\PY{k}{cd} /filer/z\PYZhy{}sv\PYZhy{}pool12c/t/Tom.Beucler/SPCAM/CBRAIN\PYZhy{}CAM
+{\color{incolor}In [{\color{incolor}77}]:} \PY{c+ch}{\PYZsh{}!ln \PYZhy{}s /filer/z\PYZhy{}sv\PYZhy{}pool12c/t/Tom.Beucler/SPCAM/CBRAIN\PYZhy{}CAM/cbrain \PYZbs{}}
+         \PY{c+c1}{\PYZsh{}/filer/z\PYZhy{}sv\PYZhy{}pool12c/t/Tom.Beucler/SPCAM/CBRAIN\PYZhy{}CAM/notebooks/tbeucler\PYZus{}devlog/cbrain}
+         \PY{k+kn}{from} \PY{n+nn}{cbrain}\PY{n+nn}{.}\PY{n+nn}{imports} \PY{k}{import} \PY{o}{*}
+         \PY{k+kn}{from} \PY{n+nn}{cbrain}\PY{n+nn}{.}\PY{n+nn}{data\PYZus{}generator} \PY{k}{import} \PY{o}{*}
+         \PY{k+kn}{from} \PY{n+nn}{cbrain}\PY{n+nn}{.}\PY{n+nn}{models} \PY{k}{import} \PY{n}{MasConsLay}
+         \PY{k+kn}{from} \PY{n+nn}{cbrain}\PY{n+nn}{.}\PY{n+nn}{utils} \PY{k}{import} \PY{n}{limit\PYZus{}mem}
+         \PY{k+kn}{import} \PY{n+nn}{tensorflow} \PY{k}{as} \PY{n+nn}{tf}
+         \PY{k+kn}{import} \PY{n+nn}{tensorflow}\PY{n+nn}{.}\PY{n+nn}{math} \PY{k}{as} \PY{n+nn}{tfm}
+         \PY{k+kn}{import} \PY{n+nn}{xarray} \PY{k}{as} \PY{n+nn}{xr}
+         \PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+         \PY{c+c1}{\PYZsh{} Otherwise tensorflow will use ALL your GPU RAM for no reason}
+         \PY{n}{limit\PYZus{}mem}\PY{p}{(}\PY{p}{)}
+         \PY{n}{TRAINDIR} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{/local/Tom.Beucler/SPCAM\PYZus{}PHYS/}\PY{l+s+s1}{\PYZsq{}}
+         \PY{n}{DATADIR} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{/project/meteo/w2w/A6/S.Rasp/SP\PYZhy{}CAM/sp32fbp\PYZus{}andkua/}\PY{l+s+s1}{\PYZsq{}}
+         \PY{n}{PREFIX} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{32\PYZus{}col\PYZus{}lgsc\PYZus{}12m\PYZus{}}\PY{l+s+s1}{\PYZsq{}}
+         \PY{o}{\PYZpc{}}\PY{k}{cd} /filer/z\PYZhy{}sv\PYZhy{}pool12c/t/Tom.Beucler/SPCAM/CBRAIN\PYZhy{}CAM
 \end{Verbatim}
 
 
     \begin{Verbatim}[commandchars=\\\{\}]
-/filer/z-sv-pool12c/t/Tom.Beucler/SPCAM/CBRAIN-CAM
+
+        ---------------------------------------------------------------------------
+
+        ImportError                               Traceback (most recent call last)
+
+        <ipython-input-77-ccb5d40bb54b> in <module>
+          3 from cbrain.imports import *
+          4 from cbrain.data\_generator import *
+    ----> 5 from cbrain.models import MasConsLay
+          6 from cbrain.utils import limit\_mem
+          7 import tensorflow as tf
+
+
+        ImportError: cannot import name 'MasConsLay'
 
     \end{Verbatim}
 
@@ -427,6 +441,9 @@ GitPython not found. Please install for better reproducibility.
 \subsubsection{1.4) Change the output's normalization using pressure
 levels}\label{change-the-outputs-normalization-using-pressure-levels}}
 
+    tgb - 2/6/2019 - See notebook 001 for careful test of each of the steps
+below
+
     \begin{Verbatim}[commandchars=\\\{\}]
 {\color{incolor}In [{\color{incolor}7}]:} \PY{n}{ds} \PY{o}{=} \PY{n}{xr}\PY{o}{.}\PY{n}{open\PYZus{}dataset}\PY{p}{(}\PY{n}{TRAINDIR} \PY{o}{+} \PY{n}{PREFIX} \PY{o}{+} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{train\PYZus{}norm.nc}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}  
         
@@ -477,12 +494,26 @@ sample}\label{create-data-generator-and-produce-data-sample}}
 dataset}\label{create-data-generator-from-training-dataset}}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}8}]:} \PY{n}{xr}\PY{o}{.}\PY{n}{open\PYZus{}dataset}\PY{p}{(}\PY{n}{path1}\PY{p}{)}\PY{o}{.}\PY{n}{close}\PY{p}{(}\PY{p}{)} \PY{c+c1}{\PYZsh{} Don\PYZsq{}t forget to close xarray handler!!}
+{\color{incolor}In [{\color{incolor}2}]:} \PY{n}{xr}\PY{o}{.}\PY{n}{open\PYZus{}dataset}\PY{p}{(}\PY{n}{path1}\PY{p}{)}\PY{o}{.}\PY{n}{close}\PY{p}{(}\PY{p}{)} \PY{c+c1}{\PYZsh{} Don\PYZsq{}t forget to close xarray handler!!}
 \end{Verbatim}
 
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}9}]:} \PY{n}{train\PYZus{}gen\PYZus{}obj} \PY{o}{=} \PY{n}{DataGenerator}\PY{p}{(}
+
+        ---------------------------------------------------------------------------
+
+        NameError                                 Traceback (most recent call last)
+
+        <ipython-input-2-dea80371377a> in <module>
+    ----> 1 xr.open\_dataset(path1).close() \# Don't forget to close xarray handler!!
+    
+
+        NameError: name 'path1' is not defined
+
+    \end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}2}]:} \PY{n}{train\PYZus{}gen\PYZus{}obj} \PY{o}{=} \PY{n}{DataGenerator}\PY{p}{(}
             \PY{n}{data\PYZus{}dir}\PY{o}{=}\PY{n}{TRAINDIR}\PY{p}{,} 
             \PY{n}{feature\PYZus{}fn}\PY{o}{=}\PY{n}{PREFIX}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{train\PYZus{}shuffle\PYZus{}features.nc}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}
             \PY{n}{target\PYZus{}fn}\PY{o}{=}\PY{n}{PREFIX}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{train\PYZus{}shuffle\PYZus{}targets.nc}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}
@@ -503,16 +534,16 @@ Features have shape 304; targets have shape 158
     \end{Verbatim}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}10}]:} \PY{n}{gen} \PY{o}{=} \PY{n}{train\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{return\PYZus{}generator}\PY{p}{(}\PY{p}{)}
-         \PY{c+c1}{\PYZsh{} Produce data sample}
-         \PY{n}{x}\PY{p}{,} \PY{n}{y} \PY{o}{=} \PY{n+nb}{next}\PY{p}{(}\PY{n}{gen}\PY{p}{)}
-         \PY{c+c1}{\PYZsh{} and check its shape}
-         \PY{n}{x}\PY{o}{.}\PY{n}{shape}\PY{p}{,} \PY{n}{y}\PY{o}{.}\PY{n}{shape}
+{\color{incolor}In [{\color{incolor}3}]:} \PY{n}{gen} \PY{o}{=} \PY{n}{train\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{return\PYZus{}generator}\PY{p}{(}\PY{p}{)}
+        \PY{c+c1}{\PYZsh{} Produce data sample}
+        \PY{n}{x}\PY{p}{,} \PY{n}{y} \PY{o}{=} \PY{n+nb}{next}\PY{p}{(}\PY{n}{gen}\PY{p}{)}
+        \PY{c+c1}{\PYZsh{} and check its shape}
+        \PY{n}{x}\PY{o}{.}\PY{n}{shape}\PY{p}{,} \PY{n}{y}\PY{o}{.}\PY{n}{shape}
 \end{Verbatim}
 
 
 \begin{Verbatim}[commandchars=\\\{\}]
-{\color{outcolor}Out[{\color{outcolor}10}]:} ((512, 304), (512, 158))
+{\color{outcolor}Out[{\color{outcolor}3}]:} ((512, 304), (512, 158))
 \end{Verbatim}
             
     \hypertarget{create-data-generator-from-validation-dataset-and-produce-sample}{%
@@ -521,17 +552,17 @@ produce
 sample}\label{create-data-generator-from-validation-dataset-and-produce-sample}}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}11}]:} \PY{n}{valid\PYZus{}gen\PYZus{}obj} \PY{o}{=} \PY{n}{DataGenerator}\PY{p}{(}
-             \PY{n}{data\PYZus{}dir}\PY{o}{=}\PY{n}{TRAINDIR}\PY{p}{,} 
-             \PY{n}{feature\PYZus{}fn}\PY{o}{=}\PY{n}{PREFIX}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{valid\PYZus{}shuffle\PYZus{}features.nc}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}
-             \PY{n}{target\PYZus{}fn}\PY{o}{=}\PY{n}{PREFIX}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{valid\PYZus{}shuffle\PYZus{}targets.nc}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}
-             \PY{n}{batch\PYZus{}size}\PY{o}{=}\PY{l+m+mi}{512}\PY{p}{,}
-             \PY{n}{norm\PYZus{}fn}\PY{o}{=}\PY{n}{PREFIX}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{train\PYZus{}norm.nc}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}
-             \PY{n}{fsub}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{feature\PYZus{}means}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}   \PY{c+c1}{\PYZsh{} Subtracct the mean}
-             \PY{n}{fdiv}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{feature\PYZus{}stds\PYZus{}by\PYZus{}var}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}    \PY{c+c1}{\PYZsh{} Then divide by Std}
-             \PY{n}{tmult}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{target\PYZus{}conv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}    \PY{c+c1}{\PYZsh{} For targets/output: use values from preprocess\PYZus{}aqua.}
-             \PY{n}{shuffle}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,}
-         \PY{p}{)}
+{\color{incolor}In [{\color{incolor}4}]:} \PY{n}{valid\PYZus{}gen\PYZus{}obj} \PY{o}{=} \PY{n}{DataGenerator}\PY{p}{(}
+            \PY{n}{data\PYZus{}dir}\PY{o}{=}\PY{n}{TRAINDIR}\PY{p}{,} 
+            \PY{n}{feature\PYZus{}fn}\PY{o}{=}\PY{n}{PREFIX}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{valid\PYZus{}shuffle\PYZus{}features.nc}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}
+            \PY{n}{target\PYZus{}fn}\PY{o}{=}\PY{n}{PREFIX}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{valid\PYZus{}shuffle\PYZus{}targets.nc}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}
+            \PY{n}{batch\PYZus{}size}\PY{o}{=}\PY{l+m+mi}{512}\PY{p}{,}
+            \PY{n}{norm\PYZus{}fn}\PY{o}{=}\PY{n}{PREFIX}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{train\PYZus{}norm.nc}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}
+            \PY{n}{fsub}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{feature\PYZus{}means}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}   \PY{c+c1}{\PYZsh{} Subtracct the mean}
+            \PY{n}{fdiv}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{feature\PYZus{}stds\PYZus{}by\PYZus{}var}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}    \PY{c+c1}{\PYZsh{} Then divide by Std}
+            \PY{n}{tmult}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{target\PYZus{}conv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}    \PY{c+c1}{\PYZsh{} For targets/output: use values from preprocess\PYZus{}aqua.}
+            \PY{n}{shuffle}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,}
+        \PY{p}{)}
 \end{Verbatim}
 
 
@@ -542,16 +573,16 @@ Features have shape 304; targets have shape 158
     \end{Verbatim}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}12}]:} \PY{n}{validgen} \PY{o}{=} \PY{n}{valid\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{return\PYZus{}generator}\PY{p}{(}\PY{p}{)}
-         
-         \PY{n}{xval}\PY{p}{,} \PY{n}{yval} \PY{o}{=} \PY{n+nb}{next}\PY{p}{(}\PY{n}{validgen}\PY{p}{)}
-         
-         \PY{n}{xval}\PY{o}{.}\PY{n}{shape}\PY{p}{,} \PY{n}{yval}\PY{o}{.}\PY{n}{shape}
+{\color{incolor}In [{\color{incolor}5}]:} \PY{n}{validgen} \PY{o}{=} \PY{n}{valid\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{return\PYZus{}generator}\PY{p}{(}\PY{p}{)}
+        
+        \PY{n}{xval}\PY{p}{,} \PY{n}{yval} \PY{o}{=} \PY{n+nb}{next}\PY{p}{(}\PY{n}{validgen}\PY{p}{)}
+        
+        \PY{n}{xval}\PY{o}{.}\PY{n}{shape}\PY{p}{,} \PY{n}{yval}\PY{o}{.}\PY{n}{shape}
 \end{Verbatim}
 
 
 \begin{Verbatim}[commandchars=\\\{\}]
-{\color{outcolor}Out[{\color{outcolor}12}]:} ((512, 304), (512, 158))
+{\color{outcolor}Out[{\color{outcolor}5}]:} ((512, 304), (512, 158))
 \end{Verbatim}
             
     \hypertarget{neural-network-attempts-tgb---started-1152019}{%
@@ -559,8 +590,8 @@ Features have shape 304; targets have shape 158
 1/15/2019)}\label{neural-network-attempts-tgb---started-1152019}}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}13}]:} \PY{k+kn}{from} \PY{n+nn}{keras}\PY{n+nn}{.}\PY{n+nn}{layers} \PY{k}{import} \PY{o}{*}
-         \PY{k+kn}{from} \PY{n+nn}{keras}\PY{n+nn}{.}\PY{n+nn}{models} \PY{k}{import} \PY{o}{*}
+{\color{incolor}In [{\color{incolor}6}]:} \PY{k+kn}{from} \PY{n+nn}{keras}\PY{n+nn}{.}\PY{n+nn}{layers} \PY{k}{import} \PY{o}{*}
+        \PY{k+kn}{from} \PY{n+nn}{keras}\PY{n+nn}{.}\PY{n+nn}{models} \PY{k}{import} \PY{o}{*}
 \end{Verbatim}
 
 
@@ -574,22 +605,22 @@ vertical
 integrals}\label{step-0-load-all-the-variables-to-calculate-mass-weighted-vertical-integrals}}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}14}]:} \PY{c+c1}{\PYZsh{} 1) Open the file containing the normalization of the targets}
-         \PY{n}{ds} \PY{o}{=} \PY{n}{xr}\PY{o}{.}\PY{n}{open\PYZus{}dataset}\PY{p}{(}\PY{n}{TRAINDIR} \PY{o}{+} \PY{n}{PREFIX} \PY{o}{+} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{train\PYZus{}norm.nc}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{c+c1}{\PYZsh{} 2) Open the pickle files containing the pressure converters}
-         \PY{k}{with} \PY{n+nb}{open}\PY{p}{(}\PY{n}{os}\PY{o}{.}\PY{n}{path}\PY{o}{.}\PY{n}{join}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{/filer/z\PYZhy{}sv\PYZhy{}pool12c/t/Tom.Beucler/SPCAM/CBRAIN\PYZhy{}CAM/cbrain}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{hyai\PYZus{}hybi.pkl}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{rb}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)} \PY{k}{as} \PY{n}{f}\PY{p}{:}
-                     \PY{n}{hyai}\PY{p}{,} \PY{n}{hybi} \PY{o}{=} \PY{n}{pickle}\PY{o}{.}\PY{n}{load}\PY{p}{(}\PY{n}{f}\PY{p}{)}
-         \PY{c+c1}{\PYZsh{} 3) Define fsub, fdiv, normq}
-         \PY{n}{fsub} \PY{o}{=} \PY{n}{ds}\PY{o}{.}\PY{n}{feature\PYZus{}means}\PY{o}{.}\PY{n}{values}
-         \PY{n}{fdiv} \PY{o}{=} \PY{n}{ds}\PY{o}{.}\PY{n}{feature\PYZus{}stds\PYZus{}by\PYZus{}var}\PY{o}{.}\PY{n}{values}
-         \PY{n}{normq} \PY{o}{=} \PY{n}{ds}\PY{o}{.}\PY{n}{target\PYZus{}conv}\PY{o}{.}\PY{n}{values}
-         \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{fsub.shape=}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{fsub}\PY{o}{.}\PY{n}{shape}\PY{p}{)}
-         \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{fdiv.shape=}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{fdiv}\PY{o}{.}\PY{n}{shape}\PY{p}{)}
-         \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{normq.shape=}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{normq}\PY{o}{.}\PY{n}{shape}\PY{p}{)}
-         \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{hyai.shape=}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{hyai}\PY{o}{.}\PY{n}{shape}\PY{p}{)}
-         \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{hybi.shape=}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{hybi}\PY{o}{.}\PY{n}{shape}\PY{p}{)}
-         
-         \PY{n}{ds}\PY{o}{.}\PY{n}{close}\PY{p}{(}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}7}]:} \PY{c+c1}{\PYZsh{} 1) Open the file containing the normalization of the targets}
+        \PY{n}{ds} \PY{o}{=} \PY{n}{xr}\PY{o}{.}\PY{n}{open\PYZus{}dataset}\PY{p}{(}\PY{n}{TRAINDIR} \PY{o}{+} \PY{n}{PREFIX} \PY{o}{+} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{train\PYZus{}norm.nc}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+        \PY{c+c1}{\PYZsh{} 2) Open the pickle files containing the pressure converters}
+        \PY{k}{with} \PY{n+nb}{open}\PY{p}{(}\PY{n}{os}\PY{o}{.}\PY{n}{path}\PY{o}{.}\PY{n}{join}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{/filer/z\PYZhy{}sv\PYZhy{}pool12c/t/Tom.Beucler/SPCAM/CBRAIN\PYZhy{}CAM/cbrain}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{hyai\PYZus{}hybi.pkl}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{rb}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)} \PY{k}{as} \PY{n}{f}\PY{p}{:}
+                    \PY{n}{hyai}\PY{p}{,} \PY{n}{hybi} \PY{o}{=} \PY{n}{pickle}\PY{o}{.}\PY{n}{load}\PY{p}{(}\PY{n}{f}\PY{p}{)}
+        \PY{c+c1}{\PYZsh{} 3) Define fsub, fdiv, normq}
+        \PY{n}{fsub} \PY{o}{=} \PY{n}{ds}\PY{o}{.}\PY{n}{feature\PYZus{}means}\PY{o}{.}\PY{n}{values}
+        \PY{n}{fdiv} \PY{o}{=} \PY{n}{ds}\PY{o}{.}\PY{n}{feature\PYZus{}stds\PYZus{}by\PYZus{}var}\PY{o}{.}\PY{n}{values}
+        \PY{n}{normq} \PY{o}{=} \PY{n}{ds}\PY{o}{.}\PY{n}{target\PYZus{}conv}\PY{o}{.}\PY{n}{values}
+        \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{fsub.shape=}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{fsub}\PY{o}{.}\PY{n}{shape}\PY{p}{)}
+        \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{fdiv.shape=}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{fdiv}\PY{o}{.}\PY{n}{shape}\PY{p}{)}
+        \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{normq.shape=}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{normq}\PY{o}{.}\PY{n}{shape}\PY{p}{)}
+        \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{hyai.shape=}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{hyai}\PY{o}{.}\PY{n}{shape}\PY{p}{)}
+        \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{hybi.shape=}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{hybi}\PY{o}{.}\PY{n}{shape}\PY{p}{)}
+        
+        \PY{n}{ds}\PY{o}{.}\PY{n}{close}\PY{p}{(}\PY{p}{)}
 \end{Verbatim}
 
 
@@ -652,7 +683,7 @@ Note that because we are already working with tendencies, the timestep
 variable dt is not needed in the water conservation layer.
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}15}]:} \PY{c+c1}{\PYZsh{} tgb \PYZhy{} 2/5/2019 \PYZhy{} Adapated the mass conservation layer to new input format}
+{\color{incolor}In [{\color{incolor}62}]:} \PY{c+c1}{\PYZsh{} tgb \PYZhy{} 2/5/2019 \PYZhy{} Adapated the mass conservation layer to new input format}
          \PY{k}{class} \PY{n+nc}{MasConsLay}\PY{p}{(}\PY{n}{Layer}\PY{p}{)}\PY{p}{:}
              
              \PY{k}{def} \PY{n+nf}{\PYZus{}\PYZus{}init\PYZus{}\PYZus{}}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{fsub}\PY{p}{,} \PY{n}{fdiv}\PY{p}{,} \PY{n}{normq}\PY{p}{,} \PY{n}{hyai}\PY{p}{,} \PY{n}{hybi}\PY{p}{,} \PY{n}{output\PYZus{}dim}\PY{p}{,} \PY{o}{*}\PY{o}{*}\PY{n}{kwargs}\PY{p}{)}\PY{p}{:}
@@ -666,6 +697,14 @@ variable dt is not needed in the water conservation layer.
                  
              \PY{k}{def} \PY{n+nf}{build}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{input\PYZus{}shape}\PY{p}{)}\PY{p}{:}
                  \PY{n+nb}{super}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{build}\PY{p}{(}\PY{n}{input\PYZus{}shape}\PY{p}{)}  \PY{c+c1}{\PYZsh{} Be sure to call this somewhere!}
+             
+             \PY{c+c1}{\PYZsh{} tgb \PYZhy{} 2/6/2019 \PYZhy{} following https://github.com/keras\PYZhy{}team/keras/issues/4871}
+             \PY{k}{def} \PY{n+nf}{get\PYZus{}config}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                 \PY{n}{config} \PY{o}{=} \PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{fsub}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n+nb}{list}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{fsub}\PY{p}{)}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{fdiv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n+nb}{list}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{fdiv}\PY{p}{)}\PY{p}{,}
+                           \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{normq}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n+nb}{list}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{normq}\PY{p}{)}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{hyai}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n+nb}{list}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{hyai}\PY{p}{)}\PY{p}{,}
+                           \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{hybi}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n+nb}{list}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{hybi}\PY{p}{)}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{output\PYZus{}dim}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{output\PYZus{}dim}\PY{p}{\PYZcb{}}
+                 \PY{n}{base\PYZus{}config} \PY{o}{=} \PY{n+nb}{super}\PY{p}{(}\PY{n}{MasConsLay}\PY{p}{,} \PY{n+nb+bp}{self}\PY{p}{)}\PY{o}{.}\PY{n}{get\PYZus{}config}\PY{p}{(}\PY{p}{)}
+                 \PY{k}{return} \PY{n+nb}{dict}\PY{p}{(}\PY{n+nb}{list}\PY{p}{(}\PY{n}{base\PYZus{}config}\PY{o}{.}\PY{n}{items}\PY{p}{(}\PY{p}{)}\PY{p}{)} \PY{o}{+} \PY{n+nb}{list}\PY{p}{(}\PY{n}{config}\PY{o}{.}\PY{n}{items}\PY{p}{(}\PY{p}{)}\PY{p}{)}\PY{p}{)}
                  
              \PY{k}{def} \PY{n+nf}{call}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{arrs}\PY{p}{)}\PY{p}{:}
                  \PY{c+c1}{\PYZsh{} arrs (for arrays) is a list with }
@@ -841,7 +880,7 @@ units W/m2: \[
 \]
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}16}]:} \PY{c+c1}{\PYZsh{} tgb \PYZhy{} 2/5/2019 \PYZhy{} Change to adapt to new input format}
+{\color{incolor}In [{\color{incolor}63}]:} \PY{c+c1}{\PYZsh{} tgb \PYZhy{} 2/5/2019 \PYZhy{} Change to adapt to new input format}
          \PY{k}{class} \PY{n+nc}{EntConsLay}\PY{p}{(}\PY{n}{Layer}\PY{p}{)}\PY{p}{:}
              
              \PY{k}{def} \PY{n+nf}{\PYZus{}\PYZus{}init\PYZus{}\PYZus{}}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{fsub}\PY{p}{,} \PY{n}{fdiv}\PY{p}{,} \PY{n}{normq}\PY{p}{,} \PY{n}{hyai}\PY{p}{,} \PY{n}{hybi}\PY{p}{,} \PY{n}{output\PYZus{}dim}\PY{p}{,} \PY{o}{*}\PY{o}{*}\PY{n}{kwargs}\PY{p}{)}\PY{p}{:}
@@ -855,6 +894,14 @@ units W/m2: \[
                  
              \PY{k}{def} \PY{n+nf}{build}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{input\PYZus{}shape}\PY{p}{)}\PY{p}{:}
                  \PY{n+nb}{super}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{build}\PY{p}{(}\PY{n}{input\PYZus{}shape}\PY{p}{)}  \PY{c+c1}{\PYZsh{} Be sure to call this somewhere!}
+                 
+             \PY{c+c1}{\PYZsh{} tgb \PYZhy{} 2/6/2019 \PYZhy{} following https://github.com/keras\PYZhy{}team/keras/issues/4871}
+             \PY{k}{def} \PY{n+nf}{get\PYZus{}config}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{)}\PY{p}{:}
+                 \PY{n}{config} \PY{o}{=} \PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{fsub}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n+nb}{list}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{fsub}\PY{p}{)}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{fdiv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n+nb}{list}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{fdiv}\PY{p}{)}\PY{p}{,}
+                           \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{normq}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n+nb}{list}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{normq}\PY{p}{)}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{hyai}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n+nb}{list}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{hyai}\PY{p}{)}\PY{p}{,}
+                           \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{hybi}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n+nb}{list}\PY{p}{(}\PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{hybi}\PY{p}{)}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{output\PYZus{}dim}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n+nb+bp}{self}\PY{o}{.}\PY{n}{output\PYZus{}dim}\PY{p}{\PYZcb{}}
+                 \PY{n}{base\PYZus{}config} \PY{o}{=} \PY{n+nb}{super}\PY{p}{(}\PY{n}{EntConsLay}\PY{p}{,} \PY{n+nb+bp}{self}\PY{p}{)}\PY{o}{.}\PY{n}{get\PYZus{}config}\PY{p}{(}\PY{p}{)}
+                 \PY{k}{return} \PY{n+nb}{dict}\PY{p}{(}\PY{n+nb}{list}\PY{p}{(}\PY{n}{base\PYZus{}config}\PY{o}{.}\PY{n}{items}\PY{p}{(}\PY{p}{)}\PY{p}{)} \PY{o}{+} \PY{n+nb}{list}\PY{p}{(}\PY{n}{config}\PY{o}{.}\PY{n}{items}\PY{p}{(}\PY{p}{)}\PY{p}{)}\PY{p}{)}
                  
              \PY{k}{def} \PY{n+nf}{call}\PY{p}{(}\PY{n+nb+bp}{self}\PY{p}{,} \PY{n}{arrs}\PY{p}{)}\PY{p}{:}
                  \PY{c+c1}{\PYZsh{} arrs (for arrays) is a list with }
@@ -971,7 +1018,7 @@ for using the inputs in the custom loss function Uses the function
 massent\_check as reference for the square Energy and mass residuals
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}17}]:} \PY{k}{def} \PY{n+nf}{customLoss}\PY{p}{(}\PY{n}{input\PYZus{}tensor}\PY{p}{,}\PY{n}{fsub}\PY{p}{,}\PY{n}{fdiv}\PY{p}{,}\PY{n}{normq}\PY{p}{,}\PY{n}{hyai}\PY{p}{,}\PY{n}{hybi}\PY{p}{,}\PY{n}{alpha} \PY{o}{=} \PY{l+m+mf}{0.5}\PY{p}{)}\PY{p}{:}
+{\color{incolor}In [{\color{incolor}10}]:} \PY{k}{def} \PY{n+nf}{customLoss}\PY{p}{(}\PY{n}{input\PYZus{}tensor}\PY{p}{,}\PY{n}{fsub}\PY{p}{,}\PY{n}{fdiv}\PY{p}{,}\PY{n}{normq}\PY{p}{,}\PY{n}{hyai}\PY{p}{,}\PY{n}{hybi}\PY{p}{,}\PY{n}{alpha} \PY{o}{=} \PY{l+m+mf}{0.5}\PY{p}{)}\PY{p}{:}
          
                  \PY{c+c1}{\PYZsh{} tgb \PYZhy{} 2/5/2019 \PYZhy{} Loss function written above}
              \PY{k}{def} \PY{n+nf}{lossFunction}\PY{p}{(}\PY{n}{y\PYZus{}true}\PY{p}{,}\PY{n}{y\PYZus{}pred}\PY{p}{)}\PY{p}{:}    
@@ -1131,6 +1178,20 @@ FLNS, PRECT, PRECTEND, PRECST, PRECSTEN{]}
 
 
     \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}24}]:} \PY{c+c1}{\PYZsh{} LeakyReLU version}
+         \PY{n}{inp} \PY{o}{=} \PY{n}{Input}\PY{p}{(}\PY{n}{shape}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{304}\PY{p}{,}\PY{p}{)}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{inp}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{k}{for} \PY{n}{i} \PY{o+ow}{in} \PY{n+nb}{range} \PY{p}{(}\PY{l+m+mi}{4}\PY{p}{)}\PY{p}{:}
+             \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+             \PY{n}{densout} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{158}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{out} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{lru\PYZus{}uncons\PYZus{}5dens} \PY{o}{=} \PY{n}{Model}\PY{p}{(}\PY{n}{inputs}\PY{o}{=}\PY{n}{inp}\PY{p}{,} \PY{n}{outputs}\PY{o}{=}\PY{n}{out}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
 {\color{incolor}In [{\color{incolor}27}]:} \PY{c+c1}{\PYZsh{} Using a Lagrange multipler in the loss function}
          \PY{c+c1}{\PYZsh{} alpha = 0.5 (equal contrib from MSE and residual)}
          \PY{n}{inp05} \PY{o}{=} \PY{n}{Input}\PY{p}{(}\PY{n}{shape}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{304}\PY{p}{,}\PY{p}{)}\PY{p}{)}
@@ -1139,6 +1200,48 @@ FLNS, PRECT, PRECTEND, PRECST, PRECSTEN{]}
              \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{relu}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
          \PY{n}{out} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{158}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{relu}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}    
          \PY{n}{mod\PYZus{}lagr05\PYZus{}5dens} \PY{o}{=} \PY{n}{Model}\PY{p}{(}\PY{n}{inputs}\PY{o}{=}\PY{n}{inp05}\PY{p}{,} \PY{n}{outputs}\PY{o}{=}\PY{n}{out}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}25}]:} \PY{c+c1}{\PYZsh{} Leaky ReLU version}
+         \PY{n}{inp05} \PY{o}{=} \PY{n}{Input}\PY{p}{(}\PY{n}{shape}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{304}\PY{p}{,}\PY{p}{)}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{inp05}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{k}{for} \PY{n}{i} \PY{o+ow}{in} \PY{n+nb}{range} \PY{p}{(}\PY{l+m+mi}{4}\PY{p}{)}\PY{p}{:}
+             \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+             \PY{n}{densout} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{158}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{out} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{lru\PYZus{}lagr05\PYZus{}5dens} \PY{o}{=} \PY{n}{Model}\PY{p}{(}\PY{n}{inputs}\PY{o}{=}\PY{n}{inp05}\PY{p}{,} \PY{n}{outputs}\PY{o}{=}\PY{n}{out}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}27}]:} \PY{c+c1}{\PYZsh{} Leaky ReLU version}
+         \PY{n}{inp001} \PY{o}{=} \PY{n}{Input}\PY{p}{(}\PY{n}{shape}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{304}\PY{p}{,}\PY{p}{)}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{inp001}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{k}{for} \PY{n}{i} \PY{o+ow}{in} \PY{n+nb}{range} \PY{p}{(}\PY{l+m+mi}{4}\PY{p}{)}\PY{p}{:}
+             \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+             \PY{n}{densout} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{158}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{out} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{lru\PYZus{}lagr001\PYZus{}5dens} \PY{o}{=} \PY{n}{Model}\PY{p}{(}\PY{n}{inputs}\PY{o}{=}\PY{n}{inp001}\PY{p}{,} \PY{n}{outputs}\PY{o}{=}\PY{n}{out}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}28}]:} \PY{c+c1}{\PYZsh{} Leaky ReLU version}
+         \PY{n}{inp099} \PY{o}{=} \PY{n}{Input}\PY{p}{(}\PY{n}{shape}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{304}\PY{p}{,}\PY{p}{)}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{inp099}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{k}{for} \PY{n}{i} \PY{o+ow}{in} \PY{n+nb}{range} \PY{p}{(}\PY{l+m+mi}{4}\PY{p}{)}\PY{p}{:}
+             \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+             \PY{n}{densout} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{158}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{out} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{lru\PYZus{}lagr099\PYZus{}5dens} \PY{o}{=} \PY{n}{Model}\PY{p}{(}\PY{n}{inputs}\PY{o}{=}\PY{n}{inp099}\PY{p}{,} \PY{n}{outputs}\PY{o}{=}\PY{n}{out}\PY{p}{)}
 \end{Verbatim}
 
 
@@ -1164,6 +1267,81 @@ FLNS, PRECT, PRECTEND, PRECST, PRECSTEN{]}
 \end{Verbatim}
 
 
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}136}]:} \PY{c+c1}{\PYZsh{} USING ELU instead of RELU}
+          \PY{c+c1}{\PYZsh{} Conservative model with 5 dense layers}
+          \PY{n}{inp} \PY{o}{=} \PY{n}{Input}\PY{p}{(}\PY{n}{shape}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{304}\PY{p}{,}\PY{p}{)}\PY{p}{)}
+          \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{elu}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{inp}\PY{p}{)}
+          \PY{k}{for} \PY{n}{i} \PY{o+ow}{in} \PY{n+nb}{range} \PY{p}{(}\PY{l+m+mi}{4}\PY{p}{)}\PY{p}{:}
+              \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{elu}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+          \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{156}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{elu}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}    
+          \PY{n}{massout} \PY{o}{=} \PY{n}{MasConsLay}\PY{p}{(}
+              \PY{n}{input\PYZus{}shape}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{156}\PY{p}{,}\PY{p}{)}\PY{p}{,} \PY{n}{fsub}\PY{o}{=}\PY{n}{fsub}\PY{p}{,} \PY{n}{fdiv}\PY{o}{=}\PY{n}{fdiv}\PY{p}{,} \PY{n}{normq}\PY{o}{=}\PY{n}{normq}\PY{p}{,}\PYZbs{}
+              \PY{n}{hyai}\PY{o}{=}\PY{n}{hyai}\PY{p}{,} \PY{n}{hybi}\PY{o}{=}\PY{n}{hybi}\PY{p}{,} \PY{n}{output\PYZus{}dim} \PY{o}{=} \PY{l+m+mi}{157}
+          \PY{p}{)}\PY{p}{(}\PY{p}{[}\PY{n}{inp}\PY{p}{,} \PY{n}{densout}\PY{p}{]}\PY{p}{)}
+          \PY{n}{out} \PY{o}{=} \PY{n}{EntConsLay}\PY{p}{(}
+              \PY{n}{input\PYZus{}shape}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{157}\PY{p}{,}\PY{p}{)}\PY{p}{,} \PY{n}{fsub}\PY{o}{=}\PY{n}{fsub}\PY{p}{,} \PY{n}{fdiv}\PY{o}{=}\PY{n}{fdiv}\PY{p}{,} \PY{n}{normq}\PY{o}{=}\PY{n}{normq}\PY{p}{,}\PYZbs{}
+              \PY{n}{hyai}\PY{o}{=}\PY{n}{hyai}\PY{p}{,} \PY{n}{hybi}\PY{o}{=}\PY{n}{hybi}\PY{p}{,} \PY{n}{output\PYZus{}dim} \PY{o}{=} \PY{l+m+mi}{158}
+          \PY{p}{)}\PY{p}{(}\PY{p}{[}\PY{n}{inp}\PY{p}{,} \PY{n}{massout}\PY{p}{]}\PY{p}{)}
+          \PY{n}{elu\PYZus{}cons\PYZus{}5dens} \PY{o}{=} \PY{n}{Model}\PY{p}{(}\PY{n}{inputs}\PY{o}{=}\PY{n}{inp}\PY{p}{,} \PY{n}{outputs}\PY{o}{=}\PY{n}{out}\PY{p}{)}
+\end{Verbatim}
+
+
+    tgb - 2/6/2019 - Added the leaky ReLU using the following issue:\\
+https://github.com/keras-team/keras/issues/117
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}140}]:} \PY{c+c1}{\PYZsh{} Using LeakyRELU instead of RELU}
+          \PY{c+c1}{\PYZsh{} Conserving model with 5 dense layers}
+          \PY{n}{inp} \PY{o}{=} \PY{n}{Input}\PY{p}{(}\PY{n}{shape}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{304}\PY{p}{,}\PY{p}{)}\PY{p}{)}
+          \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{inp}\PY{p}{)}
+          \PY{n}{densout} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+          \PY{k}{for} \PY{n}{i} \PY{o+ow}{in} \PY{n+nb}{range} \PY{p}{(}\PY{l+m+mi}{4}\PY{p}{)}\PY{p}{:}
+              \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+              \PY{n}{densout} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+          \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{156}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+          \PY{n}{densout} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+          \PY{n}{massout} \PY{o}{=} \PY{n}{MasConsLay}\PY{p}{(}
+              \PY{n}{input\PYZus{}shape}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{156}\PY{p}{,}\PY{p}{)}\PY{p}{,} \PY{n}{fsub}\PY{o}{=}\PY{n}{fsub}\PY{p}{,} \PY{n}{fdiv}\PY{o}{=}\PY{n}{fdiv}\PY{p}{,} \PY{n}{normq}\PY{o}{=}\PY{n}{normq}\PY{p}{,}\PYZbs{}
+              \PY{n}{hyai}\PY{o}{=}\PY{n}{hyai}\PY{p}{,} \PY{n}{hybi}\PY{o}{=}\PY{n}{hybi}\PY{p}{,} \PY{n}{output\PYZus{}dim} \PY{o}{=} \PY{l+m+mi}{157}
+          \PY{p}{)}\PY{p}{(}\PY{p}{[}\PY{n}{inp}\PY{p}{,} \PY{n}{densout}\PY{p}{]}\PY{p}{)}
+          \PY{n}{out} \PY{o}{=} \PY{n}{EntConsLay}\PY{p}{(}
+              \PY{n}{input\PYZus{}shape}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{157}\PY{p}{,}\PY{p}{)}\PY{p}{,} \PY{n}{fsub}\PY{o}{=}\PY{n}{fsub}\PY{p}{,} \PY{n}{fdiv}\PY{o}{=}\PY{n}{fdiv}\PY{p}{,} \PY{n}{normq}\PY{o}{=}\PY{n}{normq}\PY{p}{,}\PYZbs{}
+              \PY{n}{hyai}\PY{o}{=}\PY{n}{hyai}\PY{p}{,} \PY{n}{hybi}\PY{o}{=}\PY{n}{hybi}\PY{p}{,} \PY{n}{output\PYZus{}dim} \PY{o}{=} \PY{l+m+mi}{158}
+          \PY{p}{)}\PY{p}{(}\PY{p}{[}\PY{n}{inp}\PY{p}{,} \PY{n}{massout}\PY{p}{]}\PY{p}{)}
+          \PY{n}{lru\PYZus{}cons\PYZus{}5dens} \PY{o}{=} \PY{n}{Model}\PY{p}{(}\PY{n}{inputs}\PY{o}{=}\PY{n}{inp}\PY{p}{,} \PY{n}{outputs}\PY{o}{=}\PY{n}{out}\PY{p}{)}
+\end{Verbatim}
+
+
+    tgb - 2/6/2019 - It really looks like LeakyReLU (for now with alpha=0.3)
+is the best activation function by far to minimize the MSE. So we'll:\\
+(1) Play with the optimizer using this one.\\
+(2) Re-write all other networks using LeakyReLU
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}64}]:} \PY{c+c1}{\PYZsh{} Playing with the optmizer}
+         \PY{n}{inp} \PY{o}{=} \PY{n}{Input}\PY{p}{(}\PY{n}{shape}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{304}\PY{p}{,}\PY{p}{)}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{inp}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{k}{for} \PY{n}{i} \PY{o+ow}{in} \PY{n+nb}{range} \PY{p}{(}\PY{l+m+mi}{4}\PY{p}{)}\PY{p}{:}
+             \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{512}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+             \PY{n}{densout} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{Dense}\PY{p}{(}\PY{l+m+mi}{156}\PY{p}{,} \PY{n}{activation}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{linear}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{densout} \PY{o}{=} \PY{n}{LeakyReLU}\PY{p}{(}\PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.3}\PY{p}{)}\PY{p}{(}\PY{n}{densout}\PY{p}{)}
+         \PY{n}{massout} \PY{o}{=} \PY{n}{MasConsLay}\PY{p}{(}
+             \PY{n}{input\PYZus{}shape}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{156}\PY{p}{,}\PY{p}{)}\PY{p}{,} \PY{n}{fsub}\PY{o}{=}\PY{n}{fsub}\PY{p}{,} \PY{n}{fdiv}\PY{o}{=}\PY{n}{fdiv}\PY{p}{,} \PY{n}{normq}\PY{o}{=}\PY{n}{normq}\PY{p}{,}\PYZbs{}
+             \PY{n}{hyai}\PY{o}{=}\PY{n}{hyai}\PY{p}{,} \PY{n}{hybi}\PY{o}{=}\PY{n}{hybi}\PY{p}{,} \PY{n}{output\PYZus{}dim} \PY{o}{=} \PY{l+m+mi}{157}
+         \PY{p}{)}\PY{p}{(}\PY{p}{[}\PY{n}{inp}\PY{p}{,} \PY{n}{densout}\PY{p}{]}\PY{p}{)}
+         \PY{n}{out} \PY{o}{=} \PY{n}{EntConsLay}\PY{p}{(}
+             \PY{n}{input\PYZus{}shape}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{157}\PY{p}{,}\PY{p}{)}\PY{p}{,} \PY{n}{fsub}\PY{o}{=}\PY{n}{fsub}\PY{p}{,} \PY{n}{fdiv}\PY{o}{=}\PY{n}{fdiv}\PY{p}{,} \PY{n}{normq}\PY{o}{=}\PY{n}{normq}\PY{p}{,}\PYZbs{}
+             \PY{n}{hyai}\PY{o}{=}\PY{n}{hyai}\PY{p}{,} \PY{n}{hybi}\PY{o}{=}\PY{n}{hybi}\PY{p}{,} \PY{n}{output\PYZus{}dim} \PY{o}{=} \PY{l+m+mi}{158}
+         \PY{p}{)}\PY{p}{(}\PY{p}{[}\PY{n}{inp}\PY{p}{,} \PY{n}{massout}\PY{p}{]}\PY{p}{)}
+         \PY{c+c1}{\PYZsh{}adad\PYZus{}cons\PYZus{}5dens = Model(inputs=inp, outputs=out)}
+         \PY{c+c1}{\PYZsh{}adam\PYZus{}cons\PYZus{}5dens = Model(inputs=inp, outputs=out)}
+         \PY{n}{lru\PYZus{}cons\PYZus{}5dens} \PY{o}{=} \PY{n}{Model}\PY{p}{(}\PY{n}{inputs}\PY{o}{=}\PY{n}{inp}\PY{p}{,} \PY{n}{outputs}\PY{o}{=}\PY{n}{out}\PY{p}{)}
+\end{Verbatim}
+
+
     tgb - 2/5/2019 - Here, I compile the standard models with
 .compile(optimizer,loss)\\
 or the model with custom loss function with
@@ -1173,21 +1351,28 @@ https://stackoverflow.com/questions/46464549/keras-custom-loss-function-accessin
 for more information.
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}30}]:} \PY{n}{mod\PYZus{}lagr05\PYZus{}5dens}\PY{o}{.}\PY{n}{compile}\PY{p}{(}\PY{n}{loss}\PY{o}{=}\PY{n}{customLoss}\PY{p}{(}\PY{n}{inp05}\PY{p}{,}\PY{n}{fsub}\PY{p}{,}\PY{n}{fdiv}\PY{p}{,}\PY{n}{normq}\PY{p}{,}\PY{n}{hyai}\PY{p}{,}\PY{n}{hybi}\PY{p}{,}\PY{n}{alpha} \PY{o}{=} \PY{l+m+mf}{0.5}\PY{p}{)}\PY{p}{,}\PYZbs{}
-                                \PY{n}{optimizer}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{adadelta}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{mod\PYZus{}lagr001\PYZus{}5dens}\PY{o}{.}\PY{n}{compile}\PY{p}{(}\PY{n}{loss}\PY{o}{=}\PY{n}{customLoss}\PY{p}{(}\PY{n}{inp001}\PY{p}{,}\PY{n}{fsub}\PY{p}{,}\PY{n}{fdiv}\PY{p}{,}\PY{n}{normq}\PY{p}{,}\PY{n}{hyai}\PY{p}{,}\PY{n}{hybi}\PY{p}{,}\PY{n}{alpha} \PY{o}{=} \PY{l+m+mf}{0.01}\PY{p}{)}\PY{p}{,}\PYZbs{}
-                                \PY{n}{optimizer}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{adadelta}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{mod\PYZus{}lagr099\PYZus{}5dens}\PY{o}{.}\PY{n}{compile}\PY{p}{(}\PY{n}{loss}\PY{o}{=}\PY{n}{customLoss}\PY{p}{(}\PY{n}{inp099}\PY{p}{,}\PY{n}{fsub}\PY{p}{,}\PY{n}{fdiv}\PY{p}{,}\PY{n}{normq}\PY{p}{,}\PY{n}{hyai}\PY{p}{,}\PY{n}{hybi}\PY{p}{,}\PY{n}{alpha} \PY{o}{=} \PY{l+m+mf}{0.99}\PY{p}{)}\PY{p}{,}\PYZbs{}
-                                \PY{n}{optimizer}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{adadelta}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{mod\PYZus{}uncons\PYZus{}5dens}\PY{o}{.}\PY{n}{compile}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{adadelta}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{mse}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{mod\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{compile}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{adadelta}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{mse}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}30}]:} \PY{n}{lru\PYZus{}lagr05\PYZus{}5dens}\PY{o}{.}\PY{n}{compile}\PY{p}{(}\PY{n}{loss}\PY{o}{=}\PY{n}{customLoss}\PY{p}{(}\PY{n}{inp05}\PY{p}{,}\PY{n}{fsub}\PY{p}{,}\PY{n}{fdiv}\PY{p}{,}\PY{n}{normq}\PY{p}{,}\PY{n}{hyai}\PY{p}{,}\PY{n}{hybi}\PY{p}{,}\PY{n}{alpha} \PY{o}{=} \PY{l+m+mf}{0.5}\PY{p}{)}\PY{p}{,}\PYZbs{}
+                                \PY{n}{optimizer}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{rmsprop}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{lru\PYZus{}lagr001\PYZus{}5dens}\PY{o}{.}\PY{n}{compile}\PY{p}{(}\PY{n}{loss}\PY{o}{=}\PY{n}{customLoss}\PY{p}{(}\PY{n}{inp001}\PY{p}{,}\PY{n}{fsub}\PY{p}{,}\PY{n}{fdiv}\PY{p}{,}\PY{n}{normq}\PY{p}{,}\PY{n}{hyai}\PY{p}{,}\PY{n}{hybi}\PY{p}{,}\PY{n}{alpha} \PY{o}{=} \PY{l+m+mf}{0.01}\PY{p}{)}\PY{p}{,}\PYZbs{}
+                                \PY{n}{optimizer}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{rmsprop}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{lru\PYZus{}lagr099\PYZus{}5dens}\PY{o}{.}\PY{n}{compile}\PY{p}{(}\PY{n}{loss}\PY{o}{=}\PY{n}{customLoss}\PY{p}{(}\PY{n}{inp099}\PY{p}{,}\PY{n}{fsub}\PY{p}{,}\PY{n}{fdiv}\PY{p}{,}\PY{n}{normq}\PY{p}{,}\PY{n}{hyai}\PY{p}{,}\PY{n}{hybi}\PY{p}{,}\PY{n}{alpha} \PY{o}{=} \PY{l+m+mf}{0.99}\PY{p}{)}\PY{p}{,}\PYZbs{}
+                                \PY{n}{optimizer}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{rmsprop}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{lru\PYZus{}uncons\PYZus{}5dens}\PY{o}{.}\PY{n}{compile}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{rmsprop}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{mse}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+         \PY{c+c1}{\PYZsh{}mod\PYZus{}cons\PYZus{}5dens.compile(\PYZsq{}adadelta\PYZsq{},\PYZsq{}mse\PYZsq{})}
          \PY{c+c1}{\PYZsh{}mod\PYZus{}uncons\PYZus{}5dens.compile(\PYZsq{}adadelta\PYZsq{},\PYZsq{}mse\PYZsq{}) \PYZsh{} careful, apparently compile does NOT reset weights and biases}
          \PY{c+c1}{\PYZsh{} See https://stackoverflow.com/questions/47995324/does\PYZhy{}model\PYZhy{}compile\PYZhy{}initialize\PYZhy{}all\PYZhy{}the\PYZhy{}weights\PYZhy{}and\PYZhy{}biases\PYZhy{}in\PYZhy{}keras\PYZhy{}tensorflow}
 \end{Verbatim}
 
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}31}]:} \PY{n}{mod\PYZus{}lagr099\PYZus{}5dens}\PY{o}{.}\PY{n}{summary}\PY{p}{(}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}65}]:} \PY{c+c1}{\PYZsh{}adad\PYZus{}cons\PYZus{}5dens.compile(\PYZsq{}adadelta\PYZsq{},\PYZsq{}mse\PYZsq{})}
+         \PY{c+c1}{\PYZsh{}adam\PYZus{}cons\PYZus{}5dens.compile(\PYZsq{}adam\PYZsq{},\PYZsq{}mse\PYZsq{})}
+         \PY{n}{lru\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{compile}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{rmsprop}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{mse}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}31}]:} \PY{n}{lru\PYZus{}lagr099\PYZus{}5dens}\PY{o}{.}\PY{n}{summary}\PY{p}{(}\PY{p}{)}
 \end{Verbatim}
 
 
@@ -1195,19 +1380,31 @@ for more information.
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 Layer (type)                 Output Shape              Param \#   
 =================================================================
-input\_10 (InputLayer)        (None, 304)               0         
+input\_8 (InputLayer)         (None, 304)               0         
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
-dense\_55 (Dense)             (None, 512)               156160    
+dense\_43 (Dense)             (None, 512)               156160    
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
-dense\_56 (Dense)             (None, 512)               262656    
+leaky\_re\_lu\_43 (LeakyReLU)   (None, 512)               0         
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
-dense\_57 (Dense)             (None, 512)               262656    
+dense\_44 (Dense)             (None, 512)               262656    
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
-dense\_58 (Dense)             (None, 512)               262656    
+leaky\_re\_lu\_44 (LeakyReLU)   (None, 512)               0         
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
-dense\_59 (Dense)             (None, 512)               262656    
+dense\_45 (Dense)             (None, 512)               262656    
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
-dense\_60 (Dense)             (None, 158)               81054     
+leaky\_re\_lu\_45 (LeakyReLU)   (None, 512)               0         
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+dense\_46 (Dense)             (None, 512)               262656    
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+leaky\_re\_lu\_46 (LeakyReLU)   (None, 512)               0         
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+dense\_47 (Dense)             (None, 512)               262656    
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+leaky\_re\_lu\_47 (LeakyReLU)   (None, 512)               0         
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+dense\_48 (Dense)             (None, 158)               81054     
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+leaky\_re\_lu\_48 (LeakyReLU)   (None, 158)               0         
 =================================================================
 Total params: 1,287,838
 Trainable params: 1,287,838
@@ -1217,235 +1414,347 @@ Non-trainable params: 0
     \end{Verbatim}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}32}]:} \PY{n}{hist\PYZus{}cons\PYZus{}5dens} \PY{o}{=} \PY{n}{mod\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{fit\PYZus{}generator}\PY{p}{(}\PY{n}{gen}\PY{p}{,} \PY{n}{train\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{,} \PY{n}{epochs}\PY{o}{=}\PY{l+m+mi}{20}\PY{p}{,} \PYZbs{}
+{\color{incolor}In [{\color{incolor}32}]:} \PY{c+c1}{\PYZsh{}hist\PYZus{}cons\PYZus{}5dens = mod\PYZus{}cons\PYZus{}5dens.fit\PYZus{}generator(gen, train\PYZus{}gen\PYZus{}obj.n\PYZus{}batches, epochs=20, \PYZbs{}}
+         \PY{c+c1}{\PYZsh{}                     validation\PYZus{}data=validgen, validation\PYZus{}steps= valid\PYZus{}gen\PYZus{}obj.n\PYZus{}batches)}
+         \PY{n}{hlru\PYZus{}uncons\PYZus{}5dens} \PY{o}{=} \PY{n}{lru\PYZus{}uncons\PYZus{}5dens}\PY{o}{.}\PY{n}{fit\PYZus{}generator}\PY{p}{(}\PY{n}{gen}\PY{p}{,} \PY{n}{train\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{,} \PY{n}{epochs}\PY{o}{=}\PY{l+m+mi}{20}\PY{p}{,} \PYZbs{}
                               \PY{n}{validation\PYZus{}data}\PY{o}{=}\PY{n}{validgen}\PY{p}{,} \PY{n}{validation\PYZus{}steps}\PY{o}{=} \PY{n}{valid\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{)}
-         \PY{n}{hist\PYZus{}uncons\PYZus{}5dens} \PY{o}{=} \PY{n}{mod\PYZus{}uncons\PYZus{}5dens}\PY{o}{.}\PY{n}{fit\PYZus{}generator}\PY{p}{(}\PY{n}{gen}\PY{p}{,} \PY{n}{train\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{,} \PY{n}{epochs}\PY{o}{=}\PY{l+m+mi}{20}\PY{p}{,} \PYZbs{}
+         \PY{n}{hlru\PYZus{}lagr001\PYZus{}5dens} \PY{o}{=} \PY{n}{lru\PYZus{}lagr001\PYZus{}5dens}\PY{o}{.}\PY{n}{fit\PYZus{}generator}\PY{p}{(}\PY{n}{gen}\PY{p}{,} \PY{n}{train\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{,} \PY{n}{epochs}\PY{o}{=}\PY{l+m+mi}{20}\PY{p}{,} \PYZbs{}
                               \PY{n}{validation\PYZus{}data}\PY{o}{=}\PY{n}{validgen}\PY{p}{,} \PY{n}{validation\PYZus{}steps}\PY{o}{=} \PY{n}{valid\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{)}
-         \PY{n}{hist\PYZus{}lagr001\PYZus{}5dens} \PY{o}{=} \PY{n}{mod\PYZus{}lagr001\PYZus{}5dens}\PY{o}{.}\PY{n}{fit\PYZus{}generator}\PY{p}{(}\PY{n}{gen}\PY{p}{,} \PY{n}{train\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{,} \PY{n}{epochs}\PY{o}{=}\PY{l+m+mi}{20}\PY{p}{,} \PYZbs{}
+         \PY{n}{hlru\PYZus{}lagr05\PYZus{}5dens} \PY{o}{=} \PY{n}{lru\PYZus{}lagr05\PYZus{}5dens}\PY{o}{.}\PY{n}{fit\PYZus{}generator}\PY{p}{(}\PY{n}{gen}\PY{p}{,} \PY{n}{train\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{,} \PY{n}{epochs}\PY{o}{=}\PY{l+m+mi}{20}\PY{p}{,} \PYZbs{}
                               \PY{n}{validation\PYZus{}data}\PY{o}{=}\PY{n}{validgen}\PY{p}{,} \PY{n}{validation\PYZus{}steps}\PY{o}{=} \PY{n}{valid\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{)}
-         \PY{n}{hist\PYZus{}lagr05\PYZus{}5dens} \PY{o}{=} \PY{n}{mod\PYZus{}lagr05\PYZus{}5dens}\PY{o}{.}\PY{n}{fit\PYZus{}generator}\PY{p}{(}\PY{n}{gen}\PY{p}{,} \PY{n}{train\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{,} \PY{n}{epochs}\PY{o}{=}\PY{l+m+mi}{20}\PY{p}{,} \PYZbs{}
-                              \PY{n}{validation\PYZus{}data}\PY{o}{=}\PY{n}{validgen}\PY{p}{,} \PY{n}{validation\PYZus{}steps}\PY{o}{=} \PY{n}{valid\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{)}
-         \PY{n}{hist\PYZus{}lagr099\PYZus{}5dens} \PY{o}{=} \PY{n}{mod\PYZus{}lagr099\PYZus{}5dens}\PY{o}{.}\PY{n}{fit\PYZus{}generator}\PY{p}{(}\PY{n}{gen}\PY{p}{,} \PY{n}{train\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{,} \PY{n}{epochs}\PY{o}{=}\PY{l+m+mi}{20}\PY{p}{,} \PYZbs{}
+         \PY{n}{hlru\PYZus{}lagr099\PYZus{}5dens} \PY{o}{=} \PY{n}{lru\PYZus{}lagr099\PYZus{}5dens}\PY{o}{.}\PY{n}{fit\PYZus{}generator}\PY{p}{(}\PY{n}{gen}\PY{p}{,} \PY{n}{train\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{,} \PY{n}{epochs}\PY{o}{=}\PY{l+m+mi}{20}\PY{p}{,} \PYZbs{}
                               \PY{n}{validation\PYZus{}data}\PY{o}{=}\PY{n}{validgen}\PY{p}{,} \PY{n}{validation\PYZus{}steps}\PY{o}{=} \PY{n}{valid\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{)}
 \end{Verbatim}
 
 
     \begin{Verbatim}[commandchars=\\\{\}]
 Epoch 1/20
-18240/18240 [==============================] - 118s 6ms/step - loss: 371.3804 - val\_loss: 326.6218
+18240/18240 [==============================] - 87s 5ms/step - loss: 154.2219 - val\_loss: 132.6228
 Epoch 2/20
-18240/18240 [==============================] - 117s 6ms/step - loss: 349.1694 - val\_loss: 323.1239
+18240/18240 [==============================] - 86s 5ms/step - loss: 128.9841 - val\_loss: 123.7811
 Epoch 3/20
-18240/18240 [==============================] - 118s 6ms/step - loss: 346.4878 - val\_loss: 320.4665
+18240/18240 [==============================] - 86s 5ms/step - loss: 124.9521 - val\_loss: 121.8379
 Epoch 4/20
-18240/18240 [==============================] - 118s 6ms/step - loss: 344.9574 - val\_loss: 319.7903
+18240/18240 [==============================] - 86s 5ms/step - loss: 122.8963 - val\_loss: 121.3261
 Epoch 5/20
-18240/18240 [==============================] - 117s 6ms/step - loss: 343.5766 - val\_loss: 319.2748
+18240/18240 [==============================] - 86s 5ms/step - loss: 121.5276 - val\_loss: 117.6229
 Epoch 6/20
-18240/18240 [==============================] - 117s 6ms/step - loss: 342.9424 - val\_loss: 319.5158
+18240/18240 [==============================] - 86s 5ms/step - loss: 120.5954 - val\_loss: 121.6579
 Epoch 7/20
-18240/18240 [==============================] - 118s 6ms/step - loss: 342.4227 - val\_loss: 318.3023
+18240/18240 [==============================] - 86s 5ms/step - loss: 119.8641 - val\_loss: 119.1938
 Epoch 8/20
-18240/18240 [==============================] - 117s 6ms/step - loss: 341.9585 - val\_loss: 316.8653
+18240/18240 [==============================] - 86s 5ms/step - loss: 119.1895 - val\_loss: 118.0816
 Epoch 9/20
-18240/18240 [==============================] - 118s 6ms/step - loss: 341.5304 - val\_loss: 317.0472
+18240/18240 [==============================] - 86s 5ms/step - loss: 118.6060 - val\_loss: 118.1369
 Epoch 10/20
-18240/18240 [==============================] - 120s 7ms/step - loss: 341.1777 - val\_loss: 317.0684
+18240/18240 [==============================] - 86s 5ms/step - loss: 118.1955 - val\_loss: 118.5953
 Epoch 11/20
-18240/18240 [==============================] - 117s 6ms/step - loss: 340.8658 - val\_loss: 316.5338
+18240/18240 [==============================] - 86s 5ms/step - loss: 117.8519 - val\_loss: 118.0504
 Epoch 12/20
-18240/18240 [==============================] - 117s 6ms/step - loss: 340.5475 - val\_loss: 316.3627
+18240/18240 [==============================] - 86s 5ms/step - loss: 117.5264 - val\_loss: 115.6685
 Epoch 13/20
-18240/18240 [==============================] - 118s 6ms/step - loss: 340.3068 - val\_loss: 316.1230
+18240/18240 [==============================] - 86s 5ms/step - loss: 117.2545 - val\_loss: 118.0217
 Epoch 14/20
-18240/18240 [==============================] - 117s 6ms/step - loss: 340.0877 - val\_loss: 315.7167
+18240/18240 [==============================] - 86s 5ms/step - loss: 116.9527 - val\_loss: 114.6729
 Epoch 15/20
-18240/18240 [==============================] - 118s 6ms/step - loss: 339.8705 - val\_loss: 315.6883
+18240/18240 [==============================] - 86s 5ms/step - loss: 116.6291 - val\_loss: 116.9361
 Epoch 16/20
-18240/18240 [==============================] - 118s 6ms/step - loss: 339.6400 - val\_loss: 315.5932
+18240/18240 [==============================] - 86s 5ms/step - loss: 116.3771 - val\_loss: 116.2738
 Epoch 17/20
-18240/18240 [==============================] - 118s 6ms/step - loss: 339.4279 - val\_loss: 315.9945
+18240/18240 [==============================] - 86s 5ms/step - loss: 116.0241 - val\_loss: 117.9957
 Epoch 18/20
-18240/18240 [==============================] - 118s 6ms/step - loss: 339.2514 - val\_loss: 316.6346
+18240/18240 [==============================] - 86s 5ms/step - loss: 115.8352 - val\_loss: 114.6651
 Epoch 19/20
-18240/18240 [==============================] - 117s 6ms/step - loss: 339.1466 - val\_loss: 315.3730
+18240/18240 [==============================] - 86s 5ms/step - loss: 115.7328 - val\_loss: 116.0567
 Epoch 20/20
-18240/18240 [==============================] - 118s 6ms/step - loss: 338.9885 - val\_loss: 315.8269
+18240/18240 [==============================] - 86s 5ms/step - loss: 115.6272 - val\_loss: 115.1234
 Epoch 1/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 218.3183 - val\_loss: 182.3598
+18240/18240 [==============================] - 109s 6ms/step - loss: 279.2815 - val\_loss: 45.8440
 Epoch 2/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 189.0166 - val\_loss: 177.0783
+18240/18240 [==============================] - 108s 6ms/step - loss: 78.8534 - val\_loss: 32.2640
 Epoch 3/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 185.3710 - val\_loss: 174.7872
+18240/18240 [==============================] - 108s 6ms/step - loss: 65.0376 - val\_loss: 37.9883
 Epoch 4/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 183.5318 - val\_loss: 174.6504
+18240/18240 [==============================] - 108s 6ms/step - loss: 56.3387 - val\_loss: 29.2247
 Epoch 5/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 181.7927 - val\_loss: 173.5936
+18240/18240 [==============================] - 108s 6ms/step - loss: 47.7238 - val\_loss: 25.9967
 Epoch 6/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 180.7752 - val\_loss: 172.8369
+18240/18240 [==============================] - 108s 6ms/step - loss: 49.5093 - val\_loss: 40.9208
 Epoch 7/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 180.0487 - val\_loss: 172.6547
+18240/18240 [==============================] - 108s 6ms/step - loss: 45.7708 - val\_loss: 25.7273
 Epoch 8/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 179.4178 - val\_loss: 172.5908
+18240/18240 [==============================] - 108s 6ms/step - loss: 43.4656 - val\_loss: 23.2406
 Epoch 9/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 178.8423 - val\_loss: 172.0265
+18240/18240 [==============================] - 108s 6ms/step - loss: 39.8665 - val\_loss: 24.2402
 Epoch 10/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 178.2754 - val\_loss: 171.9821
+18240/18240 [==============================] - 108s 6ms/step - loss: 36.9975 - val\_loss: 25.1868
 Epoch 11/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 177.8417 - val\_loss: 171.9564
+18240/18240 [==============================] - 108s 6ms/step - loss: 34.4120 - val\_loss: 22.5863
 Epoch 12/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 177.4573 - val\_loss: 172.0099
+18240/18240 [==============================] - 108s 6ms/step - loss: 33.4274 - val\_loss: 18.1160
 Epoch 13/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 177.0544 - val\_loss: 171.2877
+18240/18240 [==============================] - 108s 6ms/step - loss: 33.1975 - val\_loss: 18.0872
 Epoch 14/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 176.6799 - val\_loss: 172.0114
+18240/18240 [==============================] - 108s 6ms/step - loss: 29.8914 - val\_loss: 39.3846
 Epoch 15/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 176.3042 - val\_loss: 172.1698
+18240/18240 [==============================] - 108s 6ms/step - loss: 30.1004 - val\_loss: 16.0262
 Epoch 16/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 175.8943 - val\_loss: 171.3561
+18240/18240 [==============================] - 108s 6ms/step - loss: 25.8132 - val\_loss: 13.1649
 Epoch 17/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 175.4886 - val\_loss: 171.3120
+18240/18240 [==============================] - 108s 6ms/step - loss: 24.8444 - val\_loss: 26.7432
 Epoch 18/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 175.1318 - val\_loss: 170.8243
+18240/18240 [==============================] - 108s 6ms/step - loss: 24.2640 - val\_loss: 13.6979
 Epoch 19/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 174.7959 - val\_loss: 170.9330
+18240/18240 [==============================] - 108s 6ms/step - loss: 25.7921 - val\_loss: 13.1149
 Epoch 20/20
-18240/18240 [==============================] - 91s 5ms/step - loss: 174.4292 - val\_loss: 171.0592
+18240/18240 [==============================] - 108s 6ms/step - loss: 22.7902 - val\_loss: 30.9746
 Epoch 1/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 218.7532 - val\_loss: 51.9168
+18240/18240 [==============================] - 110s 6ms/step - loss: 632.6922 - val\_loss: 143.1930
 Epoch 2/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 52.2296 - val\_loss: 41.7626
+18240/18240 [==============================] - 109s 6ms/step - loss: 231.7961 - val\_loss: 159.9555
 Epoch 3/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 45.7707 - val\_loss: 38.3004
+18240/18240 [==============================] - 109s 6ms/step - loss: 178.6481 - val\_loss: 128.8459
 Epoch 4/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 42.3982 - val\_loss: 33.9257
+18240/18240 [==============================] - 108s 6ms/step - loss: 156.0807 - val\_loss: 223.5413
 Epoch 5/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 38.3360 - val\_loss: 32.0882
+18240/18240 [==============================] - 108s 6ms/step - loss: 142.9047 - val\_loss: 114.8590
 Epoch 6/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 34.7863 - val\_loss: 31.5112
+18240/18240 [==============================] - 109s 6ms/step - loss: 134.1219 - val\_loss: 126.5108
 Epoch 7/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 32.0967 - val\_loss: 27.1133
+18240/18240 [==============================] - 108s 6ms/step - loss: 127.5764 - val\_loss: 108.8627
 Epoch 8/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 30.1765 - val\_loss: 25.9379
+18240/18240 [==============================] - 109s 6ms/step - loss: 122.6618 - val\_loss: 106.5208
 Epoch 9/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 28.5092 - val\_loss: 23.0968
+18240/18240 [==============================] - 109s 6ms/step - loss: 118.2512 - val\_loss: 108.3259
 Epoch 10/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 27.1742 - val\_loss: 22.7132
+18240/18240 [==============================] - 108s 6ms/step - loss: 114.9018 - val\_loss: 109.5098
 Epoch 11/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 25.9465 - val\_loss: 21.0803
+18240/18240 [==============================] - 109s 6ms/step - loss: 112.4803 - val\_loss: 96.9939
 Epoch 12/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 24.6693 - val\_loss: 22.4101
+18240/18240 [==============================] - 109s 6ms/step - loss: 110.1654 - val\_loss: 87.7957
 Epoch 13/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 23.5950 - val\_loss: 19.8912
+18240/18240 [==============================] - 109s 6ms/step - loss: 108.1597 - val\_loss: 110.2080
 Epoch 14/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 22.8194 - val\_loss: 21.1911
+18240/18240 [==============================] - 109s 6ms/step - loss: 106.9789 - val\_loss: 90.0757
 Epoch 15/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 22.1663 - val\_loss: 18.9333
+18240/18240 [==============================] - 108s 6ms/step - loss: 105.8409 - val\_loss: 95.5189
 Epoch 16/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 21.5699 - val\_loss: 18.8499
+18240/18240 [==============================] - 109s 6ms/step - loss: 104.7966 - val\_loss: 93.1280
 Epoch 17/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 21.1892 - val\_loss: 18.7498
+18240/18240 [==============================] - 108s 6ms/step - loss: 103.9503 - val\_loss: 112.2287
 Epoch 18/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 20.7260 - val\_loss: 16.8108
+18240/18240 [==============================] - 109s 6ms/step - loss: 103.2746 - val\_loss: 116.8224
 Epoch 19/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 20.3524 - val\_loss: 18.6866
+18240/18240 [==============================] - 108s 6ms/step - loss: 102.4398 - val\_loss: 90.3887
 Epoch 20/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 19.9553 - val\_loss: 18.1564
+18240/18240 [==============================] - 109s 6ms/step - loss: 101.6766 - val\_loss: 97.1246
 Epoch 1/20
-18240/18240 [==============================] - 115s 6ms/step - loss: 998.3435 - val\_loss: 817.6002
+18240/18240 [==============================] - 110s 6ms/step - loss: 180.8906 - val\_loss: 146.9150
 Epoch 2/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 568.2129 - val\_loss: 273.2584
+18240/18240 [==============================] - 108s 6ms/step - loss: 137.2709 - val\_loss: 137.7937
 Epoch 3/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 290.0574 - val\_loss: 267.5105
+18240/18240 [==============================] - 108s 6ms/step - loss: 131.4745 - val\_loss: 122.9277
 Epoch 4/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 285.4524 - val\_loss: 265.4720
+18240/18240 [==============================] - 108s 6ms/step - loss: 128.5962 - val\_loss: 127.9342
 Epoch 5/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 282.9003 - val\_loss: 259.0758
+18240/18240 [==============================] - 108s 6ms/step - loss: 126.6209 - val\_loss: 130.0188
 Epoch 6/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 281.1417 - val\_loss: 260.6352
+18240/18240 [==============================] - 108s 6ms/step - loss: 125.2875 - val\_loss: 122.0897
 Epoch 7/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 279.9130 - val\_loss: 257.3307
+18240/18240 [==============================] - 108s 6ms/step - loss: 124.3902 - val\_loss: 118.2646
 Epoch 8/20
-18240/18240 [==============================] - 115s 6ms/step - loss: 278.9312 - val\_loss: 254.3535
+18240/18240 [==============================] - 108s 6ms/step - loss: 123.6979 - val\_loss: 119.3034
 Epoch 9/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 277.5932 - val\_loss: 254.8938
+18240/18240 [==============================] - 109s 6ms/step - loss: 122.8895 - val\_loss: 115.9213
 Epoch 10/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 275.6298 - val\_loss: 255.8087
+18240/18240 [==============================] - 108s 6ms/step - loss: 122.2438 - val\_loss: 119.0853
 Epoch 11/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 274.7380 - val\_loss: 252.5416
+18240/18240 [==============================] - 109s 6ms/step - loss: 121.7211 - val\_loss: 118.4655
 Epoch 12/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 273.9672 - val\_loss: 251.9316
+18240/18240 [==============================] - 108s 6ms/step - loss: 121.3323 - val\_loss: 124.9058
 Epoch 13/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 273.3516 - val\_loss: 253.7289
+18240/18240 [==============================] - 108s 6ms/step - loss: 120.9855 - val\_loss: 116.9817
 Epoch 14/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 272.7720 - val\_loss: 252.3568
+18240/18240 [==============================] - 108s 6ms/step - loss: 120.6312 - val\_loss: 114.9366
 Epoch 15/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 272.3364 - val\_loss: 251.9014
+18240/18240 [==============================] - 108s 6ms/step - loss: 120.4062 - val\_loss: 116.0103
 Epoch 16/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 271.8901 - val\_loss: 251.0177
+18240/18240 [==============================] - 108s 6ms/step - loss: 120.1427 - val\_loss: 115.3426
 Epoch 17/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 271.3072 - val\_loss: 250.3921
+18240/18240 [==============================] - 108s 6ms/step - loss: 119.9510 - val\_loss: 116.3888
 Epoch 18/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 270.9941 - val\_loss: 249.5839
+18240/18240 [==============================] - 108s 6ms/step - loss: 119.7063 - val\_loss: 114.2723
 Epoch 19/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 268.8478 - val\_loss: 245.9416
+18240/18240 [==============================] - 108s 6ms/step - loss: 119.5989 - val\_loss: 117.3125
 Epoch 20/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 266.0636 - val\_loss: 247.5881
-Epoch 1/20
-18240/18240 [==============================] - 115s 6ms/step - loss: 415.2588 - val\_loss: 358.4284
-Epoch 2/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 387.8688 - val\_loss: 355.3531
-Epoch 3/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 385.0520 - val\_loss: 349.8266
-Epoch 4/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 380.3924 - val\_loss: 349.1407
-Epoch 5/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 379.4559 - val\_loss: 348.3319
-Epoch 6/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 378.7420 - val\_loss: 347.9760
-Epoch 7/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 378.2240 - val\_loss: 348.0740
-Epoch 8/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 377.7870 - val\_loss: 347.6101
-Epoch 9/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 377.3390 - val\_loss: 347.2977
-Epoch 10/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 376.9962 - val\_loss: 347.0156
-Epoch 11/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 376.7112 - val\_loss: 346.8841
-Epoch 12/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 376.4889 - val\_loss: 347.1322
-Epoch 13/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 376.2550 - val\_loss: 346.8333
-Epoch 14/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 376.0154 - val\_loss: 347.2553
-Epoch 15/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 375.8104 - val\_loss: 347.5742
-Epoch 16/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 375.6581 - val\_loss: 346.7538
-Epoch 17/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 375.4379 - val\_loss: 346.4515
-Epoch 18/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 375.2008 - val\_loss: 346.6881
-Epoch 19/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 375.0253 - val\_loss: 347.1702
-Epoch 20/20
-18240/18240 [==============================] - 114s 6ms/step - loss: 374.8802 - val\_loss: 347.0640
+18240/18240 [==============================] - 108s 6ms/step - loss: 119.3734 - val\_loss: 120.5479
 
     \end{Verbatim}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}48}]:} \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
+{\color{incolor}In [{\color{incolor}138}]:} \PY{n}{helu\PYZus{}cons\PYZus{}5dens} \PY{o}{=} \PY{n}{elu\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{fit\PYZus{}generator}\PY{p}{(}\PY{n}{gen}\PY{p}{,} \PY{n}{train\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{,} \PY{n}{epochs}\PY{o}{=}\PY{l+m+mi}{20}\PY{p}{,} \PYZbs{}
+                               \PY{n}{validation\PYZus{}data}\PY{o}{=}\PY{n}{validgen}\PY{p}{,} \PY{n}{validation\PYZus{}steps}\PY{o}{=} \PY{n}{valid\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Epoch 1/20
+18240/18240 [==============================] - 121s 7ms/step - loss: 336.0688 - val\_loss: 296.3247
+Epoch 2/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 323.7683 - val\_loss: 4825.6380
+Epoch 3/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 3513402.9420 - val\_loss: 249521.3613
+Epoch 4/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 9099521.8309 - val\_loss: 1026.3550
+Epoch 5/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 4348890.6503 - val\_loss: 66898.1627
+Epoch 6/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 12398213.6755 - val\_loss: 776569.5652
+Epoch 7/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 1885788.1738 - val\_loss: 28543841.1049
+Epoch 8/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 9232902.0532 - val\_loss: 453502.1447
+Epoch 9/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 2680327.0425 - val\_loss: 2273168.2878
+Epoch 10/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 1709920.0244 - val\_loss: 1079.2892
+Epoch 11/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 4796615.9038 - val\_loss: 2222.4436
+Epoch 12/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 2681719.9998 - val\_loss: 220255.3103
+Epoch 13/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 444597.5624 - val\_loss: 35795911.7784
+Epoch 14/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 6571935.0741 - val\_loss: 6109942.0553
+Epoch 15/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 29656610.5954 - val\_loss: 2013141.3405
+Epoch 16/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 8807160.0480 - val\_loss: 277578.1424
+Epoch 17/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 28720605.2059 - val\_loss: 4397054.3419
+Epoch 18/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 8689388.7740 - val\_loss: 25718893.5175
+Epoch 19/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 35075400.8750 - val\_loss: 381069.9943
+Epoch 20/20
+18240/18240 [==============================] - 120s 7ms/step - loss: 146080066.8281 - val\_loss: 18432155.0713
+
+    \end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}17}]:} \PY{c+c1}{\PYZsh{}hadad\PYZus{}cons\PYZus{}5dens = adad\PYZus{}cons\PYZus{}5dens.fit\PYZus{}generator(gen, train\PYZus{}gen\PYZus{}obj.n\PYZus{}batches, epochs=20, \PYZbs{}}
+         \PY{c+c1}{\PYZsh{}                     validation\PYZus{}data=validgen, validation\PYZus{}steps= valid\PYZus{}gen\PYZus{}obj.n\PYZus{}batches)}
+         \PY{c+c1}{\PYZsh{}hadam\PYZus{}cons\PYZus{}5dens = adam\PYZus{}cons\PYZus{}5dens.fit\PYZus{}generator(gen, train\PYZus{}gen\PYZus{}obj.n\PYZus{}batches, epochs=20, \PYZbs{}}
+         \PY{c+c1}{\PYZsh{}                     validation\PYZus{}data=validgen, validation\PYZus{}steps= valid\PYZus{}gen\PYZus{}obj.n\PYZus{}batches)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Epoch 1/20
+18240/18240 [==============================] - 118s 6ms/step - loss: 143.5000 - val\_loss: 124.6938
+Epoch 2/20
+18240/18240 [==============================] - 118s 6ms/step - loss: 125.1558 - val\_loss: 120.1842
+Epoch 3/20
+18240/18240 [==============================] - 118s 6ms/step - loss: 121.0790 - val\_loss: 119.0333
+Epoch 4/20
+18240/18240 [==============================] - 117s 6ms/step - loss: 118.6843 - val\_loss: 117.5636
+Epoch 5/20
+18240/18240 [==============================] - 118s 6ms/step - loss: 117.2775 - val\_loss: 117.4019
+Epoch 6/20
+18240/18240 [==============================] - 118s 6ms/step - loss: 120.1646 - val\_loss: 116.4241
+Epoch 7/20
+18240/18240 [==============================] - 117s 6ms/step - loss: 119.7096 - val\_loss: 115.8942
+Epoch 8/20
+18240/18240 [==============================] - 117s 6ms/step - loss: 130.5041 - val\_loss: 116.9329
+Epoch 9/20
+18240/18240 [==============================] - 117s 6ms/step - loss: 117.4099 - val\_loss: 115.7471
+Epoch 10/20
+18240/18240 [==============================] - 118s 6ms/step - loss: 117.5883 - val\_loss: 115.2551
+Epoch 11/20
+18240/18240 [==============================] - 117s 6ms/step - loss: 470.2844 - val\_loss: 118.0117
+Epoch 12/20
+18240/18240 [==============================] - 117s 6ms/step - loss: 284.2986 - val\_loss: 116.1908
+Epoch 13/20
+18240/18240 [==============================] - 118s 6ms/step - loss: 116.5168 - val\_loss: 115.2569
+Epoch 14/20
+18240/18240 [==============================] - 118s 6ms/step - loss: 122.5248 - val\_loss: 115.6265
+Epoch 15/20
+18240/18240 [==============================] - 118s 6ms/step - loss: 126.2000 - val\_loss: 117.3691
+Epoch 16/20
+18240/18240 [==============================] - 117s 6ms/step - loss: 117.9970 - val\_loss: 114.7944
+Epoch 17/20
+18240/18240 [==============================] - 118s 6ms/step - loss: 119.4262 - val\_loss: 115.2949
+Epoch 18/20
+18240/18240 [==============================] - 118s 6ms/step - loss: 238.9308 - val\_loss: 114.7101
+Epoch 19/20
+18240/18240 [==============================] - 117s 6ms/step - loss: 121.1812 - val\_loss: 114.9700
+Epoch 20/20
+18240/18240 [==============================] - 117s 6ms/step - loss: 130.0276 - val\_loss: 114.8401
+
+    \end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}20}]:} \PY{n}{hrmsp\PYZus{}cons\PYZus{}5dens} \PY{o}{=} \PY{n}{rmsp\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{fit\PYZus{}generator}\PY{p}{(}\PY{n}{gen}\PY{p}{,} \PY{n}{train\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{,} \PY{n}{epochs}\PY{o}{=}\PY{l+m+mi}{20}\PY{p}{,} \PYZbs{}
+                              \PY{n}{validation\PYZus{}data}\PY{o}{=}\PY{n}{validgen}\PY{p}{,} \PY{n}{validation\PYZus{}steps}\PY{o}{=} \PY{n}{valid\PYZus{}gen\PYZus{}obj}\PY{o}{.}\PY{n}{n\PYZus{}batches}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Epoch 1/20
+18240/18240 [==============================] - 112s 6ms/step - loss: 170.8195 - val\_loss: 129.4829
+Epoch 2/20
+18240/18240 [==============================] - 111s 6ms/step - loss: 135.4032 - val\_loss: 123.5065
+Epoch 3/20
+18240/18240 [==============================] - 111s 6ms/step - loss: 130.3239 - val\_loss: 120.4736
+Epoch 4/20
+18240/18240 [==============================] - 112s 6ms/step - loss: 127.6721 - val\_loss: 117.6087
+Epoch 5/20
+18240/18240 [==============================] - 111s 6ms/step - loss: 126.0467 - val\_loss: 119.3136
+Epoch 6/20
+18240/18240 [==============================] - 111s 6ms/step - loss: 124.7047 - val\_loss: 116.3503
+Epoch 7/20
+18240/18240 [==============================] - 111s 6ms/step - loss: 123.7101 - val\_loss: 119.1667
+Epoch 8/20
+18240/18240 [==============================] - 111s 6ms/step - loss: 122.9899 - val\_loss: 116.2005
+Epoch 9/20
+18240/18240 [==============================] - 111s 6ms/step - loss: 122.4724 - val\_loss: 121.2840
+Epoch 10/20
+18240/18240 [==============================] - 112s 6ms/step - loss: 122.0441 - val\_loss: 114.6832
+Epoch 11/20
+18240/18240 [==============================] - 111s 6ms/step - loss: 121.5119 - val\_loss: 114.8171
+Epoch 12/20
+18240/18240 [==============================] - 111s 6ms/step - loss: 121.1994 - val\_loss: 114.1490
+Epoch 13/20
+18240/18240 [==============================] - 111s 6ms/step - loss: 120.8153 - val\_loss: 115.0905
+Epoch 14/20
+18240/18240 [==============================] - 111s 6ms/step - loss: 120.4686 - val\_loss: 115.3960
+Epoch 15/20
+18240/18240 [==============================] - 111s 6ms/step - loss: 120.1861 - val\_loss: 113.8197
+Epoch 16/20
+18240/18240 [==============================] - 112s 6ms/step - loss: 119.8836 - val\_loss: 113.5153
+Epoch 17/20
+18240/18240 [==============================] - 112s 6ms/step - loss: 119.6307 - val\_loss: 114.7056
+Epoch 18/20
+18240/18240 [==============================] - 112s 6ms/step - loss: 119.3775 - val\_loss: 116.3110
+Epoch 19/20
+18240/18240 [==============================] - 111s 6ms/step - loss: 119.1554 - val\_loss: 113.1133
+Epoch 20/20
+18240/18240 [==============================] - 111s 6ms/step - loss: 119.0164 - val\_loss: 114.1845
+
+    \end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}38}]:} \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
          
          \PY{n}{fig} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{p}{)}
          \PY{n}{ax} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{subplot}\PY{p}{(}\PY{l+m+mi}{111}\PY{p}{)}
          
          \PY{k}{for} \PY{n}{index} \PY{o+ow}{in} \PY{n+nb}{range} \PY{p}{(}\PY{l+m+mi}{5}\PY{p}{)}\PY{p}{:}
-             \PY{k}{if} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{0}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hist\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{bo}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{b}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{C}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
-             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{1}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hist\PYZus{}uncons\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ro}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{r}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{U}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
-             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{2}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hist\PYZus{}lagr001\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{go}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{g}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W001}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
-             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{3}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hist\PYZus{}lagr05\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{co}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{c}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W05}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
-             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{4}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hist\PYZus{}lagr099\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{mo}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{m}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W099}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{if} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{0}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hrmsp\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{bo}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{b}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{C}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{1}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hlru\PYZus{}uncons\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ro}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{r}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{U}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{2}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hlru\PYZus{}lagr001\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{go}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{g}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W001}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{3}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hlru\PYZus{}lagr05\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{co}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{c}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W05}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{4}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hlru\PYZus{}lagr099\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{mo}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{m}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W099}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
                  
              
              \PY{n}{train\PYZus{}loss\PYZus{}values} \PY{o}{=} \PY{n}{hdict}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{loss}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
@@ -1458,20 +1767,74 @@ Epoch 20/20
          \PY{c+c1}{\PYZsh{}plt.title(\PYZsq{}Training and validation loss\PYZsq{})}
          \PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Epochs}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
          \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Loss (W/m\PYZca{}2)}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{plt}\PY{o}{.}\PY{n}{ylim}\PY{p}{(}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{l+m+mi}{500}\PY{p}{)}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{ylim}\PY{p}{(}\PY{p}{(}\PY{l+m+mi}{110}\PY{p}{,} \PY{l+m+mi}{130}\PY{p}{)}\PY{p}{)}
          \PY{c+c1}{\PYZsh{} https://stackoverflow.com/questions/4700614/how\PYZhy{}to\PYZhy{}put\PYZhy{}the\PYZhy{}legend\PYZhy{}out\PYZhy{}of\PYZhy{}the\PYZhy{}plot}
          \PY{c+c1}{\PYZsh{} for legend at the right place}
-         \PY{n}{ax}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{n}{loc}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{upper center}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{bbox\PYZus{}to\PYZus{}anchor}\PY{o}{=}\PY{p}{(}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{l+m+mf}{1.05}\PY{p}{)}\PY{p}{,}
-                   \PY{n}{ncol}\PY{o}{=}\PY{l+m+mi}{5}\PY{p}{,} \PY{n}{fancybox}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{shadow}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}\PY{p}{;} 
+         \PY{c+c1}{\PYZsh{}ax.legend(loc=\PYZsq{}upper center\PYZsq{}, bbox\PYZus{}to\PYZus{}anchor=(0.5, 1.05),}
+         \PY{c+c1}{\PYZsh{}          ncol=5, fancybox=True, shadow=True); }
          \PY{n}{plt}\PY{o}{.}\PY{n}{show}\PY{p}{(}\PY{p}{)}
 \end{Verbatim}
 
 
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_40_0.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_54_0.png}
     \end{center}
     { \hspace*{\fill} \\}
     
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}23}]:} \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
+         
+         \PY{n}{fig} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{p}{)}\PY{p}{;} \PY{n}{ax} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{subplot}\PY{p}{(}\PY{l+m+mi}{111}\PY{p}{)}
+         
+         \PY{k}{for} \PY{n}{index} \PY{o+ow}{in} \PY{n+nb}{range} \PY{p}{(}\PY{l+m+mi}{2}\PY{p}{)}\PY{p}{:}
+             \PY{k}{if} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{2}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hist\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{bo}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{b}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Adadelta}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{0}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hadam\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ro}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{r}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Adam}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{1}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hrmsp\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{go}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{g}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{RmsProp}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+                 
+             
+             \PY{n}{train\PYZus{}loss\PYZus{}values} \PY{o}{=} \PY{n}{hdict}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{loss}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{;} \PY{n}{valid\PYZus{}loss\PYZus{}values} \PY{o}{=} \PY{n}{hdict}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{val\PYZus{}loss}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+             \PY{n}{epochs} \PY{o}{=} \PY{n+nb}{range}\PY{p}{(}\PY{l+m+mi}{1}\PY{p}{,} \PY{n+nb}{len}\PY{p}{(}\PY{n}{train\PYZus{}loss\PYZus{}values}\PY{p}{)} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}
+         
+             \PY{n}{ax}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{epochs}\PY{p}{,} \PY{n}{train\PYZus{}loss\PYZus{}values}\PY{p}{,} \PY{n}{colo}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{n}{lab}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ Train}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+             \PY{n}{ax}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{epochs}\PY{p}{,} \PY{n}{valid\PYZus{}loss\PYZus{}values}\PY{p}{,} \PY{n}{col}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{n}{lab}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ Valid}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+         
+         \PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Epochs}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Loss (W/m\PYZca{}2)}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{ylim}\PY{p}{(}\PY{p}{(}\PY{l+m+mi}{100}\PY{p}{,} \PY{l+m+mi}{200}\PY{p}{)}\PY{p}{)}
+         \PY{n}{ax}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{n}{loc}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{upper center}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{bbox\PYZus{}to\PYZus{}anchor}\PY{o}{=}\PY{p}{(}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{l+m+mf}{1.05}\PY{p}{)}\PY{p}{,}
+                   \PY{n}{ncol}\PY{o}{=}\PY{l+m+mi}{5}\PY{p}{,} \PY{n}{fancybox}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{shadow}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{show}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_55_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor} }]:} \PY{c+c1}{\PYZsh{} import matplotlib.pyplot as plt}
+        
+        \PY{n}{fig} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{num}\PY{o}{=}\PY{k+kc}{None}\PY{p}{,} \PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{20}\PY{p}{,} \PY{l+m+mf}{13.5}\PY{p}{)}\PY{p}{,} \PY{n}{dpi}\PY{o}{=}\PY{l+m+mi}{80}\PY{p}{,} \PY{n}{facecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{w}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{edgecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+        \PY{n}{ax} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{subplot}\PY{p}{(}\PY{l+m+mi}{111}\PY{p}{)}
+        
+        \PY{k}{for} \PY{n}{index} \PY{o+ow}{in} \PY{n+nb}{range} \PY{p}{(}\PY{l+m+mi}{2}\PY{p}{)}\PY{p}{:}
+            \PY{k}{if} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{0}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hist\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{bo}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{b}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ReLU}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+            \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{2}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{helu\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ro}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{r}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ExpLU}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+            \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{1}\PY{p}{:} \PY{n}{hdict} \PY{o}{=} \PY{n}{hlru\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{history}\PY{p}{;} \PY{n}{colo} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{go}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{col} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{g}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{LeakyReLU}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+                
+            
+            \PY{n}{train\PYZus{}loss\PYZus{}values} \PY{o}{=} \PY{n}{hdict}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{loss}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{;} \PY{n}{valid\PYZus{}loss\PYZus{}values} \PY{o}{=} \PY{n}{hdict}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{val\PYZus{}loss}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+            \PY{n}{epochs} \PY{o}{=} \PY{n+nb}{range}\PY{p}{(}\PY{l+m+mi}{1}\PY{p}{,} \PY{n+nb}{len}\PY{p}{(}\PY{n}{train\PYZus{}loss\PYZus{}values}\PY{p}{)} \PY{o}{+} \PY{l+m+mi}{1}\PY{p}{)}
+        
+            \PY{n}{ax}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{epochs}\PY{p}{,} \PY{n}{train\PYZus{}loss\PYZus{}values}\PY{p}{,} \PY{n}{colo}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{n}{lab}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ Train}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+            \PY{n}{ax}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{epochs}\PY{p}{,} \PY{n}{valid\PYZus{}loss\PYZus{}values}\PY{p}{,} \PY{n}{col}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{n}{lab}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ Valid}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+        
+        \PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Epochs}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{25}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Loss (W per m2)}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{25}\PY{p}{)}\PY{p}{;}
+        \PY{n}{plt}\PY{o}{.}\PY{n}{xticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{25}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{yticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{25}\PY{p}{)}
+        \PY{n}{plt}\PY{o}{.}\PY{n}{ylim}\PY{p}{(}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{l+m+mi}{500}\PY{p}{)}\PY{p}{)}
+        \PY{n}{ax}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{n}{loc}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{upper center}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{bbox\PYZus{}to\PYZus{}anchor}\PY{o}{=}\PY{p}{(}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{l+m+mf}{1.05}\PY{p}{)}\PY{p}{,}
+                  \PY{n}{ncol}\PY{o}{=}\PY{l+m+mi}{5}\PY{p}{,} \PY{n}{fancybox}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{shadow}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{25}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{show}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+
+
     \begin{Verbatim}[commandchars=\\\{\}]
 {\color{incolor}In [{\color{incolor}34}]:} \PY{n}{pred\PYZus{}uncons} \PY{o}{=} \PY{n}{mod\PYZus{}uncons\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{x}\PY{p}{)}
          \PY{n}{pred\PYZus{}cons} \PY{o}{=} \PY{n}{mod\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{x}\PY{p}{)}
@@ -1502,7 +1865,7 @@ conserving= [0.         0.4019227  0.00784189 0.03601322 0.         0.46972626
     \end{Verbatim}
 
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_41_1.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_57_1.png}
     \end{center}
     { \hspace*{\fill} \\}
     
@@ -1520,190 +1883,190 @@ conservation layers in numpy that have been used to develop the
 tensorflow layers
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}110}]:} \PY{k}{def} \PY{n+nf}{massent\PYZus{}check}\PY{p}{(}\PY{n}{x}\PY{p}{,}\PY{n}{y}\PY{p}{,}\PY{n}{fsub}\PY{o}{=}\PY{n}{fsub}\PY{p}{,}\PY{n}{fdiv}\PY{o}{=}\PY{n}{fdiv}\PY{p}{,}\PY{n}{normq}\PY{o}{=}\PY{n}{normq}\PY{p}{,}\PY{n}{hyai}\PY{o}{=}\PY{n}{hyai}\PY{p}{,}\PY{n}{hybi}\PY{o}{=}\PY{n}{hybi}\PY{p}{,}\PY{n}{outtype}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{graph}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}\PY{p}{:}
-              \PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
-              \PY{c+c1}{\PYZsh{} 0) Constants}
-              \PY{n}{G} \PY{o}{=} \PY{l+m+mf}{9.80616}\PY{p}{;} \PY{c+c1}{\PYZsh{} Reference gravity constant [m.s\PYZhy{}2]}
-              \PY{n}{L\PYZus{}F} \PY{o}{=} \PY{l+m+mf}{3.337e5}\PY{p}{;} \PY{c+c1}{\PYZsh{} Latent heat of fusion of water [W.kg\PYZhy{}1]}
-              \PY{n}{L\PYZus{}V} \PY{o}{=} \PY{l+m+mf}{2.501e6}\PY{p}{;} \PY{c+c1}{\PYZsh{} Latent heat of vaporization of water [W.kg\PYZhy{}1]}
-              \PY{n}{L\PYZus{}S} \PY{o}{=} \PY{n}{L\PYZus{}F}\PY{o}{+}\PY{n}{L\PYZus{}V}\PY{p}{;} \PY{c+c1}{\PYZsh{} Latent heat of sublimation of water [W.kg\PYZhy{}1]}
-              \PY{n}{P0} \PY{o}{=} \PY{l+m+mf}{1e5}\PY{p}{;} \PY{c+c1}{\PYZsh{} Reference surface pressure [Pa]   }
-          
-              \PY{c+c1}{\PYZsh{} WATER\PYZam{}ENTHALPY) Get non\PYZhy{}dimensional pressure differences (p\PYZus{}tilde above)}
-              \PY{c+c1}{\PYZsh{} In the input vector, PS is the 151st element after }
-              \PY{c+c1}{\PYZsh{} the first elements = [QBP, ..., VBP with shape 30*5=150]}
-              \PY{n}{PS} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{x}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{300}\PY{p}{]}\PY{p}{,} \PY{n}{fdiv}\PY{p}{[}\PY{l+m+mi}{300}\PY{p}{]}\PY{p}{)}\PY{p}{,} \PY{n}{fsub}\PY{p}{[}\PY{l+m+mi}{300}\PY{p}{]}\PY{p}{)}
-              \PY{c+c1}{\PYZsh{} Reference for calculation of d\PYZus{}pressure is cbrain/models.py (e.g. QLayer)}
-              \PY{n}{P} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{P0}\PY{p}{,} \PY{n}{hyai}\PY{p}{)}\PY{p}{,} \PYZbs{}
-              \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{PS}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{k+kc}{None}\PY{p}{]}\PY{p}{,} \PY{n}{hybi}\PY{p}{)}\PY{p}{)}
-              \PY{n}{dP} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{subtract}\PY{p}{(} \PY{n}{P}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{1}\PY{p}{:}\PY{p}{]}\PY{p}{,} \PY{n}{P}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{p}{:}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}
-              \PY{c+c1}{\PYZsh{} norm\PYZus{}output = dp\PYZus{}norm * L\PYZus{}V/G so dp\PYZus{}norm = norm\PYZus{}output * G/L\PYZus{}V}
-              \PY{n}{dP\PYZus{}NORM} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{divide}\PY{p}{(} \PYZbs{}
-              \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(}\PY{n}{normq}\PY{p}{[}\PY{p}{:}\PY{l+m+mi}{30}\PY{p}{]}\PY{p}{,} \PYZbs{}
-                        \PY{n}{G}\PY{p}{)}\PY{p}{,}\PYZbs{}
-              \PY{n}{L\PYZus{}V}\PY{p}{)}
-              \PY{c+c1}{\PYZsh{} dp\PYZus{}tilde = dp/dp\PYZus{}norm}
-              \PY{n}{dP\PYZus{}TILD} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{divide}\PY{p}{(} \PY{n}{dP}\PY{p}{,} \PY{n}{dP\PYZus{}NORM}\PY{p}{)}
-          
-              \PY{c+c1}{\PYZsh{} WATER.1) Calculate water vertical integral from level 1 to level 30}
-              \PY{n}{WATVEC} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{dP\PYZus{}TILD}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{p}{:}\PY{l+m+mi}{30}\PY{p}{]} \PY{o}{+} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{30}\PY{p}{:}\PY{l+m+mi}{60}\PY{p}{]} \PY{o}{+} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{60}\PY{p}{:}\PY{l+m+mi}{90}\PY{p}{]}\PY{p}{)}
-              \PY{n}{WATINT} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{sum}\PY{p}{(} \PY{n}{WATVEC}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
-          
-              \PY{c+c1}{\PYZsh{} WATER.2) Calculate forcing on the right\PYZhy{}hand side (Net Evaporation\PYZhy{}Precipitation)}
-              \PY{c+c1}{\PYZsh{} E\PYZhy{}P is already normalized to units W.m\PYZhy{}2 in the output vector}
-              \PY{c+c1}{\PYZsh{} so all we need to do is input\PYZhy{}unnormalize LHF that is taken from the input vector}
-              \PY{n}{LHF} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{x}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{303}\PY{p}{]}\PY{p}{,} \PY{n}{fdiv}\PY{p}{[}\PY{l+m+mi}{303}\PY{p}{]}\PY{p}{)}\PY{p}{,} \PY{n}{fsub}\PY{p}{[}\PY{l+m+mi}{303}\PY{p}{]}\PY{p}{)}
-              \PY{c+c1}{\PYZsh{} Note that total precipitation = PRECT + 1e\PYZhy{}3*PRECTEND in the CAM model}
-              \PY{c+c1}{\PYZsh{} PRECTEND already multiplied by 1e\PYZhy{}3 in output vector so no need to redo it}
-              \PY{n}{PREC} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{154}\PY{p}{]}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{155}\PY{p}{]}\PY{p}{)}
-          
-              \PY{c+c1}{\PYZsh{} WATER.FINAL) Residual = E\PYZhy{}P\PYZhy{}DWATER/DT}
-              \PY{n}{WATRES} \PY{o}{=} \PY{n}{LHF}\PY{o}{\PYZhy{}}\PY{n}{PREC}\PY{o}{\PYZhy{}}\PY{n}{WATINT}
-              
-              \PY{c+c1}{\PYZsh{} ENTHALPY.1) Calculate net energy input from phase change and precipitation}
-              \PY{c+c1}{\PYZsh{} PHAS = Lf/Lv*((PRECST+PRECSTEN)\PYZhy{}(PRECT+PRECTEND))}
-              \PY{n}{PHAS} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{divide}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{subtract}\PY{p}{(}\PYZbs{}
-                                                    \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{156}\PY{p}{]}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{157}\PY{p}{]}\PY{p}{)}\PY{p}{,}\PYZbs{}
-                                                    \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{154}\PY{p}{]}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{155}\PY{p}{]}\PY{p}{)}\PY{p}{)}\PY{p}{,}\PYZbs{}
-                                            \PY{n}{L\PYZus{}F}\PY{p}{)}\PY{p}{,}\PYZbs{}
-                               \PY{n}{L\PYZus{}V}\PY{p}{)}
-              
-              \PY{c+c1}{\PYZsh{} ENTHALPY.2) Calculate net energy input from radiation, sensible heat flux and turbulent KE}
-              \PY{c+c1}{\PYZsh{} 2.1) RAD = FSNT\PYZhy{}FSNS\PYZhy{}FLNT+FLNS}
-              \PY{n}{RAD} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(}\PYZbs{}
-                      \PY{n}{np}\PY{o}{.}\PY{n}{subtract}\PY{p}{(} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{150}\PY{p}{]}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{151}\PY{p}{]}\PY{p}{)}\PY{p}{,}\PYZbs{}
-                      \PY{n}{np}\PY{o}{.}\PY{n}{subtract}\PY{p}{(} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{153}\PY{p}{]}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{152}\PY{p}{]}\PY{p}{)}\PY{p}{)}
-              \PY{c+c1}{\PYZsh{} 2.2) Unnormalize sensible heat flux}
-              \PY{n}{SHF} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{x}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{302}\PY{p}{]}\PY{p}{,} \PY{n}{fdiv}\PY{p}{[}\PY{l+m+mi}{302}\PY{p}{]}\PY{p}{)}\PY{p}{,} \PY{n}{fsub}\PY{p}{[}\PY{l+m+mi}{302}\PY{p}{]}\PY{p}{)}
-              \PY{c+c1}{\PYZsh{} 2.3) Net turbulent kinetic energy dissipative heating is the column\PYZhy{}integrated }
-              \PY{c+c1}{\PYZsh{} turbulent kinetic energy energy dissipative heating}
-              \PY{n}{KEDVEC} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{dP\PYZus{}TILD}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{120}\PY{p}{:}\PY{l+m+mi}{150}\PY{p}{]}\PY{p}{)}
-              \PY{n}{KEDINT} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{sum}\PY{p}{(} \PY{n}{KEDVEC}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
-              
-              \PY{c+c1}{\PYZsh{} ENTHALPY.3) Calculate tendency of normalized column water vapor due to phase change}
-              \PY{c+c1}{\PYZsh{} 3.1) Column water vapor is the column integral of specific humidity}
-              \PY{n}{PHQVEC} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{dP\PYZus{}TILD}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{p}{:}\PY{l+m+mi}{30}\PY{p}{]}\PY{p}{)}
-              \PY{n}{PHQINT} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{sum}\PY{p}{(} \PY{n}{PHQVEC}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
-              \PY{c+c1}{\PYZsh{} 3.2) Multiply by L\PYZus{}S/L\PYZus{}V to normalize (explanation above)}
-              \PY{n}{SPDQINT} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{divide}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{subtract}\PY{p}{(}\PYZbs{}
-                                                           \PY{n}{PHQINT}\PY{p}{,} \PY{n}{LHF}\PY{p}{)}\PY{p}{,}\PYZbs{}
-                                              \PY{n}{L\PYZus{}S}\PY{p}{)}\PY{p}{,}\PYZbs{}
-                                 \PY{n}{L\PYZus{}V}\PY{p}{)}
-              
-              \PY{c+c1}{\PYZsh{} ENTHALPY.4) Same operation for liquid water tendency but multiplied by L\PYZus{}F/L\PYZus{}V}
-              \PY{n}{SPDQCINT} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{divide}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(}\PYZbs{}
-                                            \PY{n}{np}\PY{o}{.}\PY{n}{sum}\PY{p}{(}\PYZbs{}
-                                                   \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{dP\PYZus{}TILD}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{30}\PY{p}{:}\PY{l+m+mi}{60}\PY{p}{]}\PY{p}{)}\PY{p}{,}\PYZbs{}
-                                                   \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}\PY{p}{,}\PYZbs{}
-                                            \PY{n}{L\PYZus{}F}\PY{p}{)}\PY{p}{,}\PYZbs{}
-                               \PY{n}{L\PYZus{}V}\PY{p}{)}
-              
-              \PY{c+c1}{\PYZsh{} ENTHALPY.5) Same operation for temperature tendency}
-              \PY{n}{DTINT} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{sum}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{dP\PYZus{}TILD}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{p}{:}\PY{l+m+mi}{30}\PY{p}{]}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{90}\PY{p}{:}\PY{l+m+mi}{120}\PY{p}{]}\PY{p}{)}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
-              
-              \PY{c+c1}{\PYZsh{} ENTHALPY.FINAL) Residual = SPDQ+SPDQC+DTINT\PYZhy{}RAD\PYZhy{}SHF\PYZhy{}PHAS}
-              \PY{n}{ENTRES} \PY{o}{=} \PY{n}{SPDQINT}\PY{o}{+}\PY{n}{SPDQCINT}\PY{o}{+}\PY{n}{DTINT}\PY{o}{\PYZhy{}}\PY{n}{RAD}\PY{o}{\PYZhy{}}\PY{n}{SHF}\PY{o}{\PYZhy{}}\PY{n}{PHAS}\PY{o}{\PYZhy{}}\PY{n}{KEDINT}
-              
-              \PY{k}{if} \PY{n}{outtype}\PY{o}{==}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{graph}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}
-              
-                  \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
-                  \PY{k+kn}{from} \PY{n+nn}{matplotlib} \PY{k}{import} \PY{n}{rc}
-                  \PY{n}{plt}\PY{o}{.}\PY{n}{rc}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{text}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{usetex}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}
-                  \PY{n}{plt}\PY{o}{.}\PY{n}{rc}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{font}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{family}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{serif}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-          
-                  \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{num}\PY{o}{=}\PY{k+kc}{None}\PY{p}{,} \PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{12}\PY{p}{,} \PY{l+m+mi}{3}\PY{p}{)}\PY{p}{,} \PY{n}{dpi}\PY{o}{=}\PY{l+m+mi}{80}\PY{p}{,} \PY{n}{facecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{w}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{edgecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-          
-                  \PY{n}{plt}\PY{o}{.}\PY{n}{subplot}\PY{p}{(}\PY{l+m+mi}{121}\PY{p}{)}
-                  \PY{n}{plt}\PY{o}{.}\PY{n}{hist}\PY{p}{(}\PY{n}{WATRES}\PY{p}{)}
-                  \PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZdl{}}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{mathrm}\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{Water}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{ Residual}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{ }\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{left[W.m\PYZca{}}\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{\PYZhy{}2\PYZcb{}}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{right]\PYZcb{}\PYZdl{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{16}\PY{p}{)}
-                  \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Number of samples}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{16}\PY{p}{)}
-                  \PY{n}{plt}\PY{o}{.}\PY{n}{xticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{yticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}
-          
-                  \PY{n}{plt}\PY{o}{.}\PY{n}{subplot}\PY{p}{(}\PY{l+m+mi}{122}\PY{p}{)}
-                  \PY{n}{plt}\PY{o}{.}\PY{n}{hist}\PY{p}{(}\PY{n}{ENTRES}\PY{p}{)}
-                  \PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZdl{}}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{mathrm}\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{Enthalpy}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{ Residual}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{ }\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{left[W.m\PYZca{}}\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{\PYZhy{}2\PYZcb{}}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{right]\PYZcb{}\PYZdl{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{16}\PY{p}{)}
-                  \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Number of samples}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{16}\PY{p}{)}
-                  \PY{n}{plt}\PY{o}{.}\PY{n}{xticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{yticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}
-              
-              \PY{k}{elif} \PY{n}{outtype}\PY{o}{==}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{list}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}
-              
-                  \PY{k}{return} \PY{n}{WATRES}\PY{p}{,}\PY{n}{ENTRES} 
+{\color{incolor}In [{\color{incolor}47}]:} \PY{k}{def} \PY{n+nf}{massent\PYZus{}check}\PY{p}{(}\PY{n}{x}\PY{p}{,}\PY{n}{y}\PY{p}{,}\PY{n}{fsub}\PY{o}{=}\PY{n}{fsub}\PY{p}{,}\PY{n}{fdiv}\PY{o}{=}\PY{n}{fdiv}\PY{p}{,}\PY{n}{normq}\PY{o}{=}\PY{n}{normq}\PY{p}{,}\PY{n}{hyai}\PY{o}{=}\PY{n}{hyai}\PY{p}{,}\PY{n}{hybi}\PY{o}{=}\PY{n}{hybi}\PY{p}{,}\PY{n}{outtype}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{graph}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}\PY{p}{:}
+             \PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+             \PY{c+c1}{\PYZsh{} 0) Constants}
+             \PY{n}{G} \PY{o}{=} \PY{l+m+mf}{9.80616}\PY{p}{;} \PY{c+c1}{\PYZsh{} Reference gravity constant [m.s\PYZhy{}2]}
+             \PY{n}{L\PYZus{}F} \PY{o}{=} \PY{l+m+mf}{3.337e5}\PY{p}{;} \PY{c+c1}{\PYZsh{} Latent heat of fusion of water [W.kg\PYZhy{}1]}
+             \PY{n}{L\PYZus{}V} \PY{o}{=} \PY{l+m+mf}{2.501e6}\PY{p}{;} \PY{c+c1}{\PYZsh{} Latent heat of vaporization of water [W.kg\PYZhy{}1]}
+             \PY{n}{L\PYZus{}S} \PY{o}{=} \PY{n}{L\PYZus{}F}\PY{o}{+}\PY{n}{L\PYZus{}V}\PY{p}{;} \PY{c+c1}{\PYZsh{} Latent heat of sublimation of water [W.kg\PYZhy{}1]}
+             \PY{n}{P0} \PY{o}{=} \PY{l+m+mf}{1e5}\PY{p}{;} \PY{c+c1}{\PYZsh{} Reference surface pressure [Pa]   }
+         
+             \PY{c+c1}{\PYZsh{} WATER\PYZam{}ENTHALPY) Get non\PYZhy{}dimensional pressure differences (p\PYZus{}tilde above)}
+             \PY{c+c1}{\PYZsh{} In the input vector, PS is the 151st element after }
+             \PY{c+c1}{\PYZsh{} the first elements = [QBP, ..., VBP with shape 30*5=150]}
+             \PY{n}{PS} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{x}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{300}\PY{p}{]}\PY{p}{,} \PY{n}{fdiv}\PY{p}{[}\PY{l+m+mi}{300}\PY{p}{]}\PY{p}{)}\PY{p}{,} \PY{n}{fsub}\PY{p}{[}\PY{l+m+mi}{300}\PY{p}{]}\PY{p}{)}
+             \PY{c+c1}{\PYZsh{} Reference for calculation of d\PYZus{}pressure is cbrain/models.py (e.g. QLayer)}
+             \PY{n}{P} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{P0}\PY{p}{,} \PY{n}{hyai}\PY{p}{)}\PY{p}{,} \PYZbs{}
+             \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{PS}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{k+kc}{None}\PY{p}{]}\PY{p}{,} \PY{n}{hybi}\PY{p}{)}\PY{p}{)}
+             \PY{n}{dP} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{subtract}\PY{p}{(} \PY{n}{P}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{1}\PY{p}{:}\PY{p}{]}\PY{p}{,} \PY{n}{P}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{p}{:}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}
+             \PY{c+c1}{\PYZsh{} norm\PYZus{}output = dp\PYZus{}norm * L\PYZus{}V/G so dp\PYZus{}norm = norm\PYZus{}output * G/L\PYZus{}V}
+             \PY{n}{dP\PYZus{}NORM} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{divide}\PY{p}{(} \PYZbs{}
+             \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(}\PY{n}{normq}\PY{p}{[}\PY{p}{:}\PY{l+m+mi}{30}\PY{p}{]}\PY{p}{,} \PYZbs{}
+                       \PY{n}{G}\PY{p}{)}\PY{p}{,}\PYZbs{}
+             \PY{n}{L\PYZus{}V}\PY{p}{)}
+             \PY{c+c1}{\PYZsh{} dp\PYZus{}tilde = dp/dp\PYZus{}norm}
+             \PY{n}{dP\PYZus{}TILD} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{divide}\PY{p}{(} \PY{n}{dP}\PY{p}{,} \PY{n}{dP\PYZus{}NORM}\PY{p}{)}
+         
+             \PY{c+c1}{\PYZsh{} WATER.1) Calculate water vertical integral from level 1 to level 30}
+             \PY{n}{WATVEC} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{dP\PYZus{}TILD}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{p}{:}\PY{l+m+mi}{30}\PY{p}{]} \PY{o}{+} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{30}\PY{p}{:}\PY{l+m+mi}{60}\PY{p}{]} \PY{o}{+} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{60}\PY{p}{:}\PY{l+m+mi}{90}\PY{p}{]}\PY{p}{)}
+             \PY{n}{WATINT} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{sum}\PY{p}{(} \PY{n}{WATVEC}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+         
+             \PY{c+c1}{\PYZsh{} WATER.2) Calculate forcing on the right\PYZhy{}hand side (Net Evaporation\PYZhy{}Precipitation)}
+             \PY{c+c1}{\PYZsh{} E\PYZhy{}P is already normalized to units W.m\PYZhy{}2 in the output vector}
+             \PY{c+c1}{\PYZsh{} so all we need to do is input\PYZhy{}unnormalize LHF that is taken from the input vector}
+             \PY{n}{LHF} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{x}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{303}\PY{p}{]}\PY{p}{,} \PY{n}{fdiv}\PY{p}{[}\PY{l+m+mi}{303}\PY{p}{]}\PY{p}{)}\PY{p}{,} \PY{n}{fsub}\PY{p}{[}\PY{l+m+mi}{303}\PY{p}{]}\PY{p}{)}
+             \PY{c+c1}{\PYZsh{} Note that total precipitation = PRECT + 1e\PYZhy{}3*PRECTEND in the CAM model}
+             \PY{c+c1}{\PYZsh{} PRECTEND already multiplied by 1e\PYZhy{}3 in output vector so no need to redo it}
+             \PY{n}{PREC} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{154}\PY{p}{]}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{155}\PY{p}{]}\PY{p}{)}
+         
+             \PY{c+c1}{\PYZsh{} WATER.FINAL) Residual = E\PYZhy{}P\PYZhy{}DWATER/DT}
+             \PY{n}{WATRES} \PY{o}{=} \PY{n}{LHF}\PY{o}{\PYZhy{}}\PY{n}{PREC}\PY{o}{\PYZhy{}}\PY{n}{WATINT}
+             
+             \PY{c+c1}{\PYZsh{} ENTHALPY.1) Calculate net energy input from phase change and precipitation}
+             \PY{c+c1}{\PYZsh{} PHAS = Lf/Lv*((PRECST+PRECSTEN)\PYZhy{}(PRECT+PRECTEND))}
+             \PY{n}{PHAS} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{divide}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{subtract}\PY{p}{(}\PYZbs{}
+                                                   \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{156}\PY{p}{]}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{157}\PY{p}{]}\PY{p}{)}\PY{p}{,}\PYZbs{}
+                                                   \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{154}\PY{p}{]}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{155}\PY{p}{]}\PY{p}{)}\PY{p}{)}\PY{p}{,}\PYZbs{}
+                                           \PY{n}{L\PYZus{}F}\PY{p}{)}\PY{p}{,}\PYZbs{}
+                              \PY{n}{L\PYZus{}V}\PY{p}{)}
+             
+             \PY{c+c1}{\PYZsh{} ENTHALPY.2) Calculate net energy input from radiation, sensible heat flux and turbulent KE}
+             \PY{c+c1}{\PYZsh{} 2.1) RAD = FSNT\PYZhy{}FSNS\PYZhy{}FLNT+FLNS}
+             \PY{n}{RAD} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(}\PYZbs{}
+                     \PY{n}{np}\PY{o}{.}\PY{n}{subtract}\PY{p}{(} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{150}\PY{p}{]}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{151}\PY{p}{]}\PY{p}{)}\PY{p}{,}\PYZbs{}
+                     \PY{n}{np}\PY{o}{.}\PY{n}{subtract}\PY{p}{(} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{153}\PY{p}{]}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{152}\PY{p}{]}\PY{p}{)}\PY{p}{)}
+             \PY{c+c1}{\PYZsh{} 2.2) Unnormalize sensible heat flux}
+             \PY{n}{SHF} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{add}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{x}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{302}\PY{p}{]}\PY{p}{,} \PY{n}{fdiv}\PY{p}{[}\PY{l+m+mi}{302}\PY{p}{]}\PY{p}{)}\PY{p}{,} \PY{n}{fsub}\PY{p}{[}\PY{l+m+mi}{302}\PY{p}{]}\PY{p}{)}
+             \PY{c+c1}{\PYZsh{} 2.3) Net turbulent kinetic energy dissipative heating is the column\PYZhy{}integrated }
+             \PY{c+c1}{\PYZsh{} turbulent kinetic energy energy dissipative heating}
+             \PY{n}{KEDVEC} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{dP\PYZus{}TILD}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{120}\PY{p}{:}\PY{l+m+mi}{150}\PY{p}{]}\PY{p}{)}
+             \PY{n}{KEDINT} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{sum}\PY{p}{(} \PY{n}{KEDVEC}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+             
+             \PY{c+c1}{\PYZsh{} ENTHALPY.3) Calculate tendency of normalized column water vapor due to phase change}
+             \PY{c+c1}{\PYZsh{} 3.1) Column water vapor is the column integral of specific humidity}
+             \PY{n}{PHQVEC} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{dP\PYZus{}TILD}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{p}{:}\PY{l+m+mi}{30}\PY{p}{]}\PY{p}{)}
+             \PY{n}{PHQINT} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{sum}\PY{p}{(} \PY{n}{PHQVEC}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+             \PY{c+c1}{\PYZsh{} 3.2) Multiply by L\PYZus{}S/L\PYZus{}V to normalize (explanation above)}
+             \PY{n}{SPDQINT} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{divide}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{subtract}\PY{p}{(}\PYZbs{}
+                                                          \PY{n}{PHQINT}\PY{p}{,} \PY{n}{LHF}\PY{p}{)}\PY{p}{,}\PYZbs{}
+                                             \PY{n}{L\PYZus{}S}\PY{p}{)}\PY{p}{,}\PYZbs{}
+                                \PY{n}{L\PYZus{}V}\PY{p}{)}
+             
+             \PY{c+c1}{\PYZsh{} ENTHALPY.4) Same operation for liquid water tendency but multiplied by L\PYZus{}F/L\PYZus{}V}
+             \PY{n}{SPDQCINT} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{divide}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(}\PYZbs{}
+                                           \PY{n}{np}\PY{o}{.}\PY{n}{sum}\PY{p}{(}\PYZbs{}
+                                                  \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{dP\PYZus{}TILD}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{30}\PY{p}{:}\PY{l+m+mi}{60}\PY{p}{]}\PY{p}{)}\PY{p}{,}\PYZbs{}
+                                                  \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}\PY{p}{,}\PYZbs{}
+                                           \PY{n}{L\PYZus{}F}\PY{p}{)}\PY{p}{,}\PYZbs{}
+                              \PY{n}{L\PYZus{}V}\PY{p}{)}
+             
+             \PY{c+c1}{\PYZsh{} ENTHALPY.5) Same operation for temperature tendency}
+             \PY{n}{DTINT} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{sum}\PY{p}{(} \PY{n}{np}\PY{o}{.}\PY{n}{multiply}\PY{p}{(} \PY{n}{dP\PYZus{}TILD}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{p}{:}\PY{l+m+mi}{30}\PY{p}{]}\PY{p}{,} \PY{n}{y}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{l+m+mi}{90}\PY{p}{:}\PY{l+m+mi}{120}\PY{p}{]}\PY{p}{)}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+             
+             \PY{c+c1}{\PYZsh{} ENTHALPY.FINAL) Residual = SPDQ+SPDQC+DTINT\PYZhy{}RAD\PYZhy{}SHF\PYZhy{}PHAS}
+             \PY{n}{ENTRES} \PY{o}{=} \PY{n}{SPDQINT}\PY{o}{+}\PY{n}{SPDQCINT}\PY{o}{+}\PY{n}{DTINT}\PY{o}{\PYZhy{}}\PY{n}{RAD}\PY{o}{\PYZhy{}}\PY{n}{SHF}\PY{o}{\PYZhy{}}\PY{n}{PHAS}\PY{o}{\PYZhy{}}\PY{n}{KEDINT}
+             
+             \PY{k}{if} \PY{n}{outtype}\PY{o}{==}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{graph}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}
+             
+                 \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
+                 \PY{k+kn}{from} \PY{n+nn}{matplotlib} \PY{k}{import} \PY{n}{rc}
+                 \PY{n}{plt}\PY{o}{.}\PY{n}{rc}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{text}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{usetex}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}
+                 \PY{n}{plt}\PY{o}{.}\PY{n}{rc}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{font}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{family}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{serif}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+         
+                 \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{num}\PY{o}{=}\PY{k+kc}{None}\PY{p}{,} \PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{12}\PY{p}{,} \PY{l+m+mi}{3}\PY{p}{)}\PY{p}{,} \PY{n}{dpi}\PY{o}{=}\PY{l+m+mi}{80}\PY{p}{,} \PY{n}{facecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{w}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{edgecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+         
+                 \PY{n}{plt}\PY{o}{.}\PY{n}{subplot}\PY{p}{(}\PY{l+m+mi}{121}\PY{p}{)}
+                 \PY{n}{plt}\PY{o}{.}\PY{n}{hist}\PY{p}{(}\PY{n}{WATRES}\PY{p}{)}
+                 \PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZdl{}}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{mathrm}\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{Water}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{ Residual}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{ }\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{left[W.m\PYZca{}}\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{\PYZhy{}2\PYZcb{}}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{right]\PYZcb{}\PYZdl{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{16}\PY{p}{)}
+                 \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Number of samples}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{16}\PY{p}{)}
+                 \PY{n}{plt}\PY{o}{.}\PY{n}{xticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{yticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}
+         
+                 \PY{n}{plt}\PY{o}{.}\PY{n}{subplot}\PY{p}{(}\PY{l+m+mi}{122}\PY{p}{)}
+                 \PY{n}{plt}\PY{o}{.}\PY{n}{hist}\PY{p}{(}\PY{n}{ENTRES}\PY{p}{)}
+                 \PY{n}{plt}\PY{o}{.}\PY{n}{xlabel}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZdl{}}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{mathrm}\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{Enthalpy}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{ Residual}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{ }\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{left[W.m\PYZca{}}\PY{l+s+s2}{\PYZob{}}\PY{l+s+s2}{\PYZhy{}2\PYZcb{}}\PY{l+s+s2}{\PYZbs{}}\PY{l+s+s2}{right]\PYZcb{}\PYZdl{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{16}\PY{p}{)}
+                 \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Number of samples}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{16}\PY{p}{)}
+                 \PY{n}{plt}\PY{o}{.}\PY{n}{xticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{yticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}
+             
+             \PY{k}{elif} \PY{n}{outtype}\PY{o}{==}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{list}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}
+             
+                 \PY{k}{return} \PY{n}{WATRES}\PY{p}{,}\PY{n}{ENTRES} 
 \end{Verbatim}
 
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}108}]:} \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
-          \PY{k+kn}{from} \PY{n+nn}{matplotlib} \PY{k}{import} \PY{n}{rc}
-          \PY{n}{plt}\PY{o}{.}\PY{n}{rc}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{text}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{usetex}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}
-          \PY{n}{plt}\PY{o}{.}\PY{n}{rc}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{font}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{family}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{serif}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-          \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{num}\PY{o}{=}\PY{k+kc}{None}\PY{p}{,} \PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{20}\PY{p}{,} \PY{l+m+mf}{13.5}\PY{p}{)}\PY{p}{,} \PY{n}{dpi}\PY{o}{=}\PY{l+m+mi}{80}\PY{p}{,} \PY{n}{facecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{w}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{edgecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-          \PY{n}{XMAX} \PY{o}{=} \PY{l+m+mi}{300}\PY{p}{;} \PY{n}{bins} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{linspace}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{n}{XMAX}\PY{p}{,} \PY{l+m+mi}{100}\PY{p}{)}
-          
-          \PY{n}{xval}\PY{p}{,} \PY{n}{yval} \PY{o}{=} \PY{n+nb}{next}\PY{p}{(}\PY{n}{validgen}\PY{p}{)}
-          
-          \PY{k}{for} \PY{n}{index} \PY{o+ow}{in} \PY{n+nb}{range} \PY{p}{(}\PY{l+m+mi}{5}\PY{p}{)}\PY{p}{:}
-              \PY{k}{if} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{0}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{mod\PYZus{}uncons\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{U}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
-              \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{1}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{mod\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{C}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
-              \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{2}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{mod\PYZus{}lagr001\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W001}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
-              \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{3}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{mod\PYZus{}lagr05\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W05}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
-              \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{4}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{mod\PYZus{}lagr099\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W099}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
-          
-              \PY{n}{res} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{mean}\PY{p}{(}\PY{p}{(}\PY{n}{pred}\PY{o}{\PYZhy{}}\PY{n}{yval}\PY{p}{)}\PY{o}{*}\PY{o}{*}\PY{l+m+mi}{2}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}\PY{p}{;}
-              
-              \PY{n}{ax} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{subplot}\PY{p}{(}\PY{l+m+mi}{5}\PY{p}{,}\PY{l+m+mi}{1}\PY{p}{,}\PY{n}{index}\PY{o}{+}\PY{l+m+mi}{1}\PY{p}{)}
-              \PY{n}{ax}\PY{o}{.}\PY{n}{hist}\PY{p}{(}\PY{n}{res}\PY{p}{,} \PY{n}{bins}\PY{p}{,} \PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{n}{edgecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{label} \PY{o}{=} \PY{n}{lab}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ m}\PY{l+s+si}{\PYZpc{}i}\PY{l+s+s1}{\PYZsq{}} \PY{o}{\PYZpc{}}\PY{k}{np}.mean(res)+\PYZsq{} std\PYZpc{}i\PYZsq{} \PYZpc{}np.std(res))
-              \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Nb samples}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{16}\PY{p}{)}
-              \PY{n}{plt}\PY{o}{.}\PY{n}{xticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{yticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}
-              \PY{n}{plt}\PY{o}{.}\PY{n}{ylim}\PY{p}{(}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{l+m+mi}{50}\PY{p}{)}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{xlim}\PY{p}{(}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{n}{XMAX}\PY{p}{)}\PY{p}{)}\PY{p}{;}
-              \PY{n}{ax}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{n}{loc}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{upper center}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{bbox\PYZus{}to\PYZus{}anchor}\PY{o}{=}\PY{p}{(}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{l+m+mf}{1.05}\PY{p}{)}\PY{p}{,}
-                    \PY{n}{ncol}\PY{o}{=}\PY{l+m+mi}{5}\PY{p}{,} \PY{n}{fancybox}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{shadow}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{fontsize} \PY{o}{=} \PY{l+m+mi}{20}\PY{p}{)}\PY{p}{;} 
+{\color{incolor}In [{\color{incolor}67}]:} \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
+         \PY{k+kn}{from} \PY{n+nn}{matplotlib} \PY{k}{import} \PY{n}{rc}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{rc}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{text}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{usetex}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{rc}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{font}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{family}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{serif}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{num}\PY{o}{=}\PY{k+kc}{None}\PY{p}{,} \PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{20}\PY{p}{,} \PY{l+m+mf}{13.5}\PY{p}{)}\PY{p}{,} \PY{n}{dpi}\PY{o}{=}\PY{l+m+mi}{80}\PY{p}{,} \PY{n}{facecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{w}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{edgecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{XMAX} \PY{o}{=} \PY{l+m+mi}{180}\PY{p}{;} \PY{n}{bins} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{linspace}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{n}{XMAX}\PY{p}{,} \PY{l+m+mi}{100}\PY{p}{)}
+         
+         \PY{n}{xval}\PY{p}{,} \PY{n}{yval} \PY{o}{=} \PY{n+nb}{next}\PY{p}{(}\PY{n}{validgen}\PY{p}{)}
+         
+         \PY{k}{for} \PY{n}{index} \PY{o+ow}{in} \PY{n+nb}{range} \PY{p}{(}\PY{l+m+mi}{5}\PY{p}{)}\PY{p}{:}
+             \PY{k}{if} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{0}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{lru\PYZus{}uncons\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{U}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{1}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{lru\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{C}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{2}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{lru\PYZus{}lagr001\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W001}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{3}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{lru\PYZus{}lagr05\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W05}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{4}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{lru\PYZus{}lagr099\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W099}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+         
+             \PY{n}{res} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{mean}\PY{p}{(}\PY{p}{(}\PY{n}{pred}\PY{o}{\PYZhy{}}\PY{n}{yval}\PY{p}{)}\PY{o}{*}\PY{o}{*}\PY{l+m+mi}{2}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}\PY{p}{;}
+             
+             \PY{n}{ax} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{subplot}\PY{p}{(}\PY{l+m+mi}{5}\PY{p}{,}\PY{l+m+mi}{1}\PY{p}{,}\PY{n}{index}\PY{o}{+}\PY{l+m+mi}{1}\PY{p}{)}
+             \PY{n}{ax}\PY{o}{.}\PY{n}{hist}\PY{p}{(}\PY{n}{res}\PY{p}{,} \PY{n}{bins}\PY{p}{,} \PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{n}{edgecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{label} \PY{o}{=} \PY{n}{lab}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ m}\PY{l+s+si}{\PYZpc{}i}\PY{l+s+s1}{\PYZsq{}} \PY{o}{\PYZpc{}}\PY{k}{np}.mean(res)+\PYZsq{} std\PYZpc{}i\PYZsq{} \PYZpc{}np.std(res))
+             \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Nb samples}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{16}\PY{p}{)}
+             \PY{n}{plt}\PY{o}{.}\PY{n}{xticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{yticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}
+             \PY{n}{plt}\PY{o}{.}\PY{n}{ylim}\PY{p}{(}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{l+m+mi}{60}\PY{p}{)}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{xlim}\PY{p}{(}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{n}{XMAX}\PY{p}{)}\PY{p}{)}\PY{p}{;}
+             \PY{n}{ax}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{n}{loc}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{upper center}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{bbox\PYZus{}to\PYZus{}anchor}\PY{o}{=}\PY{p}{(}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{l+m+mf}{1.05}\PY{p}{)}\PY{p}{,}
+                   \PY{n}{ncol}\PY{o}{=}\PY{l+m+mi}{5}\PY{p}{,} \PY{n}{fancybox}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{shadow}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{fontsize} \PY{o}{=} \PY{l+m+mi}{20}\PY{p}{)}\PY{p}{;} 
 \end{Verbatim}
 
 
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_44_0.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_60_0.png}
     \end{center}
     { \hspace*{\fill} \\}
     
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}122}]:} \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
-          \PY{k+kn}{from} \PY{n+nn}{matplotlib} \PY{k}{import} \PY{n}{rc}
-          \PY{n}{plt}\PY{o}{.}\PY{n}{rc}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{text}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{usetex}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}
-          \PY{n}{plt}\PY{o}{.}\PY{n}{rc}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{font}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{family}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{serif}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-          \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{num}\PY{o}{=}\PY{k+kc}{None}\PY{p}{,} \PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{20}\PY{p}{,} \PY{l+m+mf}{13.5}\PY{p}{)}\PY{p}{,} \PY{n}{dpi}\PY{o}{=}\PY{l+m+mi}{80}\PY{p}{,} \PY{n}{facecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{w}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{edgecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-          \PY{n}{XMAX} \PY{o}{=} \PY{l+m+mi}{100}\PY{p}{;} \PY{n}{bins} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{linspace}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{n}{XMAX}\PY{p}{,} \PY{n}{XMAX}\PY{p}{,} \PY{l+m+mi}{100}\PY{p}{)}
-          
-          \PY{n}{xval}\PY{p}{,} \PY{n}{yval} \PY{o}{=} \PY{n+nb}{next}\PY{p}{(}\PY{n}{gen}\PY{p}{)}
-          
-          \PY{k}{for} \PY{n}{index} \PY{o+ow}{in} \PY{n+nb}{range} \PY{p}{(}\PY{l+m+mi}{5}\PY{p}{)}\PY{p}{:}
-              \PY{k}{if} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{0}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{mod\PYZus{}uncons\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{U}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
-              \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{1}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{mod\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{C}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
-              \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{2}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{mod\PYZus{}lagr001\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W001}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
-              \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{3}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{mod\PYZus{}lagr05\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W05}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
-              \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{4}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{mod\PYZus{}lagr099\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W099}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
-          
-              \PY{n}{watres}\PY{p}{,}\PY{n}{entres} \PY{o}{=} \PY{n}{massent\PYZus{}check}\PY{p}{(}\PY{n}{xval}\PY{p}{,}\PY{n}{pred}\PY{p}{,}\PY{n}{fsub}\PY{o}{=}\PY{n}{fsub}\PY{p}{,}\PY{n}{fdiv}\PY{o}{=}\PY{n}{fdiv}\PY{p}{,}\PY{n}{normq}\PY{o}{=}\PY{n}{normq}\PY{p}{,}\PY{n}{hyai}\PY{o}{=}\PY{n}{hyai}\PY{p}{,}\PY{n}{hybi}\PY{o}{=}\PY{n}{hybi}\PY{p}{,}\PY{n}{outtype}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{list}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}\PY{p}{;}
-          
-              \PY{n}{ax} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{subplot}\PY{p}{(}\PY{l+m+mi}{5}\PY{p}{,}\PY{l+m+mi}{2}\PY{p}{,}\PY{l+m+mi}{2}\PY{o}{*}\PY{n}{index}\PY{o}{+}\PY{l+m+mi}{1}\PY{p}{)}
-              \PY{n}{ax}\PY{o}{.}\PY{n}{hist}\PY{p}{(}\PY{n}{watres}\PY{p}{,} \PY{n}{bins}\PY{p}{,} \PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{n}{edgecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{label} \PY{o}{=} \PY{n}{lab}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ mSQ}\PY{l+s+si}{\PYZpc{}i}\PY{l+s+s1}{\PYZsq{}} \PY{o}{\PYZpc{}}\PY{k}{np}.mean(watres**2)+\PYZsq{} stdSQ\PYZpc{}i\PYZsq{} \PYZpc{}np.std(watres**2))
-              \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Nb samples}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{16}\PY{p}{)}
-              \PY{n}{plt}\PY{o}{.}\PY{n}{xticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{yticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}
-              \PY{n}{plt}\PY{o}{.}\PY{n}{ylim}\PY{p}{(}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{l+m+mi}{50}\PY{p}{)}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{xlim}\PY{p}{(}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{n}{XMAX}\PY{p}{,} \PY{n}{XMAX}\PY{p}{)}\PY{p}{)}\PY{p}{;}
-              \PY{n}{ax}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{n}{loc}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{upper left}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{bbox\PYZus{}to\PYZus{}anchor}\PY{o}{=}\PY{p}{(}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{l+m+mf}{1.05}\PY{p}{)}\PY{p}{,}
-                    \PY{n}{ncol}\PY{o}{=}\PY{l+m+mi}{5}\PY{p}{,} \PY{n}{fancybox}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{shadow}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{fontsize} \PY{o}{=} \PY{l+m+mi}{20}\PY{p}{)}\PY{p}{;}
-              
-              \PY{n}{ax} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{subplot}\PY{p}{(}\PY{l+m+mi}{5}\PY{p}{,}\PY{l+m+mi}{2}\PY{p}{,}\PY{l+m+mi}{2}\PY{o}{*}\PY{n}{index}\PY{o}{+}\PY{l+m+mi}{2}\PY{p}{)}
-              \PY{n}{ax}\PY{o}{.}\PY{n}{hist}\PY{p}{(}\PY{n}{entres}\PY{p}{,} \PY{n}{bins}\PY{p}{,} \PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{n}{edgecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{label} \PY{o}{=} \PY{n}{lab}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ mSQ}\PY{l+s+si}{\PYZpc{}i}\PY{l+s+s1}{\PYZsq{}} \PY{o}{\PYZpc{}}\PY{k}{np}.mean(entres**2)+\PYZsq{} stdSQ\PYZpc{}i\PYZsq{} \PYZpc{}np.std(entres**2))
-              \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Nb samples}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{16}\PY{p}{)}
-              \PY{n}{plt}\PY{o}{.}\PY{n}{xticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{yticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}
-              \PY{n}{plt}\PY{o}{.}\PY{n}{ylim}\PY{p}{(}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{l+m+mi}{50}\PY{p}{)}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{xlim}\PY{p}{(}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{n}{XMAX}\PY{p}{,} \PY{n}{XMAX}\PY{p}{)}\PY{p}{)}\PY{p}{;}
-              \PY{n}{ax}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{n}{loc}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{upper left}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{bbox\PYZus{}to\PYZus{}anchor}\PY{o}{=}\PY{p}{(}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{l+m+mf}{1.05}\PY{p}{)}\PY{p}{,}
-                    \PY{n}{ncol}\PY{o}{=}\PY{l+m+mi}{5}\PY{p}{,} \PY{n}{fancybox}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{shadow}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{fontsize} \PY{o}{=} \PY{l+m+mi}{20}\PY{p}{)}\PY{p}{;} 
+{\color{incolor}In [{\color{incolor}68}]:} \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
+         \PY{k+kn}{from} \PY{n+nn}{matplotlib} \PY{k}{import} \PY{n}{rc}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{rc}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{text}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{usetex}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{rc}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{font}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{family}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{serif}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{num}\PY{o}{=}\PY{k+kc}{None}\PY{p}{,} \PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{20}\PY{p}{,} \PY{l+m+mf}{13.5}\PY{p}{)}\PY{p}{,} \PY{n}{dpi}\PY{o}{=}\PY{l+m+mi}{80}\PY{p}{,} \PY{n}{facecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{w}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{edgecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{XMAX} \PY{o}{=} \PY{l+m+mi}{100}\PY{p}{;} \PY{n}{bins} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{linspace}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{n}{XMAX}\PY{p}{,} \PY{n}{XMAX}\PY{p}{,} \PY{l+m+mi}{100}\PY{p}{)}
+         
+         \PY{n}{xval}\PY{p}{,} \PY{n}{yval} \PY{o}{=} \PY{n+nb}{next}\PY{p}{(}\PY{n}{validgen}\PY{p}{)}
+         
+         \PY{k}{for} \PY{n}{index} \PY{o+ow}{in} \PY{n+nb}{range} \PY{p}{(}\PY{l+m+mi}{5}\PY{p}{)}\PY{p}{:}
+             \PY{k}{if} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{0}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{lru\PYZus{}uncons\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{U}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{1}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{lru\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{C}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{2}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{lru\PYZus{}lagr001\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W001}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{3}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{lru\PYZus{}lagr05\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W05}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+             \PY{k}{elif} \PY{n}{index}\PY{o}{==}\PY{l+m+mi}{4}\PY{p}{:} \PY{n}{pred} \PY{o}{=} \PY{n}{lru\PYZus{}lagr099\PYZus{}5dens}\PY{o}{.}\PY{n}{predict\PYZus{}on\PYZus{}batch}\PY{p}{(}\PY{n}{xval}\PY{p}{)}\PY{p}{;} \PY{n}{lab} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{W099}\PY{l+s+s1}{\PYZsq{}}\PY{p}{;}
+         
+             \PY{n}{watres}\PY{p}{,}\PY{n}{entres} \PY{o}{=} \PY{n}{massent\PYZus{}check}\PY{p}{(}\PY{n}{xval}\PY{p}{,}\PY{n}{pred}\PY{p}{,}\PY{n}{fsub}\PY{o}{=}\PY{n}{fsub}\PY{p}{,}\PY{n}{fdiv}\PY{o}{=}\PY{n}{fdiv}\PY{p}{,}\PY{n}{normq}\PY{o}{=}\PY{n}{normq}\PY{p}{,}\PY{n}{hyai}\PY{o}{=}\PY{n}{hyai}\PY{p}{,}\PY{n}{hybi}\PY{o}{=}\PY{n}{hybi}\PY{p}{,}\PY{n}{outtype}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{list}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}\PY{p}{;}
+         
+             \PY{n}{ax} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{subplot}\PY{p}{(}\PY{l+m+mi}{5}\PY{p}{,}\PY{l+m+mi}{2}\PY{p}{,}\PY{l+m+mi}{2}\PY{o}{*}\PY{n}{index}\PY{o}{+}\PY{l+m+mi}{1}\PY{p}{)}
+             \PY{n}{ax}\PY{o}{.}\PY{n}{hist}\PY{p}{(}\PY{n}{watres}\PY{p}{,} \PY{n}{bins}\PY{p}{,} \PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{n}{edgecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{label} \PY{o}{=} \PY{n}{lab}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ mSQ}\PY{l+s+si}{\PYZpc{}i}\PY{l+s+s1}{\PYZsq{}} \PY{o}{\PYZpc{}}\PY{k}{np}.mean(watres**2)+\PYZsq{} stdSQ\PYZpc{}i\PYZsq{} \PYZpc{}np.std(watres**2))
+             \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Nb samples}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{16}\PY{p}{)}
+             \PY{n}{plt}\PY{o}{.}\PY{n}{xticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{yticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}
+             \PY{n}{plt}\PY{o}{.}\PY{n}{ylim}\PY{p}{(}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{l+m+mi}{50}\PY{p}{)}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{xlim}\PY{p}{(}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{n}{XMAX}\PY{p}{,} \PY{n}{XMAX}\PY{p}{)}\PY{p}{)}\PY{p}{;}
+             \PY{n}{ax}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{n}{loc}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{upper left}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{bbox\PYZus{}to\PYZus{}anchor}\PY{o}{=}\PY{p}{(}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{l+m+mf}{1.05}\PY{p}{)}\PY{p}{,}
+                   \PY{n}{ncol}\PY{o}{=}\PY{l+m+mi}{5}\PY{p}{,} \PY{n}{fancybox}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{shadow}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{fontsize} \PY{o}{=} \PY{l+m+mi}{20}\PY{p}{)}\PY{p}{;}
+             
+             \PY{n}{ax} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{subplot}\PY{p}{(}\PY{l+m+mi}{5}\PY{p}{,}\PY{l+m+mi}{2}\PY{p}{,}\PY{l+m+mi}{2}\PY{o}{*}\PY{n}{index}\PY{o}{+}\PY{l+m+mi}{2}\PY{p}{)}
+             \PY{n}{ax}\PY{o}{.}\PY{n}{hist}\PY{p}{(}\PY{n}{entres}\PY{p}{,} \PY{n}{bins}\PY{p}{,} \PY{n}{alpha}\PY{o}{=}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{n}{edgecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{k}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{label} \PY{o}{=} \PY{n}{lab}\PY{o}{+}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ mSQ}\PY{l+s+si}{\PYZpc{}i}\PY{l+s+s1}{\PYZsq{}} \PY{o}{\PYZpc{}}\PY{k}{np}.mean(entres**2)+\PYZsq{} stdSQ\PYZpc{}i\PYZsq{} \PYZpc{}np.std(entres**2))
+             \PY{n}{plt}\PY{o}{.}\PY{n}{ylabel}\PY{p}{(}\PY{l+s+sa}{r}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Nb samples}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{16}\PY{p}{)}
+             \PY{n}{plt}\PY{o}{.}\PY{n}{xticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{yticks}\PY{p}{(}\PY{n}{fontsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}
+             \PY{n}{plt}\PY{o}{.}\PY{n}{ylim}\PY{p}{(}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{l+m+mi}{50}\PY{p}{)}\PY{p}{)}\PY{p}{;} \PY{n}{plt}\PY{o}{.}\PY{n}{xlim}\PY{p}{(}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{n}{XMAX}\PY{p}{,} \PY{n}{XMAX}\PY{p}{)}\PY{p}{)}\PY{p}{;}
+             \PY{n}{ax}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{n}{loc}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{upper left}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{bbox\PYZus{}to\PYZus{}anchor}\PY{o}{=}\PY{p}{(}\PY{l+m+mf}{0.5}\PY{p}{,} \PY{l+m+mf}{1.05}\PY{p}{)}\PY{p}{,}
+                   \PY{n}{ncol}\PY{o}{=}\PY{l+m+mi}{5}\PY{p}{,} \PY{n}{fancybox}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{shadow}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{fontsize} \PY{o}{=} \PY{l+m+mi}{20}\PY{p}{)}\PY{p}{;} 
 \end{Verbatim}
 
 
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_45_0.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_61_0.png}
     \end{center}
     { \hspace*{\fill} \\}
     
@@ -1785,7 +2148,7 @@ input vector and unnormalize them\\
 
 
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_48_0.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_64_0.png}
     \end{center}
     { \hspace*{\fill} \\}
     
@@ -1795,7 +2158,7 @@ input vector and unnormalize them\\
 
 
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_49_0.png}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_65_0.png}
     \end{center}
     { \hspace*{\fill} \\}
     
@@ -1804,19 +2167,13 @@ input vector and unnormalize them\\
 files}\label{last-step-save-trained-models-as-h5-files}}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}33}]:} \PY{o}{\PYZpc{}}\PY{k}{cd} \PYZdl{}TRAINDIR/HDF5\PYZus{}DATA
+{\color{incolor}In [{\color{incolor}74}]:} \PY{o}{\PYZpc{}}\PY{k}{cd} \PYZdl{}TRAINDIR/HDF5\PYZus{}DATA
          \PY{o}{!}pwd
-         \PY{c+c1}{\PYZsh{}model1.save(\PYZsq{}model1.h5\PYZsq{})}
-         \PY{c+c1}{\PYZsh{}model2.save(\PYZsq{}model2.h5\PYZsq{})}
-         \PY{c+c1}{\PYZsh{}model3.save(\PYZsq{}model3.h5\PYZsq{})}
-         \PY{c+c1}{\PYZsh{}model4.save(\PYZsq{}model4.h5\PYZsq{})}
-         \PY{c+c1}{\PYZsh{}model5.save(\PYZsq{}model5.h5\PYZsq{})}
-         \PY{c+c1}{\PYZsh{}model6.save(\PYZsq{}model6.h5\PYZsq{})}
-         \PY{n}{mod\PYZus{}lagr05\PYZus{}5dens}\PY{o}{.}\PY{n}{save}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{mod\PYZus{}lagr05\PYZus{}5dens.h5}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{mod\PYZus{}lagr001\PYZus{}5dens}\PY{o}{.}\PY{n}{save}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{mod\PYZus{}lagr001\PYZus{}5dens.h5}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{mod\PYZus{}lagr099\PYZus{}5dens}\PY{o}{.}\PY{n}{save}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{mod\PYZus{}lagr099\PYZus{}5dens.h5}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{mod\PYZus{}uncons\PYZus{}5dens}\PY{o}{.}\PY{n}{save}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{mod\PYZus{}uncons\PYZus{}5dens.h5}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{mod\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{save}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{mod\PYZus{}cons\PYZus{}5dens.h5}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+         \PY{c+c1}{\PYZsh{}lru\PYZus{}lagr05\PYZus{}5dens.save(\PYZsq{}lru\PYZus{}lagr05\PYZus{}5dens.h5\PYZsq{})}
+         \PY{c+c1}{\PYZsh{}lru\PYZus{}lagr001\PYZus{}5dens.save(\PYZsq{}lru\PYZus{}lagr001\PYZus{}5dens.h5\PYZsq{})}
+         \PY{c+c1}{\PYZsh{}lru\PYZus{}lagr099\PYZus{}5dens.save(\PYZsq{}lru\PYZus{}lagr099\PYZus{}5dens.h5\PYZsq{})}
+         \PY{c+c1}{\PYZsh{}lru\PYZus{}uncons\PYZus{}5dens.save(\PYZsq{}lru\PYZus{}uncons\PYZus{}5dens.h5\PYZsq{})}
+         \PY{c+c1}{\PYZsh{}lru\PYZus{}cons\PYZus{}5dens.save(\PYZsq{}lru\PYZus{}cons\PYZus{}5dens.h5\PYZsq{})}
 \end{Verbatim}
 
 
@@ -1825,6 +2182,16 @@ files}\label{last-step-save-trained-models-as-h5-files}}
 /data/Tom.Beucler/SPCAM\_PHYS/HDF5\_DATA
 
     \end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}55}]:} \PY{n}{rmsp\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{save\PYZus{}weights}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{tmp.h5}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}66}]:} \PY{n}{lru\PYZus{}cons\PYZus{}5dens}\PY{o}{.}\PY{n}{load\PYZus{}weights}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{tmp.h5}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+
 
 
     % Add a bibliography block to the postdoc
