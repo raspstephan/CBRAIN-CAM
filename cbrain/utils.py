@@ -236,7 +236,8 @@ def reshape_geo(x):
 def limit_mem():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
-    keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
+    # tgb - 2/11/2019 - Added tensorflow for compatibility with eager execution
+    tensorflow.keras.backend.set_session(tf.Session(config=config))
 
 def global_mean(ds, var):
     return ds[var].mean(dim=('lat', 'lon', 'lev')) 

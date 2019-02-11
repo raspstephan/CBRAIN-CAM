@@ -16,8 +16,8 @@ from tensorflow.keras.layers import *
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import TensorBoard
 from .losses import *
-act_dict = keras.activations.__dict__
-lyr_dict = keras.layers.__dict__
+act_dict = tensorflow.keras.activations.__dict__
+lyr_dict = tensorflow.keras.layers.__dict__
 
 L_V = 2.501e6   # Latent heat of vaporization
 L_I = 3.337e5   # Latent heat of freezing
@@ -26,7 +26,86 @@ C_P = 1.00464e3 # Specific heat capacity of air at constant pressure
 G = 9.80616
 P0 = 1e5
 
+# tgb - 2/11/2019 - Add surface radiation layer from notebook 005
+class SurRadLay(Layer):
+    
+    def __init__(self, fsub, fdiv, normq, hyai, hybi, output_dim, **kwargs):
+        self.fsub = fsub # Subtraction for normalization of inputs 
+        self.fdiv = fdiv # Division for normalization of inputs
+        self.normq = normq # Normalization of output's water concentration
+        self.hyai = hyai # CAM constants to calculate d_pressure
+        self.hybi = hybi # CAM constants to calculate d_pressure
+        self.output_dim = output_dim # Dimension of output
+        super().__init__(**kwargs)
+        
+    def build(self, input_shape):
+        super().build(input_shape)  # Be sure to call this somewhere!
+    
+    # tgb - 2/6/2019 - following https://github.com/keras-team/keras/issues/4871
+    def get_config(self):
+        config = {'fsub': list(self.fsub), 'fdiv': list(self.fdiv),
+                  'normq': list(self.normq), 'hyai': list(self.hyai),
+                  'hybi': list(self.hybi), 'output_dim': self.output_dim}
+        base_config = super(SurRadLay, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+    
+    def call(self, arrs):
+    
+        # Split between the inputs inp & the output of the densely connected
+        # neural network, massout
+        inp, densout = arrs
+        
+        # 0) Constants
+        C_P = 1.00464e3 # Specific heat capacity of air at constant pressure
+        G = 9.80616; # Reference gravity constant [m.s-2]
+        L_V = 2.501e6; # Latent heat of vaporization of water [W.kg-1]
+        P0 = 1e5; # Reference surface pressure [Pa]
+
+        # 1) Get non-dimensional pressure differences (p_tilde above)
+        PS = tfm.add( tfm.multiply( inp[:,300], self.fdiv[300]), self.fsub[300])
+        # Reference for calculation of d_pressure is cbrain/models.py (e.g. QLayer)
+        P = tfm.add( tfm.multiply( P0, self.hyai), \
+                    tfm.multiply( PS[:,None], self.hybi))
+        dP = tfm.subtract( P[:, 1:], P[:, :-1])
+        # norm_output = dp_norm * L_V/G so dp_norm = norm_output * G/L_V
+        dP_NORM = tfm.divide( \
+                             tfm.multiply(self.normq[:30], \
+                                          G),\
+                             L_V)
+        # dp_tilde = dp/dp_norm
+        dP_TILD = tfm.divide( dP, dP_NORM)
+
+        # 2) Radiative integrals
+        SWVEC = tfm.multiply( dP_TILD, densout[:, 148:178])
+        SWINT = tfm.reduce_sum( SWVEC, axis=1)
+
+        LWVEC = tfm.multiply( dP_TILD, densout[:, 118:148])
+        LWINT = tfm.reduce_sum( LWVEC, axis=1) # LW integral
+
+        # 3) Infer surface radiative fluxes from radiative integrals and TOA radiative fluxes
+        FSNS = tfm.subtract( densout[:,208], SWINT) # FSNS = FSNT-SWINT
+        FLNS = tfm.add( densout[:,209], LWINT) # FLNS = FLNT+LWINT
+
+        # 4) Concatenate the input of the dense layer with 
+        # the net surface radiative fluxes to form 
+        # the output of the surface radiation layer
+        out = tf.concat([densout[:, :209], tf.expand_dims(FSNS, axis=1),\
+                               densout[:, 209:210], tf.expand_dims(FLNS, axis=1),\
+                              densout[:, 210:]], 1)
+        
+        return out
+    
+    def compute_output_shape(self, input_shape):
+        # tgb - 2/7/2019 - Wrap the returned output shape in Tensorshape
+        # to avoid problems with custom layers & eager execution
+        # https://github.com/tensorflow/tensorflow/issues/20805
+        return tf.TensorShape((input_shape[0][0], self.output_dim)) 
+    # The layer takes inputs from the previous layer that have shape 124
+    # and outputs y of shape 126 to be fed to the mass cons. layers
+
+
 # tgb - 2/5/2019 - Adapated the mass conservation layer to new input format
+# tgb - 2/11/2019 - Did it again to predict radiation and convection separately
 class MasConsLay(Layer):
     
     def __init__(self, fsub, fdiv, normq, hyai, hybi, output_dim, **kwargs):
@@ -49,19 +128,10 @@ class MasConsLay(Layer):
         base_config = super(MasConsLay, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
         
-    def call(self, arrs):
-        # arrs (for arrays) is a list with 
-        # [inputs=inp and the output of the previous layer=densout]
-        # inputs will be [n_sample, 304 = 30*10+4] with
-        # [QBP, QCBP, QIBP, TBP, VBP, Qdt_adiabatic, QCdt_adiabatic, QIdt_adiabatic,
-        # Tdt_adiabatic, Vdt_adiabatic, PS, SOLIN, SHFLX, LHFLX]
-        # outputs of the previous dense layer will be [n_samples, 124 = 30*4+6-2] with
-        # [DELQ\{PHQ AT LOWEST LVL}, DELCLDLIQ, DELCLDICE, 
-        # TPHYSTND\{TPHYSTND AT LOWEST LVL}, FSNT, FSNS, FLNT, FLNS, PRECT, PRECTEND]
-        
+    def call(self, arrs):        
         # Split between the inputs inp & the output of the densely connected
-        # neural network, densout
-        inp, densout = arrs
+        # neural network, sradout
+        inp, sradout = arrs
         
         # 0) Constants
         G = 9.80616; # Reference gravity constant [m.s-2]
@@ -90,12 +160,12 @@ class MasConsLay(Layer):
         # so e.g. q_liq@(level 1) is the 30th element of the output of the 
         # previous dense layer
         CLDVEC = tfm.multiply( dP_TILD, \
-                                  tfm.add( densout[:, 29:59], densout[:, 59:89]))
+                                  tfm.add( sradout[:, 29:59], sradout[:, 59:89]))
         CLDINT = tfm.reduce_sum( CLDVEC, axis=1)
         
         # 3) Calculate water vapor vertical integral from level 1 to level 29
         VAPVEC = tfm.multiply( dP_TILD[:, :29], \
-                                  densout[:, :29])
+                                  sradout[:, :29])
         VAPINT = tfm.reduce_sum( VAPVEC, axis=1)
         
         # 4) Calculate forcing on the right-hand side (Net Evaporation-Precipitation)
@@ -104,7 +174,8 @@ class MasConsLay(Layer):
         LHF = tfm.add( tfm.multiply( inp[:,303], self.fdiv[303]), self.fsub[303])
         # Note that total precipitation = PRECT + 1e-3*PRECTEND in the CAM model
         # PRECTEND already multiplied by 1e-3 in output vector so no need to redo it
-        PREC = tfm.add( densout[:, 152], densout[:, 153])
+        # tgb - 2/8/2019 - This is the only line modified from the large-scale version 002
+        PREC = tfm.add( sradout[:, 212], sradout[:, 213])
         
         # 5) Infer water vapor tendency at level 30 as a residual
         # Composing tfm.add 3 times because not sure how to use tfm.add_n
@@ -121,7 +192,7 @@ class MasConsLay(Layer):
         # TPHYSTND\{TPHYSTND AT SURFACE}, FSNT, FSNS, FLNT, FLNS, PRECT PRECTEND]
         # Uses https://www.tensorflow.org/api_docs/python/tf/concat
         DELQV30 = tf.expand_dims(DELQV30,1) # Adds dimension=1 to axis=1
-        out = tf.concat([densout[:, :29], DELQV30, densout[:, 29:]], 1)
+        out = tf.concat([sradout[:, :29], DELQV30, sradout[:, 29:]], 1)
         return out
     
     def compute_output_shape(self, input_shape):
@@ -134,6 +205,7 @@ class MasConsLay(Layer):
     # before we reach the total number of outputs = 126
     
 # tgb - 2/5/2019 - Change to adapt to new input format
+# tgb - 2/11/2019 - Did it again to conserve enthalpy while predicting both radiation and convection
 class EntConsLay(Layer):
     
     def __init__(self, fsub, fdiv, normq, hyai, hybi, output_dim, **kwargs):
@@ -157,15 +229,6 @@ class EntConsLay(Layer):
         return dict(list(base_config.items()) + list(config.items()))
         
     def call(self, arrs):
-        # arrs (for arrays) is a list with 
-        # [inputs=inp and the output of the previous layer=massout]
-        # inputs will be [n_sample, 304 = 30*10+4] with
-        # [QBP, QCBP, QIBP, TBP, VBP, Qdt_adiabatic, QCdt_adiabatic, QIdt_adiabatic,
-        # Tdt_adiabatic, Vdt_adiabatic, PS, SOLIN, SHFLX, LHFLX]
-        # outputs of the previous dense layer will be [n_samples, 157 = 30*5+8-1] with
-        # [DELQ, DELCLDLIQ, DELCLDICE, 
-        # TPHYSTND\{TPHYSTND AT LOWEST LVL}, DTVKE,
-        # FSNT, FSNS, FLNT, FLNS, PRECT, PRECTEND, PRECST, PRECSTEN]
         
         # Split between the inputs inp & the output of the densely connected
         # neural network, massout
@@ -196,16 +259,16 @@ class EntConsLay(Layer):
         # 2) Calculate net energy input from phase change and precipitation
         # PHAS = Lf/Lv*((PRECST+PRECSTEN)-(PRECT+PRECTEND))
         PHAS = tfm.divide( tfm.multiply( tfm.subtract(\
-                                                      tfm.add( massout[:,155], massout[:,156]),\
-                                                      tfm.add( massout[:,153], massout[:,154])),\
+                                                      tfm.add( massout[:,215], massout[:,216]),\
+                                                      tfm.add( massout[:,213], massout[:,214])),\
                                         L_F),\
                           L_V)
         
         # 3) Calculate net energy input from radiation, sensible heat flux and turbulent KE
         # 3.1) RAD = FSNT-FSNS-FLNT+FLNS
         RAD = tfm.add(\
-                      tfm.subtract( massout[:,149], massout[:,150]),\
-                      tfm.subtract( massout[:,152], massout[:,151]))
+                      tfm.subtract( massout[:,209], massout[:,210]),\
+                      tfm.subtract( massout[:,212], massout[:,211]))
         # 3.2) Unnormalize sensible heat flux
         SHF = tfm.add( tfm.multiply( inp[:,302], self.fdiv[302]), self.fsub[302])
         # 3.3) Net turbulent kinetic energy dissipative heating is the column-integrated 
