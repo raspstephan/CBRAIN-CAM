@@ -269,7 +269,9 @@ def rename_time_lev_and_cut_times(ds, da_list, name_list, feature_or_target, flx
 
     ilev = 0
     for da in da_list:
+
         da.coords['time'] = np.arange(da.coords['time'].size)
+
         if 'lev' in da.coords:
             da.coords['lev'] = np.arange(ilev, ilev + da.coords['lev'].size)
             ilev += da.coords['lev'].size
@@ -281,6 +283,7 @@ def rename_time_lev_and_cut_times(ds, da_list, name_list, feature_or_target, flx
     # Concatenate
     lev_str = feature_or_target + '_lev'
     da = xr.concat(da_list, dim='lev')
+    
     # Cut out time steps
     if flx_same_dt:
         cut_time_steps = []
