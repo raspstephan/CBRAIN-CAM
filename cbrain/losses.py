@@ -89,7 +89,7 @@ def customLoss(input_tensor,fsub,fdiv,normq,hyai,hybi,alpha = 0.5):
         SHF = tfm.add( tfm.multiply( x[:,302], fdiv[302]), fsub[302])
         # 2.3) Net turbulent kinetic energy dissipative heating is the column-integrated 
         # turbulent kinetic energy energy dissipative heating
-        KEDVEC = tfm.multiply( dP_TILD, y[:, 120:150])
+        KEDVEC = tfm.multiply( dP_TILD, y[:, 180:210])
         KEDINT = tfm.reduce_sum( KEDVEC, axis=1)
 
         # ENTHALPY.3) Calculate tendency of normalized column water vapor due to phase change

@@ -273,7 +273,8 @@ class EntConsLay(Layer):
         SHF = tfm.add( tfm.multiply( inp[:,302], self.fdiv[302]), self.fsub[302])
         # 3.3) Net turbulent kinetic energy dissipative heating is the column-integrated 
         # turbulent kinetic energy energy dissipative heating
-        KEDVEC = tfm.multiply( dP_TILD, massout[:, 119:149])
+        # tbeucler - Be careful here as final KE dissipation is between indices 180-209
+        KEDVEC = tfm.multiply( dP_TILD, massout[:, 179:209])
         KEDINT = tfm.reduce_sum( KEDVEC, axis=1)
         
         # 4) Calculate tendency of normalized column water vapor due to phase change
