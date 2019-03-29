@@ -12,6 +12,7 @@ L_S = L_V + L_I # Sublimation
 C_P = 1.00464e3 # Specific heat capacity of air at constant pressure
 G = 9.80616
 P0 = 1e5
+RHO_L = 1e3
 
 phy_dict = {
     'TAP': 'TPHYSTND',

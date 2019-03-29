@@ -65,7 +65,7 @@ def main(args):
         train_gen, epochs=args.epochs, validation_data=valid_gen, callbacks=[lrs])
 
     if args.exp_name is not None:
-        exp_dir =  args.model_dir + args.exp_name + '/'
+        exp_dir = args.model_dir + args.exp_name + '/'
         os.makedirs(exp_dir, exist_ok=True)
         model_fn = exp_dir + 'model.h5'
         logging.info(f'Saving model as {model_fn}')

@@ -88,10 +88,16 @@ class DictNormalizer(object):
         if dic is None: dic = conversion_dict
         var_idxs = return_var_idxs(norm_ds, var_list)
         var_names = norm_ds.var_names[var_idxs].copy()
-        scale = np.zeros(var_names.shape).astype('float32')
-        for i, v in enumerate(list(var_names.values)):
-            scale[i] = dic[v]
-        self.scale = scale
+        scale = []
+        for v in var_list:
+            s = np.atleast_1d(dic[v])
+            ns = len(s)
+            nv = np.sum(var_names == v)
+            if ns == nv:
+                scale.append(s)
+            else:
+                scale.append(np.repeat(s, nv))
+        self.scale = np.concatenate(scale).astype('float32')
         self.transform_arrays = {
             'scale': self.scale,
         }

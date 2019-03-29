@@ -49,6 +49,8 @@ def create_stacked_da(ds, vars):
             da = compute_bp(ds, var)
         elif var in ['LHFLX', 'SHFLX']:
             da = ds[var][:-1]
+        elif var == 'PRECST':
+            da = (ds['PRECSC'] + ds['PRECSL'])[1:]
         else:
             da = ds[var][1:]
         var_list.append(da)

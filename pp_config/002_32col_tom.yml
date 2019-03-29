@@ -1,0 +1,13 @@
+# Describe this dataset
+vars : [QBP, QCBP, QIBP, TBP, VBP, PS, SOLIN, SHFLX, LHFLX, PHQ, PHCLDLIQ, PHCLDICE, TPHYSTND, DTVKE, FSNT, FSNS, FLNT, FLNS, PRECT, PRECTEND, PRECST, PRECSTEN]
+
+in_dir : /local/S.Rasp/sp32fbp_andkua/
+in_fns : AndKua_aqua_SPCAM3.0_sp_fbp32.cam2.h1.0000-01-0*-00000.nc
+
+out_dir: /local/S.Rasp/preprocessed_data/
+out_fn: 002_train.nc
+
+val_in_fns: AndKua_aqua_SPCAM3.0_sp_fbp32.cam2.h1.0000-02-0*-00000.nc
+val_out_fn: 002_valid.nc
+
+norm_fn: 002_norm.nc
