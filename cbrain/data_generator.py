@@ -36,7 +36,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         # Get input and output variable indices
         self.input_idxs = return_var_idxs(self.data_ds, input_vars)
         self.output_idxs = return_var_idxs(self.data_ds, output_vars)
-        self.n_inputs, self.n_outputs = int(self.input_idxs.sum()), int(self.output_idxs.sum())
+        self.n_inputs, self.n_outputs = len(self.input_idxs), len(self.output_idxs)
 
         # Initialize input and output normalizers/transformers
         if input_transform is None:

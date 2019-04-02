@@ -15,6 +15,13 @@ logging.basicConfig(
 )
 
 
+# Define dictionary with vertical diffusion terms
+diff_dict = {
+    'TAP' : 'DTV',
+    'QAP' : 'VD01'
+}
+
+
 def compute_bp(ds, var):
     """GCM state at beginning of time step before physics.
     ?BP = ?AP - physical tendency * dt
@@ -28,6 +35,37 @@ def compute_bp(ds, var):
     """
     base_var = var[:-2] + 'AP'
     return (ds[base_var] - ds[phy_dict[base_var]] * DT)[1:]  # Not the first time step
+
+
+def compute_c(ds, base_var):
+    """CRM state at beginning of time step before physics.
+    ?_C = ?AP[t-1] - diffusion[t-1] * dt
+    Note:
+    compute_c() is the only function that returns data from the previous
+    time step.
+    Args:
+        ds: xarray dataset
+        base_var: Base variable to be computed
+    Returns:
+        c: xarray dataarray
+    """
+    c = ds[base_var].isel(time=slice(0, -1, 1))   # Not the last time step
+    if base_var in diff_dict.keys():
+        c -= ds[diff_dict[base_var]].isel(time=slice(0, -1, 1)) * DT
+    # Change time coordinate. Necessary for later computation of adiabatic
+    c['time'] = ds.isel(time=slice(1, None, 1))['time']
+    return c
+
+
+def compute_adiabatic(ds, base_var):
+    """Compute adiabatic tendencies.
+    Args:
+        ds: xarray dataset
+        base_var: Base variable to be computed
+    Returns:
+        adiabatic: xarray dataarray
+    """
+    return (compute_bp(ds, base_var) - compute_c(ds, base_var)) / DT
 
 
 def create_stacked_da(ds, vars):
@@ -51,6 +89,9 @@ def create_stacked_da(ds, vars):
             da = ds[var][:-1]
         elif var == 'PRECST':
             da = (ds['PRECSC'] + ds['PRECSL'])[1:]
+        elif 'dt_adiabatic' in var:
+            base_var = var[:-12] + 'AP'
+            da = compute_adiabatic(ds, base_var)
         else:
             da = ds[var][1:]
         var_list.append(da)

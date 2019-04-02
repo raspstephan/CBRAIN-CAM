@@ -7,7 +7,7 @@ Author: Stephan Rasp, raspstephan@gmail.com
 from .imports import *
 
 
-def return_var_idxs(ds, var_list):
+def return_var_bool(ds, var_list):
     """
     To be used on stacked variable dimension. Returns bool array.
 
@@ -18,10 +18,28 @@ def return_var_idxs(ds, var_list):
 
     Returns
     -------
-    var_idxs: bool array. True where any of var_list is True.
+    var_bool: bool array. True where any of var_list is True.
 
     """
-    var_idxs = ds.var_names == var_list[0]
+    var_bool = ds.var_names == var_list[0]
     for v in var_list[1:]:
-        var_idxs = np.bitwise_or(var_idxs, ds.var_names == v)
+        var_bool = np.bitwise_or(var_bool, ds.var_names == v)
+    return var_bool
+
+
+def return_var_idxs(ds, var_list):
+    """
+    To be used on stacked variable dimension. Returns indices array
+
+    Parameters
+    ----------
+    ds: xarray dataset
+    var_list: list of variables
+
+    Returns
+    -------
+    var_idxs: indices array
+
+    """
+    var_idxs = np.concatenate([np.where(ds.var_names == v)[0] for v in var_list])
     return var_idxs
