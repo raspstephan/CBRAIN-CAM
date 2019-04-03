@@ -47,6 +47,29 @@ class Normalizer(object):
         return x
 
 
+class InputNormalizer(object):
+    """Normalizer that subtracts and then divides."""
+    def __init__(self, norm_ds, var_list, sub='mean', div='std_by_var'):
+        var_idxs = return_var_idxs(norm_ds, var_list)
+        self.sub = norm_ds[sub].values[var_idxs]
+        if div == 'maxrs':
+            rang = norm_ds['max'][var_idxs] - norm_ds['min'][var_idxs]
+            std_by_var = rang.copy()
+            for v in var_list:
+                std_by_var[std_by_var.var_names == v] = norm_ds['std_by_var'][
+                    norm_ds.var_names_single == v]
+            self.div = np.maximum(rang, std_by_var).values
+        else:
+            self.div = norm_ds[div].values[var_idxs]
+        self.transform_arrays = {
+            'sub': self.sub,
+            'div': self.div
+        }
+
+    def transform(self, x):
+        return (x - self.sub) / self.div
+
+
 class StandardNormalizer(object):
     """Standard mean-std normalizer"""
     def __init__(self, norm_ds, var_list):
@@ -105,5 +128,3 @@ class DictNormalizer(object):
     def transform(self, x):
         return x * self.scale
 
-    def inverse_transform(self, x):
-        return x / self.scale

@@ -41,10 +41,9 @@ class DataGenerator(tf.keras.utils.Sequence):
         # Initialize input and output normalizers/transformers
         if input_transform is None:
             self.input_transform = Normalizer()
-        elif input_transform == 'standard':
-            self.input_transform = StandardNormalizer(self.norm_ds, input_vars)
-        elif input_transform == 'max_rs':
-            self.input_transform = MaxRSNormalizer(self.norm_ds, input_vars)
+        elif type(input_transform) is tuple:
+            self.input_transform = InputNormalizer(self.norm_ds, input_vars,
+                                                   input_transform[0], input_transform[1])
         else:
             self.input_transform = input_transform  # Assume an initialized normalizer is passed
 
@@ -52,8 +51,6 @@ class DataGenerator(tf.keras.utils.Sequence):
             self.output_transform = Normalizer()
         elif type(output_transform) is dict:
             self.output_transform = DictNormalizer(self.norm_ds, output_vars, output_transform)
-        elif output_transform == 'dict':   # Ugly...
-            self.output_transform = DictNormalizer(self.norm_ds, output_vars, None)
         else:
             self.output_transform = output_transform  # Assume an initialized normalizer is passed
 

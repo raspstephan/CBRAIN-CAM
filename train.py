@@ -6,11 +6,14 @@ Author: Stephan Rasp, raspstephan@gmail.com
 """
 
 from cbrain.imports import *
+from cbrain.utils import *
+from cbrain.losses import *
 from cbrain.data_generator import DataGenerator
 from cbrain.models import *
 from cbrain.learning_rate_schedule import LRUpdate
 from cbrain.save_weights import save2txt, save_norm
 from tensorflow.keras.callbacks import LearningRateScheduler
+from tensorflow.keras.losses import mse
 
 logging.basicConfig(
     format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',
@@ -21,14 +24,17 @@ logging.basicConfig(
 def main(args):
     """Main training script."""
 
+    # Load output scaling dictionary
+    out_scale_dict = load_pickle(args.output_dict)
+
     logging.info('Create training and validation data generators')
     train_gen = DataGenerator(
         data_fn=args.data_dir + args.train_fn,
         input_vars=args.inputs,
         output_vars=args.outputs,
         norm_fn=args.data_dir + args.norm_fn,
-        input_transform=args.input_transform,
-        output_transform=args.output_transform,
+        input_transform=(args.input_sub, args.input_div),
+        output_transform=out_scale_dict,
         batch_size=args.batch_size,
         shuffle=True
     )
@@ -39,8 +45,8 @@ def main(args):
             input_vars=args.inputs,
             output_vars=args.outputs,
             norm_fn=args.data_dir + args.norm_fn,
-            input_transform=args.input_transform,
-            output_transform=args.output_transform,
+            input_transform=(args.input_sub, args.input_div),
+            output_transform=out_scale_dict,
             batch_size=args.batch_size * 10,
             shuffle=False
         )
@@ -52,12 +58,30 @@ def main(args):
         input_shape=train_gen.n_inputs,
         output_shape=train_gen.n_outputs,
         hidden_layers=args.hidden_layers,
-        activation=args.activation
+        activation=args.activation,
+        conservation_layer=args.conservation_layer,
+        inp_sub=train_gen.input_transform.sub,
+        inp_div=train_gen.input_transform.div,
+        norm_q=out_scale_dict['PHQ']
     )
     print(model.summary())
 
     logging.info('Compile model')
-    model.compile(args.optimizer, loss=args.loss)
+    if args.loss == 'weak_loss':
+        loss = WeakLoss(model.input, inp_div=train_gen.input_transform.div,
+                        inp_sub=train_gen.input_transform.sub, norm_q=out_scale_dict['PHQ'],
+                        alpha_mass=args.alpha_mass, alpha_ent=args.alpha_ent)
+    else:
+        loss = args.loss
+
+    mass_loss = WeakLoss(model.input, inp_div=train_gen.input_transform.div,
+                    inp_sub=train_gen.input_transform.sub, norm_q=out_scale_dict['PHQ'],
+                    alpha_mass=1, alpha_ent=0, name='mass_loss')
+    ent_loss = WeakLoss(model.input, inp_div=train_gen.input_transform.div,
+                         inp_sub=train_gen.input_transform.sub, norm_q=out_scale_dict['PHQ'],
+                         alpha_mass=0, alpha_ent=1, name='ent_loss')
+
+    model.compile(args.optimizer, loss=loss, metrics=[mse, mass_loss, ent_loss])
     lrs = LearningRateScheduler(LRUpdate(args.lr, args.lr_step, args.lr_divide))
 
     logging.info('Train model')
@@ -92,8 +116,9 @@ if __name__ == '__main__':
     p.add('--outputs', type=str, nargs='+', help='List of output variables.')
     p.add('--train_fn', type=str, help='File name of training file.')
     p.add('--norm_fn', type=str, help='File name of normalization file.')
-    p.add('--input_transform', type=str, help='Type of input transformation.')
-    p.add('--output_transform', type=str, help='Type of output transformation.')
+    p.add('--input_sub', type=str, help='What to subtract from input array. E.g. "mean"')
+    p.add('--input_div', type=str, help='What to divide input array by. E.g. "maxrs"')
+    p.add('--output_dict', type=str, help='Output scaling dictionary.')
 
     p.add('--valid_fn', type=str, default=None, help='File name of training file.')
 
@@ -102,7 +127,13 @@ if __name__ == '__main__':
     p.add('--hidden_layers', type=int, nargs='+', help='Hidden layer sizes.')
     p.add('--activation', type=str, default='LeakyReLU', help='Activation function.')
     p.add('--optimizer', type=str, default='adam', help='Optimizer.')
+    p.add('--conservation_layer', dest='conservation_layer', action='store_true', help='Add conservation layer.')
+    p.set_defaults(conservation_layer=False)
+
+    # Loss parameters
     p.add('--loss', type=str, default='mse', help='Loss function.')
+    p.add('--alpha_mass', type=float, default=0.25, help='If weak_loss, weight of mass loss.')
+    p.add('--alpha_ent', type=float, default=0.25, help='If weak_loss, weight of ent loss.')
 
     # Learning rate schedule
     p.add('--lr', type=float, default=0.001, help='Initial learning rate.')

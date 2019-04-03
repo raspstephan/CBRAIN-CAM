@@ -39,5 +39,5 @@ limit_mem()
 
 
 
-# with open(os.path.join(os.path.dirname(__file__), 'hyai_hybi.pkl'), 'rb') as f:
-#     hyai, hybi = pickle.load(f)
+with open(os.path.join(os.path.dirname(__file__), 'hyai_hybi.pkl'), 'rb') as f:
+    hyai, hybi = pickle.load(f)

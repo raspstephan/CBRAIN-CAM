@@ -43,3 +43,14 @@ def return_var_idxs(ds, var_list):
     """
     var_idxs = np.concatenate([np.where(ds.var_names == v)[0] for v in var_list])
     return var_idxs
+
+
+def save_pickle(fn, obj):
+    with open(fn, 'wb') as f:
+        pickle.dump(obj, f)
+
+
+def load_pickle(fn):
+    with open(fn, 'rb') as f:
+        obj = pickle.load(f)
+    return obj

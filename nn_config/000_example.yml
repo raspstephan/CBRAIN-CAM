@@ -1,15 +1,18 @@
 # Example training configuration file
 exp_name: 000_example
 data_dir: /local/S.Rasp/preprocessed_data/
-train_fn: 000_train_shuffle.nc
-valid_fn: 000_valid.nc
-norm_fn: 000_norm.nc
+train_fn: 002_train_shuffle.nc
+valid_fn: 002_valid.nc
+norm_fn: 002_norm.nc
 
-inputs: [TBP, QBP, VBP, PS, SOLIN, SHFLX, LHFLX]
-outputs: [TPHYSTND, PHQ, FSNT, FSNS, FLNT, FLNS, PRECT]
+inputs: [QBP, QCBP, QIBP, TBP, VBP, Qdt_adiabatic, QCdt_adiabatic, QIdt_adiabatic, Tdt_adiabatic, Vdt_adiabatic, PS, SOLIN, SHFLX, LHFLX]
+outputs: [PHQ, PHCLDLIQ, PHCLDICE, TPHYSTND, QRL, QRS, DTVKE, FSNT, FSNS, FLNT, FLNS, PRECT, PRECTEND, PRECST, PRECSTEN]
 
-input_transform: max_rs
-output_transform: dict
+input_sub: mean
+input_div: maxrs
+output_dict: ./nn_config/scale_dicts/001_toms_scaling.pkl
 
-hidden_layers: [128, 128]
-epochs: 3
+hidden_layers: [128, 214]
+epochs: 1
+conservation_layer: True
+loss: weak_loss
