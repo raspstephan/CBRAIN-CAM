@@ -10,7 +10,7 @@ outputs: [PHQ, PHCLDLIQ, PHCLDICE, TPHYSTND, QRL, QRS, DTVKE, FSNT, FSNS, FLNT, 
 
 input_sub: mean
 input_div: maxrs
-output_dict: ./nn_config/scale_dicts/001_toms_scaling.pkl
+output_dict: /home/s/S.Rasp/repositories/CBRAIN-CAM/nn_config/scale_dicts/001_toms_scaling.pkl
 
 hidden_layers: [128, 214]
 epochs: 1

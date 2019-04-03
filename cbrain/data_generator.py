@@ -19,7 +19,7 @@ class DataGenerator(tf.keras.utils.Sequence):
 
     def __init__(self, data_fn, input_vars, output_vars,
                  norm_fn=None, input_transform=None, output_transform=None,
-                 batch_size=1024, shuffle=True):
+                 batch_size=1024, shuffle=True, xarray=False):
         # Just copy over the attributes
         self.data_fn, self.norm_fn = data_fn, norm_fn
         self.input_vars, self.output_vars = input_vars, output_vars
@@ -56,8 +56,9 @@ class DataGenerator(tf.keras.utils.Sequence):
 
         # Now close the xarray file and load it as an h5 file instead
         # This significantly speeds up the reading of the data...
-        self.data_ds.close()
-        self.data_ds = h5py.File(data_fn, 'r')
+        if not xarray:
+            self.data_ds.close()
+            self.data_ds = h5py.File(data_fn, 'r')
 
     def __len__(self):
         return self.n_batches

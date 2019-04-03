@@ -69,6 +69,9 @@ class InputNormalizer(object):
     def transform(self, x):
         return (x - self.sub) / self.div
 
+    def inverse_transform(self, x):
+        return (x * self.div) + self.sub
+
 
 class StandardNormalizer(object):
     """Standard mean-std normalizer"""
@@ -127,4 +130,7 @@ class DictNormalizer(object):
 
     def transform(self, x):
         return x * self.scale
+
+    def inverse_transform(self, x):
+        return x / self.scale
 

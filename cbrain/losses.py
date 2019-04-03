@@ -109,3 +109,6 @@ class WeakLoss():
                                          self.norm_q)
         return loss
 
+
+loss_dict = {'weak_loss': mse, 'mass_loss': mse, 'ent_loss': mse}
+
