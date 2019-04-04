@@ -24,6 +24,10 @@ logging.basicConfig(
 def main(args):
     """Main training script."""
 
+    if args.gpu is not None:
+        os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+    limit_mem()
+
     # Load output scaling dictionary
     out_scale_dict = load_pickle(args.output_dict)
 
@@ -74,14 +78,17 @@ def main(args):
     else:
         loss = args.loss
 
-    mass_loss = WeakLoss(model.input, inp_div=train_gen.input_transform.div,
-                    inp_sub=train_gen.input_transform.sub, norm_q=out_scale_dict['PHQ'],
-                    alpha_mass=1, alpha_ent=0, name='mass_loss')
-    ent_loss = WeakLoss(model.input, inp_div=train_gen.input_transform.div,
-                         inp_sub=train_gen.input_transform.sub, norm_q=out_scale_dict['PHQ'],
-                         alpha_mass=0, alpha_ent=1, name='ent_loss')
+    metrics = [mse]
+    if args.conservation_metrics:
+        mass_loss = WeakLoss(model.input, inp_div=train_gen.input_transform.div,
+                        inp_sub=train_gen.input_transform.sub, norm_q=out_scale_dict['PHQ'],
+                        alpha_mass=1, alpha_ent=0, name='mass_loss')
+        ent_loss = WeakLoss(model.input, inp_div=train_gen.input_transform.div,
+                             inp_sub=train_gen.input_transform.sub, norm_q=out_scale_dict['PHQ'],
+                             alpha_mass=0, alpha_ent=1, name='ent_loss')
+        metrics += [mass_loss, ent_loss]
 
-    model.compile(args.optimizer, loss=loss, metrics=[mse, mass_loss, ent_loss])
+    model.compile(args.optimizer, loss=loss, metrics=metrics)
     lrs = LearningRateScheduler(LRUpdate(args.lr, args.lr_step, args.lr_divide))
 
     logging.info('Train model')
@@ -132,6 +139,8 @@ if __name__ == '__main__':
 
     # Loss parameters
     p.add('--loss', type=str, default='mse', help='Loss function.')
+    p.add('--conservation_metrics', dest='conservation_metrics', action='store_true', help='Add conservation metrics.')
+    p.set_defaults(conservation_metrics=False)
     p.add('--alpha_mass', type=float, default=0.25, help='If weak_loss, weight of mass loss.')
     p.add('--alpha_ent', type=float, default=0.25, help='If weak_loss, weight of ent loss.')
 
@@ -146,6 +155,8 @@ if __name__ == '__main__':
     p.add('--model_dir', type=str, default='./saved_models/', help='Model save path.')
     p.add('--save_txt', dest='save_txt', action='store_true', help='Save F90 txt files.')
     p.set_defaults(save_txt=True)
+
+    p.add('--gpu', type=str, default=None, help='Which GPU to use.')
 
     args = p.parse_args()
     main(args)

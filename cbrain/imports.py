@@ -10,7 +10,7 @@ from collections import OrderedDict
 import pandas as pd
 import pickle
 import pdb
-import netCDF4 as nc
+#import netCDF4 as nc
 import xarray as xr
 import h5py
 from glob import glob
@@ -35,7 +35,7 @@ def limit_mem():
     config.gpu_options.allow_growth = True
     tf.Session(config=config)
 
-limit_mem()
+#limit_mem()
 
 
 
