@@ -145,7 +145,7 @@ if __name__ == '__main__':
     p.add('--alpha_ent', type=float, default=0.25, help='If weak_loss, weight of ent loss.')
 
     # Learning rate schedule
-    p.add('--lr', type=float, default=0.01, help='Initial learning rate.')
+    p.add('--lr', type=float, default=0.001, help='Initial learning rate.')
     p.add('--lr_step', type=int, default=2, help='Divide every step epochs.')
     p.add('--lr_divide', type=float, default=5, help='Divide by this number.')
     p.add('--epochs', type=int, default=10, help='Number of epochs.')

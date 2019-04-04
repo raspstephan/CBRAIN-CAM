@@ -59,6 +59,13 @@ class InputNormalizer(object):
                 std_by_var[std_by_var.var_names == v] = norm_ds['std_by_var'][
                     norm_ds.var_names_single == v]
             self.div = np.maximum(rang, std_by_var).values
+        elif div == 'std_by_var':
+            # SR: Total mess. Should be handled better
+            tmp_var_names = norm_ds.var_names[var_idxs]
+            self.div = np.zeros(len(tmp_var_names))
+            for v in var_list:
+                std_by_var = norm_ds['std_by_var'][norm_ds.var_names_single == v]
+                self.div[tmp_var_names == v] = std_by_var
         else:
             self.div = norm_ds[div].values[var_idxs]
         self.transform_arrays = {
