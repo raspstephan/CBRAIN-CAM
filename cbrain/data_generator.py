@@ -1,200 +1,87 @@
-"""Define DataGenerator class
+"""
+Data generator class.
 
-Author: Stephan Rasp
-
+Created on 2019-01-28-10-39
+Author: Stephan Rasp, raspstephan@gmail.com
 """
 
-import numpy as np
-import h5py
-import pdb
-import threading
+from .imports import *
+from .utils import *
+from .normalization import *
 
 
-# To make generators thread safe for multithreading
-def threadsafe_generator(f):
-    """A decorator that takes a generator function and makes it thread-safe.
+class DataGenerator(tf.keras.utils.Sequence):
     """
-    def g(*a, **kw):
-        return threadsafe_iter(f(*a, **kw))
-    return g
+    https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly
 
-
-class threadsafe_iter(object):
-    """Takes an iterator/generator and makes it thread-safe by
-    serializing call to the `next` method of given iterator/generator.
-    https://github.com/fchollet/keras/issues/1638
-    """
-    def __init__(self, it):
-        self.it = it
-        self.lock = threading.Lock()
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):   # Py3
-        with self.lock:
-            return next(self.it)
-
-
-@threadsafe_generator
-def data_generator(data_dir, feature_fn, target_fn, shuffle=True,
-                   batch_size=512, feature_norms=None, target_norms=None, noise=None):
-    """Works on pre-stacked targets with truely random batches
-    """
-    # Open files
-    feature_file = h5py.File(data_dir + feature_fn, 'r')
-    target_file = h5py.File(data_dir + target_fn, 'r')
-
-    # Determine sizes
-    n_samples = feature_file['features'].shape[0]
-    n_batches = int(np.floor(n_samples / batch_size))
-    # Create ID list
-    idxs = np.arange(0, n_samples, batch_size)
-    if shuffle:
-        np.random.shuffle(idxs)
-
-    # generate
-    while True:
-        for i in range(n_batches):
-            batch_idx = idxs[i]
-            x = feature_file['features'][batch_idx:batch_idx + batch_size, :]
-            y = target_file['targets'][batch_idx:batch_idx + batch_size, :]
-            if feature_norms is not None: x = (x - feature_norms[0]) / feature_norms[1]
-            if target_norms is not None: y = (y - target_norms[0]) * target_norms[1]
-            if noise is not None:
-                x += np.random.normal(0, noise, x.shape)
-            yield x, y
-
-@threadsafe_generator
-def data_generator_convo(data_dir, feature_fn, target_fn, shuffle=True,
-                         batch_size=512, feature_norms=None, target_norms=None, noise=None,
-                         tile=False):
-    """Works on pre-stacked targets with truely random batches
-    Hard coded right now for
-    features = [TBP, QBP, VBP, PS, SOLIN, SHFLX, LHFLX]
-    and lev = 30
-    """
-    # Open files
-    feature_file = h5py.File(data_dir + feature_fn, 'r')
-    target_file = h5py.File(data_dir + target_fn, 'r')
-
-    # Determine sizes
-    n_samples = feature_file['features'].shape[0]
-    n_batches = int(np.floor(n_samples / batch_size))
-    # Create ID list
-    idxs = np.arange(0, n_samples, batch_size)
-    if shuffle:
-        np.random.shuffle(idxs)
-
-    # generate
-    while True:
-        for i in range(n_batches):
-            batch_idx = idxs[i]
-            x = feature_file['features'][batch_idx:batch_idx + batch_size, :]
-            if feature_norms is not None: x = (x - feature_norms[0]) / feature_norms[1]
-            if tile:
-                x = np.concatenate(
-                    [
-                        x[:, :90].reshape((x.shape[0], 30, -1)),
-                        np.rollaxis(np.tile(x[:, 90:], (30, 1, 1)), 0, 2)
-                    ],
-                    axis=-1,
-                )
-            else:
-                x1 = x[:, :90].reshape((x.shape[0], 30, -1))
-                x2 = x[:, 90:]
-                x = [x1, x2]
-            y = target_file['targets'][batch_idx:batch_idx + batch_size, :]
-            if target_norms is not None: y = (y - target_norms[0]) * target_norms[1]
-            yield x, y
-
-
-class DataGenerator(object):
-    """Class wrapper around data_generator function
+    Data generator class.
     """
 
-    def __init__(self, data_dir, feature_fn, target_fn, batch_size, norm_fn=None,
-                 fsub=None, fdiv=None, tsub=None, tmult=None, shuffle=True, verbose=True,
-                 noise=None):
-        """Initialize DataGenerator object
+    def __init__(self, data_fn, input_vars, output_vars,
+                 norm_fn=None, input_transform=None, output_transform=None,
+                 batch_size=1024, shuffle=True, xarray=False):
+        # Just copy over the attributes
+        self.data_fn, self.norm_fn = data_fn, norm_fn
+        self.input_vars, self.output_vars = input_vars, output_vars
+        self.batch_size, self.shuffle = batch_size, shuffle
 
-        Args:
-            data_dir: Path to directory with feature and target files
-            feature_fn: Feature file name
-            target_fn: Target file name
-            batch_size: batch size
-            shuffle: Shuffle batches
-        """
-        self.data_dir = data_dir
-        self.feature_fn = feature_fn
-        self.target_fn = target_fn
-        self.batch_size = batch_size
-        self.shuffle = shuffle
-        self.feature_norms = None
-        self.target_norms = None
-        self.noise = noise
+        # Open datasets
+        self.data_ds = xr.open_dataset(data_fn)
+        if norm_fn is not None: self.norm_ds = xr.open_dataset(norm_fn)
 
-        # Determine n_batches and shapes
-        with h5py.File(data_dir + feature_fn, 'r') as feature_file:
-            n_samples = feature_file['features'].shape[0]
-            self.feature_shape = feature_file['features'].shape[1]
-        self.n_batches = int(np.floor(n_samples / batch_size))
-        with h5py.File(data_dir + target_fn, 'r') as target_file:
-            self.target_shape = target_file['targets'].shape[1]
-        if fsub is not None or fdiv is not None:
-            self.feature_norms = [0., 1.]   # This does nothing...
-            with h5py.File(data_dir + norm_fn, 'r') as norm_file:
-                if fsub is not None: self.feature_norms[0] = norm_file[fsub][:]
-                if fdiv is not None:
-                    if fdiv == 'range':
-                        self.feature_norms[1] = (norm_file['feature_maxs'][:] -
-                                                 norm_file['feature_mins'][:])
-                    elif fdiv == 'max_rs':  # Max range, std_by_var
-                        self.feature_norms[1] = np.maximum(
-                            norm_file['feature_maxs'][:] - norm_file['feature_mins'][:],
-                            norm_file['feature_stds_by_var']
-                        )
-                    elif fdiv == 'feature_stds_eps':
-                        eps = 1e-10
-                        self.feature_norms[1] = np.maximum(norm_file['feature_stds'][:], eps)
-                    else:
-                        self.feature_norms[1] = norm_file[fdiv][:]
-        if tsub is not None or tmult is not None:
-            self.target_norms = [0., 1.]   # This does nothing...
-            with h5py.File(data_dir + norm_fn, 'r') as norm_file:
-                if tsub is not None: self.target_norms[0] = norm_file[tsub][:]
-                if tmult is not None: self.target_norms[1] = norm_file[tmult][:]
-        if verbose:
-            print('Generator will have %i samples in %i batches' %
-                  (n_samples, self.n_batches))
-            print('Features have shape %i; targets have shape %i' %
-                  (self.feature_shape, self.target_shape))
+        # Compute number of samples and batches
+        self.n_samples = self.data_ds.vars.shape[0]
+        self.n_batches = int(np.floor(self.n_samples) / self.batch_size)
 
-    def return_generator(self, convo=False, tile=False):
-        """Return data_generator
+        # Get input and output variable indices
+        self.input_idxs = return_var_idxs(self.data_ds, input_vars)
+        self.output_idxs = return_var_idxs(self.data_ds, output_vars)
+        self.n_inputs, self.n_outputs = len(self.input_idxs), len(self.output_idxs)
 
-        Returns: data_generator
-        """
-        if convo:
-            return data_generator_convo(
-                self.data_dir,
-                self.feature_fn,
-                self.target_fn,
-                self.shuffle,
-                self.batch_size,
-                self.feature_norms,
-                self.target_norms,
-                self.noise,
-                tile
-            )
+        # Initialize input and output normalizers/transformers
+        if input_transform is None:
+            self.input_transform = Normalizer()
+        elif type(input_transform) is tuple:
+            self.input_transform = InputNormalizer(self.norm_ds, input_vars,
+                                                   input_transform[0], input_transform[1])
         else:
-            return data_generator(
-                self.data_dir,
-                self.feature_fn,
-                self.target_fn,
-                self.shuffle,
-                self.batch_size,
-                self.feature_norms,
-                self.target_norms,
-                self.noise
-            )
+            self.input_transform = input_transform  # Assume an initialized normalizer is passed
+
+        if output_transform is None:
+            self.output_transform = Normalizer()
+        elif type(output_transform) is dict:
+            self.output_transform = DictNormalizer(self.norm_ds, output_vars, output_transform)
+        else:
+            self.output_transform = output_transform  # Assume an initialized normalizer is passed
+
+        # Now close the xarray file and load it as an h5 file instead
+        # This significantly speeds up the reading of the data...
+        if not xarray:
+            self.data_ds.close()
+            self.data_ds = h5py.File(data_fn, 'r')
+
+    def __len__(self):
+        return self.n_batches
+
+    def __getitem__(self, index):
+        # Compute start and end indices for batch
+        start_idx = index * self.batch_size
+        end_idx = start_idx + self.batch_size
+
+        # Grab batch from data
+        batch = self.data_ds['vars'][start_idx:end_idx]
+
+        # Split into inputs and outputs
+        X = batch[:, self.input_idxs]
+        Y = batch[:, self.output_idxs]
+
+        # Normalize
+        X = self.input_transform.transform(X)
+        Y = self.output_transform.transform(Y)
+
+        return X, Y
+
+    def on_epoch_end(self):
+        self.indices = np.arange(self.n_batches)
+        if self.shuffle: np.random.shuffle(self.indices)
+

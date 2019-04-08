@@ -1,0 +1,14 @@
+exp_name: Test01)001_32cols_engy_ess_3d_pnas
+data_dir: /local/Tom.Beucler/SPCAM_PROC_TEST01/
+train_fn: Test01_32col_engy_ess_3d_train_shuffle
+valid_fn: Test01_32_col_engy_ess_3d_valid
+norm_fn: Test01_32_col_engy_ess_3d_train_norm.nc
+fsub: feature_means
+fdiv: max_rs
+tmult: target_conv
+activation: LeakyReLU
+hidden_layers: [256,256,256,256,256,256,256,256,256]
+loss: mse
+log_dir: ./logs/
+epochs: 18
+lr_step: 3

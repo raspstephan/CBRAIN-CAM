@@ -1,4 +1,0 @@
-inputs : [TBP, QBP, VBP, PS, SOLIN, SHFLX, LHFLX]
-outputs : [TPHYSTND, PHQ, FSNT, FSNS, FLNT, FLNS, PRECT]
-in_dir : /local/S.Rasp/sp32fbp_andkua/
-out_dir: /local/S.Rasp/preprocessed_data/

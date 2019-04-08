@@ -1,8 +1,8 @@
-"""Define custom metrics
-
-Author: Stephan Rasp
 """
+Custom losses.
+tgb - 4/8/2019 - Merged Stephan's re-written conserving layers
 
+"""
 import tensorflow as tf
 import tensorflow.math as tfm
 import tensorflow.keras
@@ -10,121 +10,13 @@ import tensorflow.keras
 #import keras
 import tensorflow.keras.backend as K
 from tensorflow.keras.losses import mse
-
+from .layers import compute_dP_tilde
+from .imports import *
+import tensorflow.keras.backend as K
+from tensorflow.keras.losses import mse
+from .cam_constants import *
 
 # Define custom losses
-
-# tgb - 2/11/2019 - Custom loss function = al*MSE+(1-al)*Conservation_residual
-# Ideally would name it something else
-# Keeping its original name here for convenience sake
-def customLoss(input_tensor,fsub,fdiv,normq,hyai,hybi,alpha = 0.5):
-
-        # tgb - 2/5/2019 - Loss function written above
-    def lossFunction(y_true,y_pred):    
-        loss = tfm.multiply(alpha, mse(y_true, y_pred))
-        loss += tfm.multiply(tfm.subtract(1.0,alpha), \
-                            massent_res(input_tensor,y_pred,fsub,fdiv,normq,hyai,hybi))
-        return loss
-
-    # tgb - 2/5/2019 - Mass and enthalpy residual function
-    # Adapted from massent_check by converting numpy to tensorflow
-    def massent_res(x,y,fsub,fdiv,normq,hyai,hybi):
-
-        # 0) Constants
-        G = 9.80616; # Reference gravity constant [m.s-2]
-        L_F = 3.337e5; # Latent heat of fusion of water [W.kg-1]
-        L_V = 2.501e6; # Latent heat of vaporization of water [W.kg-1]
-        L_S = L_F+L_V; # Latent heat of sublimation of water [W.kg-1]
-        P0 = 1e5; # Reference surface pressure [Pa]   
-
-        # WATER&ENTHALPY) Get non-dimensional pressure differences (p_tilde above)
-        # In the input vector, PS is the 151st element after 
-        # the first elements = [QBP, ..., VBP with shape 30*5=150]
-        PS = tfm.add( tfm.multiply( x[:,300], fdiv[300]), fsub[300])
-        # Reference for calculation of d_pressure is cbrain/models.py (e.g. QLayer)
-        P = tfm.add( tfm.multiply( P0, hyai), \
-        tfm.multiply( PS[:,None], hybi))
-        dP = tfm.subtract( P[:, 1:], P[:, :-1])
-        # norm_output = dp_norm * L_V/G so dp_norm = norm_output * G/L_V
-        dP_NORM = tfm.divide( \
-        tfm.multiply(normq[:30], \
-                  G),\
-        L_V)
-        # dp_tilde = dp/dp_norm
-        dP_TILD = tfm.divide( dP, dP_NORM)
-
-        # WATER.1) Calculate water vertical integral from level 1 to level 30
-        WATVEC = tfm.multiply( dP_TILD, tfm.add(tfm.add(y[:, :30],\
-                                                        y[:, 30:60]),\
-                                                y[:, 60:90]))
-        WATINT = tfm.reduce_sum( WATVEC, axis=1)
-
-        # WATER.2) Calculate forcing on the right-hand side (Net Evaporation-Precipitation)
-        # E-P is already normalized to units W.m-2 in the output vector
-        # so all we need to do is input-unnormalize LHF that is taken from the input vector
-        LHF = tfm.add( tfm.multiply( x[:,303], fdiv[303]), fsub[303])
-        # Note that total precipitation = PRECT + 1e-3*PRECTEND in the CAM model
-        # PRECTEND already multiplied by 1e-3 in output vector so no need to redo it
-        PREC = tfm.add( y[:, 214], y[:, 215])
-
-        # WATER.FINAL) Residual = E-P-DWATER/DT
-        WATRES = tfm.add(tfm.add(LHF,\
-                                 tfm.negative(PREC)),\
-                         tfm.negative(WATINT))
-
-        # ENTHALPY.1) Calculate net energy input from phase change and precipitation
-        # PHAS = Lf/Lv*((PRECST+PRECSTEN)-(PRECT+PRECTEND))
-        PHAS = tfm.divide( tfm.multiply( tfm.subtract(\
-                                              tfm.add( y[:,216], y[:,217]),\
-                                              tfm.add( y[:,214], y[:,215])),\
-                                      L_F),\
-                         L_V)
-
-        # ENTHALPY.2) Calculate net energy input from radiation, sensible heat flux and turbulent KE
-        # 2.1) RAD = FSNT-FSNS-FLNT+FLNS
-        RAD = tfm.add(\
-                      tfm.subtract( y[:,210], y[:,211]),\
-                      tfm.subtract( y[:,213], y[:,212]))
-        # 2.2) Unnormalize sensible heat flux
-        SHF = tfm.add( tfm.multiply( x[:,302], fdiv[302]), fsub[302])
-        # 2.3) Net turbulent kinetic energy dissipative heating is the column-integrated 
-        # turbulent kinetic energy energy dissipative heating
-        KEDVEC = tfm.multiply( dP_TILD, y[:, 180:210])
-        KEDINT = tfm.reduce_sum( KEDVEC, axis=1)
-
-        # ENTHALPY.3) Calculate tendency of normalized column water vapor due to phase change
-        # 3.1) Column water vapor is the column integral of specific humidity
-        PHQVEC = tfm.multiply( dP_TILD, y[:, :30])
-        PHQINT = tfm.reduce_sum( PHQVEC, axis=1)
-        # 3.2) Multiply by L_S/L_V to normalize (explanation above)
-        SPDQINT = tfm.divide( tfm.multiply( tfm.subtract(\
-                                                     PHQINT, LHF),\
-                                        L_S),\
-                           L_V)
-
-        # ENTHALPY.4) Same operation for liquid water tendency but multiplied by L_F/L_V
-        SPDQCINT = tfm.divide( tfm.multiply(\
-                                      tfm.reduce_sum(\
-                                             tfm.multiply( dP_TILD, y[:, 30:60]),\
-                                             axis=1),\
-                                      L_F),\
-                         L_V)
-
-        # ENTHALPY.5) Same operation for temperature tendency
-        DTINT = tfm.reduce_sum( tfm.multiply( dP_TILD[:, :30], y[:, 90:120]), axis=1)
-
-        # ENTHALPY.FINAL) Residual = SPDQ+SPDQC+DTINT-RAD-SHF-PHAS
-        ENTRES = tfm.add(tfm.add(tfm.add(tfm.add(tfm.add(tfm.add(SPDQINT,\
-                                                                 SPDQCINT),\
-                                                         DTINT),\
-                                                 tfm.negative(RAD)),\
-                                         tfm.negative(SHF)),\
-                                 tfm.negative(PHAS)),\
-                         tfm.negative(KEDINT))
-        # Return sum of water and enthalpy square residuals
-        return tfm.add( tfm.square(WATRES), tfm.square(ENTRES))
-
-    return lossFunction
 
 def rmse(y_true, y_pred):
     """Regular loss in tensorboard"""
@@ -195,6 +87,113 @@ def mse_var(ratio):
 
 
 # Define metrics list
+all_metrics = [rmse, log_loss, total_error, unexplained_error, rsquared,
+               total_error_avgAx0, rsquared_avgAx0, var_ratio, var_loss,
+               mse_var, mse_var(10), customLoss]
+metrics = [rmse, log_loss, var_ratio, mse, var_loss]
+
+def mass_res(inp, pred, inp_div, inp_sub, norm_q):
+    # Input
+    PS_idx = 300
+    LHFLX_idx = 303
+
+    # Output
+    PHQ_idx = slice(0, 30)
+    PHCLDLIQ_idx = slice(30, 60)
+    PHCLDICE_idx = slice(60, 90)
+    PRECT_idx = 214
+    PRECTEND_idx = 215
+
+    # 1. Compute dP_tilde
+    dP_tilde = compute_dP_tilde(inp[:, PS_idx],  inp_div[PS_idx], inp_sub[PS_idx], norm_q)
+
+    # 2. Compute water integral
+    WATINT = K.sum(dP_tilde *(pred[:, PHQ_idx] + pred[:, PHCLDLIQ_idx] + pred[:, PHCLDICE_idx]), axis=1)
+
+    # 3. Compute latent heat flux and precipitation forcings
+    LHFLX = inp[:, LHFLX_idx] * inp_div[LHFLX_idx] + inp_sub[LHFLX_idx]
+    PREC = pred[:, PRECT_idx] + pred[:, PRECTEND_idx]
+
+    # 4. Compute water mass residual
+    WATRES = LHFLX - PREC - WATINT
+
+    return K.square(WATRES)
+
+
+def ent_res(inp, pred, inp_div, inp_sub, norm_q):
+    # Input
+    PS_idx = 300
+    SHFLX_idx = 302
+    LHFLX_idx = 303
+
+    # Output
+    PHQ_idx = slice(0, 30)
+    PHCLDLIQ_idx = slice(30, 60)
+    PHCLDICE_idx = slice(60, 90)
+    TPHYSTND_idx = slice(90, 120)
+    DTVKE_idx = slice(180, 210)
+    FSNT_idx = 210
+    FSNS_idx = 211
+    FLNT_idx = 212
+    FLNS_idx = 213
+    PRECT_idx = 214
+    PRECTEND_idx = 215
+    PRECST_idx = 216
+    PRECSTEND_idx = 217
+
+    # 1. Compute dP_tilde
+    dP_tilde = compute_dP_tilde(inp[:, PS_idx],  inp_div[PS_idx], inp_sub[PS_idx], norm_q)
+
+    # 2. Compute net energy input from phase change and precipitation
+    PHAS = L_I / L_V * (
+            (pred[:, PRECST_idx] + pred[:, PRECSTEND_idx]) -
+            (pred[:, PRECT_idx] + pred[:, PRECTEND_idx])
+    )
+
+    # 3. Compute net energy input from radiation, SHFLX and TKE
+    RAD = (pred[:, FSNT_idx] - pred[:, FSNS_idx] -
+           pred[:, FLNT_idx] + pred[:, FLNS_idx])
+    SHFLX = (inp[:, SHFLX_idx] * inp_div[SHFLX_idx] +
+             inp_sub[SHFLX_idx])
+    KEDINT = K.sum(dP_tilde * pred[:, DTVKE_idx], 1)
+
+    # 4. Compute tendency of vapor due to phase change
+    LHFLX = (inp[:, LHFLX_idx] * inp_div[LHFLX_idx] +
+             inp_sub[LHFLX_idx])
+    VAPINT = K.sum(dP_tilde * pred[:, PHQ_idx], 1)
+    SPDQINT = (VAPINT - LHFLX) * L_S / L_V
+
+    # 5. Same for cloud liquid water tendency
+    SPDQCINT = K.sum(dP_tilde * pred[:, PHCLDLIQ_idx], 1) * L_I / L_V
+
+    # 6. And the same for T but remember residual is still missing
+    DTINT = K.sum(dP_tilde * pred[:, TPHYSTND_idx], 1)
+
+    # 7. Compute enthalpy residual
+    ENTRES = SPDQINT + SPDQCINT + DTINT - RAD - SHFLX - PHAS - KEDINT
+
+    return K.square(ENTRES)
+
+
+class WeakLoss():
+    def __init__(self, inp_tensor, inp_div, inp_sub, norm_q, alpha_mass=0.25, alpha_ent=0.25,
+                 name='weak_loss'):
+        self.inp_tensor, self.inp_div, self.inp_sub, self.norm_q, self.alpha_mass, self.alpha_ent = \
+            inp_tensor, inp_div, inp_sub, norm_q, alpha_mass, alpha_ent
+        self.alpha_mse = 1 - (alpha_mass + alpha_ent)
+        self.__name__ = name
+
+    def __call__(self, y_true, y_pred):
+        loss = self.alpha_mse * mse(y_true, y_pred)
+        loss += self.alpha_mass * mass_res(self.inp_tensor, y_pred, self.inp_div, self.inp_sub,
+                                           self.norm_q)
+        loss += self.alpha_ent * ent_res(self.inp_tensor, y_pred, self.inp_div, self.inp_sub,
+                                         self.norm_q)
+        return loss
+
+
+# Define metric list and loss dictionary 
+loss_dict = {'weak_loss': mse, 'mass_loss': mse, 'ent_loss': mse}
 all_metrics = [rmse, log_loss, total_error, unexplained_error, rsquared,
                total_error_avgAx0, rsquared_avgAx0, var_ratio, var_loss,
                mse_var, mse_var(10), customLoss]

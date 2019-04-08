@@ -1,6 +1,7 @@
 """
-The keras models are defined in this file.
+Define all different types of models.
 
+<<<<<<< HEAD
 Author: Stephan Rasp
 tgb - 2/7/2019 - Adding mass and enthalpy conservation layers as models
 tgb - 2/7/2019 - Replacing keras with tf.keras to avoid incompatibilities when using tensorflow's eager execution
@@ -16,6 +17,8 @@ from tensorflow.keras.layers import *
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import TensorBoard
 from .losses import *
+from .cam_constants import *
+from .layers import *
 act_dict = tensorflow.keras.activations.__dict__
 lyr_dict = tensorflow.keras.layers.__dict__
 
@@ -466,115 +469,32 @@ class ELayer(Layer):
 
 def act_layer(act):
     """Helper function to return regular and advanced activation layers"""
-    return Activation(act) if act in act_dict.keys() else lyr_dict[act]()
+    act = Activation(act) if act in tf.keras.activations.__dict__.keys() \
+        else tf.keras.layers.__dict__[act]()
+    return act
 
 
-def fc_model(feature_shape, target_shape, hidden_layers, lr, loss,
-             activation='relu', batch_norm=False, dr=None, l2=None, 
-             partial_relu=False, eq=False, fsub=None, fdiv=None):
-    """Creates a simple fully connected neural net and compiles it
+def fc_model(input_shape, output_shape, hidden_layers, activation, conservation_layer=False,
+             inp_sub=None, inp_div=None, norm_q=None):
+    inp = Input(shape=(input_shape,))
 
-    Args:
-        feature_shape: Shape of input
-        target_shape: Shape of output
-        hidden_layers: list with hidden nodes
-        lr: learning rate for Adam optimizer
-        loss: loss function
-        activation: Keras activation function
-        batch_norm: Add batch normalization
-
-    Returns:
-        model: compiled Keras model
-    """
-    if l2 is not None:
-        l2 = keras.regularizers.l2(l2)
-    
-    inp = Input(shape=(feature_shape,))
     # First hidden layer
-    x = Dense(hidden_layers[0], kernel_regularizer=l2)(inp)
+    x = Dense(hidden_layers[0])(inp)
     x = act_layer(activation)(x)
-    if batch_norm:
-        x = BatchNormalization()(x)    
-    # if dr is not None:
-    #     x = Dropout(dr)(x)
-    # All other hidden layers
-    if len(hidden_layers) > 1:
-        for h in hidden_layers[1:]:
-            x = Dense(h, kernel_regularizer=l2)(x)
-            x = act_layer(activation)(x)
-            if batch_norm:
-                x = BatchNormalization()(x)
-            if dr is not None:
-                x = Dropout(dr)(x)
-    # Output layer
-    x = Dense(target_shape, activation='linear', kernel_regularizer=l2)(x)
 
-    if partial_relu:
-        x = PartialReLU()(x)
-    if eq:
-        with open(os.path.join(os.path.dirname(__file__), 'hyai_hybi.pkl'), 'rb') as f:
-            hyai, hybi = pickle.load(f)
-        x = QLayer(fsub, fdiv, hyai, hybi)([inp, x])
-        x = ELayer(fsub, fdiv, hyai, hybi)([inp, x])
-    
-    # Compile model
-    model = Model(inp, x)
-    model.compile(Adam(lr), loss=loss, metrics=metrics)
-    return model
-
-
-def conv_model(feature_shape_conv, feature_shape_1d, target_shape, feature_maps,
-               hidden_layers, lr, loss, kernel_size=3, stride=1, batch_norm=False,
-               activation='relu', tile=False, locally_connected=False, padding='same',
-               use_bias=True, dr=None):
-    """
-    Convolutional model
-    """
-    Conv = LocallyConnected1D if locally_connected else Conv1D
-
-    # Use the functional API
-    # First, the convolutional part
-    inp_conv = Input(shape=(feature_shape_conv[0],
-                            feature_shape_conv[1],))
-    # First convolutional layer
-    x_conv = Conv(
-        feature_maps[0], kernel_size, strides=stride, padding=padding, use_bias=use_bias)(inp_conv)
-    x_conv = act_layer(activation)(x_conv)
-    if batch_norm: x_conv = BatchNormalization(axis=-1)(x_conv)
-
-    if len(feature_maps) > 1:
-        for fm in feature_maps[1:]:
-            x_conv = Conv(
-                fm, kernel_size, strides=stride, padding=padding, use_bias=use_bias)(x_conv)
-            x_conv = act_layer(activation)(x_conv)
-            if batch_norm: x_conv = BatchNormalization(axis=-1)(x_conv)
-    x_conv = Flatten()(x_conv)
-
-    if not tile:
-        # Then the linear path
-        inp_1d = Input(shape=(feature_shape_1d,))
-
-        # Concatenate the two
-        x = Concatenate()([x_conv, inp_1d])
-        inps = [inp_conv, inp_1d]
-    else:
-        x = x_conv
-        inps = inp_conv
-
-    # Fully connected layers at the end
-    for h in hidden_layers:
+    # Remaining hidden layers
+    for h in hidden_layers[1:]:
         x = Dense(h)(x)
         x = act_layer(activation)(x)
-        if batch_norm: x = BatchNormalization()(x)
-        if dr is not None: x = Dropout(dr)(x)
 
-    # Final linear layer
-    x = Dense(target_shape, activation='linear')(x)
+    if conservation_layer:
+        x = SurRadLayer(inp_sub, inp_div, norm_q)([inp, x])
+        x = MassConsLayer(inp_sub, inp_div, norm_q)([inp, x])
+        out = EntConsLayer(inp_sub, inp_div, norm_q)([inp, x])
 
-    # Define the model
-    model = Model(inps, x)
+    else:
+        out = Dense(output_shape)(x)
 
-    # Compile
-    model.compile(Adam(lr), loss=loss, metrics=metrics)
-    return model
+    return tf.keras.models.Model(inp, out)
+
 
