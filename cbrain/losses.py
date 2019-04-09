@@ -85,13 +85,6 @@ def mse_var(ratio):
         return K.mean(mse(y_true, y_pred)) + ratio * var_loss(y_true, y_pred)
     return loss
 
-
-# Define metrics list
-all_metrics = [rmse, log_loss, total_error, unexplained_error, rsquared,
-               total_error_avgAx0, rsquared_avgAx0, var_ratio, var_loss,
-               mse_var, mse_var(10), customLoss]
-metrics = [rmse, log_loss, var_ratio, mse, var_loss]
-
 def mass_res(inp, pred, inp_div, inp_sub, norm_q):
     # Input
     PS_idx = 300
@@ -196,5 +189,5 @@ class WeakLoss():
 loss_dict = {'weak_loss': mse, 'mass_loss': mse, 'ent_loss': mse}
 all_metrics = [rmse, log_loss, total_error, unexplained_error, rsquared,
                total_error_avgAx0, rsquared_avgAx0, var_ratio, var_loss,
-               mse_var, mse_var(10), customLoss]
+               mse_var, mse_var(10)]
 metrics = [rmse, log_loss, var_ratio, mse, var_loss]

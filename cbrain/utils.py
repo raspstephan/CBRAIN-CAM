@@ -40,7 +40,6 @@ def return_var_idxs(ds, var_list):
     -------
     var_idxs: indices array
 
-    """
     RMSE function for lat_z plots
     Args:
         x: 

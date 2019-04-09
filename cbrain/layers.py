@@ -29,7 +29,7 @@ def compute_dP_tilde(PS, PS_div, PS_sub, norm_q):
 
 # Layers
 class SurRadLayer(Layer):
-    def __init__(self, inp_sub, inp_div, norm_q, hyai=hyai, hybi=hybi, **kwargs):
+    def __init__(self, inp_sub, inp_div, norm_q, hyai, hybi, **kwargs):
         """
         Call using ([input, output])
         Assumes
@@ -93,7 +93,7 @@ class SurRadLayer(Layer):
 
 
 class MassConsLayer(Layer):
-    def __init__(self, inp_sub, inp_div, norm_q, hyai=hyai, hybi=hybi, **kwargs):
+    def __init__(self, inp_sub, inp_div, norm_q, hyai, hybi, **kwargs):
         """
         Call using ([input, output])
         Assumes
@@ -167,7 +167,7 @@ class MassConsLayer(Layer):
 
 
 class EntConsLayer(Layer):
-    def __init__(self, inp_sub, inp_div, norm_q, hyai=hyai, hybi=hybi, **kwargs):
+    def __init__(self, inp_sub, inp_div, norm_q, hyai, hybi, **kwargs):
         """
         Call using ([input, output])
         Assumes
