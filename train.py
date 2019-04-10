@@ -74,7 +74,7 @@ def main(args):
     if args.loss == 'weak_loss':
         loss = WeakLoss(model.input, inp_div=train_gen.input_transform.div,
                         inp_sub=train_gen.input_transform.sub, norm_q=out_scale_dict['PHQ'],
-                        alpha_mass=args.alpha_mass, alpha_ent=args.alpha_ent)
+                        alpha_mass=args.alpha_mass, alpha_ent=args.alpha_ent, noadiab=args.noadiab)
     else:
         loss = args.loss
 
@@ -82,10 +82,10 @@ def main(args):
     if args.conservation_metrics:
         mass_loss = WeakLoss(model.input, inp_div=train_gen.input_transform.div,
                         inp_sub=train_gen.input_transform.sub, norm_q=out_scale_dict['PHQ'],
-                        alpha_mass=1, alpha_ent=0, name='mass_loss')
+                        alpha_mass=1, alpha_ent=0, name='mass_loss', noadiab=args.noadiab)
         ent_loss = WeakLoss(model.input, inp_div=train_gen.input_transform.div,
                              inp_sub=train_gen.input_transform.sub, norm_q=out_scale_dict['PHQ'],
-                             alpha_mass=0, alpha_ent=1, name='ent_loss')
+                             alpha_mass=0, alpha_ent=1, name='ent_loss', noadiab=args.noadiab)
         metrics += [mass_loss, ent_loss]
 
     model.compile(args.optimizer, loss=loss, metrics=metrics)
@@ -143,6 +143,9 @@ if __name__ == '__main__':
     p.set_defaults(conservation_metrics=False)
     p.add('--alpha_mass', type=float, default=0.25, help='If weak_loss, weight of mass loss.')
     p.add('--alpha_ent', type=float, default=0.25, help='If weak_loss, weight of ent loss.')
+    p.add('--noadiab', dest='noadiab', action='store_true',
+          help='noadiab')
+    p.set_defaults(noadiab=False)
 
     # Learning rate schedule
     p.add('--lr', type=float, default=0.001, help='Initial learning rate.')

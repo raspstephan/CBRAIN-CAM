@@ -10,10 +10,10 @@ import tensorflow.keras.backend as K
 from tensorflow.keras.losses import mse
 from .cam_constants import *
 
-def mass_res(inp, pred, inp_div, inp_sub, norm_q):
+def mass_res(inp, pred, inp_div, inp_sub, norm_q, noadiab=False):
     # Input
-    PS_idx = 300
-    LHFLX_idx = 303
+    PS_idx = 150 if noadiab else 300
+    LHFLX_idx = 153 if noadiab else 303
 
     # Output
     PHQ_idx = slice(0, 30)
@@ -38,11 +38,11 @@ def mass_res(inp, pred, inp_div, inp_sub, norm_q):
     return K.square(WATRES)
 
 
-def ent_res(inp, pred, inp_div, inp_sub, norm_q):
+def ent_res(inp, pred, inp_div, inp_sub, norm_q, noadiab=False):
     # Input
-    PS_idx = 300
-    SHFLX_idx = 302
-    LHFLX_idx = 303
+    PS_idx = 150 if noadiab else 300
+    SHFLX_idx = 152 if noadiab else 302
+    LHFLX_idx = 153 if noadiab else 303
 
     # Output
     PHQ_idx = slice(0, 30)
@@ -95,18 +95,19 @@ def ent_res(inp, pred, inp_div, inp_sub, norm_q):
 
 class WeakLoss():
     def __init__(self, inp_tensor, inp_div, inp_sub, norm_q, alpha_mass=0.25, alpha_ent=0.25,
-                 name='weak_loss'):
+                 name='weak_loss', noadiab=False):
         self.inp_tensor, self.inp_div, self.inp_sub, self.norm_q, self.alpha_mass, self.alpha_ent = \
             inp_tensor, inp_div, inp_sub, norm_q, alpha_mass, alpha_ent
         self.alpha_mse = 1 - (alpha_mass + alpha_ent)
         self.__name__ = name
+        self.noadiab = noadiab
 
     def __call__(self, y_true, y_pred):
         loss = self.alpha_mse * mse(y_true, y_pred)
         loss += self.alpha_mass * mass_res(self.inp_tensor, y_pred, self.inp_div, self.inp_sub,
-                                           self.norm_q)
+                                           self.norm_q, self.noadiab)
         loss += self.alpha_ent * ent_res(self.inp_tensor, y_pred, self.inp_div, self.inp_sub,
-                                         self.norm_q)
+                                         self.norm_q, self.noadiab)
         return loss
 
 
