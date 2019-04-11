@@ -15,6 +15,10 @@ G = 9.80616
 P0 = 1e5
 RHO_L = 1e3
 
+from .imports import hyai, hybi
+P = P0*hyai+P0*hybi # Total pressure [Pa]
+P = (P[1:] + P[:-1]) / 2 / 100
+
 phy_dict = {
     'TAP': 'TPHYSTND',
     'QAP': 'PHQ',

@@ -1,9 +1,9 @@
 # Example training configuration file
-exp_name: 006_8col_pnas_exact
+exp_name: 007_32col_pnas_exact
 data_dir: /local/S.Rasp/preprocessed_data/
-train_fn: 002_train_shuffle.nc
-valid_fn: 001_valid.nc
-norm_fn: 001_norm.nc
+train_fn: 004_train_shuffle.nc
+valid_fn: 003_valid.nc
+norm_fn: 003_norm.nc
 
 inputs: [QBP, TBP, VBP, PS, SOLIN, SHFLX, LHFLX]
 outputs: [PHQ, TPHYSTND, FSNT, FSNS, FLNT, FLNS, PRECT]

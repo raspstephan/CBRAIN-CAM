@@ -4,12 +4,12 @@ Contains the ModelDiagnostics class.
 """
 
 # Imports
-from ..imports import *
-from ..utils import *
-from ..data_generator import DataGenerator
-from ..cam_constants import *
-from ..layers import *
-from ..losses import *
+from cbrain.imports import *
+from cbrain.utils import *
+from cbrain.data_generator import DataGenerator
+from cbrain.cam_constants import *
+from cbrain.layers import *
+from cbrain.losses import *
 import pickle
 import yaml
 
@@ -156,3 +156,32 @@ class ModelDiagnostics():
     # def load_stats(self, path=None):
     #     if path is None: path = './tmp/' + self.save_str
     #     with open(path, 'rb') as f: self.stats = pickle.load(f)
+
+def get_mean_sounding(md, lat_slice=slice(30, 33)):
+    return md.reshape_ngeo(
+        np.array(md.valid_gen[0][0], dtype=np.float32))[lat_slice].mean((0,1))
+
+def get_jacobian(x, model):
+    sess = tf.keras.backend.get_session()
+    jac = jacobian(model.output, model.input)
+    J = sess.run(jac, feed_dict={model.input: x.astype(np.float32)[None]})
+    return J.squeeze()
+
+
+def plot_jacobian(J, gen, inp_var=None, out_var=None, figsize=(15, 15), ax = None, **kwargs):
+    inp_vars = gen.norm_ds.var_names[gen.input_idxs].values
+    out_vars = gen.norm_ds.var_names[gen.output_idxs].values
+    inp_idxs = np.where(inp_vars == inp_var)[0]
+    out_idxs = np.where(out_vars == out_var)[0]
+    j = J[out_idxs][:, inp_idxs]
+    PP = np.meshgrid(P, P)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = plt.gcf()
+    pc = ax.pcolormesh(PP[0], PP[1], j, **kwargs)
+    ax.invert_xaxis(); ax.invert_yaxis()
+    fig.colorbar(pc, shrink=0.7, ax=ax)
+    ax.set_aspect('equal')
+    ax.set_xlabel(inp_var)
+    ax.set_ylabel(out_var)
