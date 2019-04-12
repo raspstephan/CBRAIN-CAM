@@ -18,4 +18,4 @@ lr_step: 1
 conservation_layer: False
 loss: mse
 
-var_cut_off: {"QBP": 10, "TBP": 10}
+var_cut_off: {"QBP": 14, "TBP": 14}
