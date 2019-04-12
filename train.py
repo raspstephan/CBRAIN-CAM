@@ -14,6 +14,7 @@ from cbrain.learning_rate_schedule import LRUpdate
 from cbrain.save_weights import save2txt, save_norm
 from tensorflow.keras.callbacks import LearningRateScheduler
 from tensorflow.keras.losses import mse
+import json
 
 logging.basicConfig(
     format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',
@@ -40,7 +41,8 @@ def main(args):
         input_transform=(args.input_sub, args.input_div),
         output_transform=out_scale_dict,
         batch_size=args.batch_size,
-        shuffle=True
+        shuffle=True,
+        var_cut_off=args.var_cut_off
     )
 
     if args.valid_fn is not None:
@@ -52,7 +54,8 @@ def main(args):
             input_transform=(args.input_sub, args.input_div),
             output_transform=out_scale_dict,
             batch_size=args.batch_size * 10,
-            shuffle=False
+            shuffle=False,
+            var_cut_off=args.var_cut_off
         )
     else:
         valid_gen = None
@@ -126,6 +129,7 @@ if __name__ == '__main__':
     p.add('--input_sub', type=str, help='What to subtract from input array. E.g. "mean"')
     p.add('--input_div', type=str, help='What to divide input array by. E.g. "maxrs"')
     p.add('--output_dict', type=str, help='Output scaling dictionary.')
+    p.add('--var_cut_off', type=json.loads, help='Input variable cut off for upper levels.')
 
     p.add('--valid_fn', type=str, default=None, help='File name of training file.')
 
