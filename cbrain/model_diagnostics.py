@@ -39,7 +39,8 @@ class ModelDiagnostics():
             output_transform=out_scale_dict,
             batch_size=self.ngeo,
             shuffle=False,
-            xarray=True
+            xarray=True,
+            var_cut_off=config['var_cut_off'] if 'var_cut_off' in config.keys() else None
         )
 
     def reshape_ngeo(self, x):
@@ -174,7 +175,8 @@ def plot_jacobian(J, gen, inp_var=None, out_var=None, figsize=(15, 15), ax = Non
     inp_idxs = np.where(inp_vars == inp_var)[0]
     out_idxs = np.where(out_vars == out_var)[0]
     j = J[out_idxs][:, inp_idxs]
-    PP = np.meshgrid(P, P)
+
+    PP = np.meshgrid(P[-j.shape[1]:], P)
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
     else:
