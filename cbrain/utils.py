@@ -30,24 +30,26 @@ def return_var_bool(ds, var_list):
 def return_var_idxs(ds, var_list):
     """
     To be used on stacked variable dimension. Returns indices array
-
     Parameters
     ----------
     ds: xarray dataset
     var_list: list of variables
-
     Returns
     -------
     var_idxs: indices array
-
-    RMSE function for lat_z plots
-    Args:
-        x: 
-
-    Returns:
-
     """
-    return np.sqrt(np.mean(x**2))
+    var_idxs = np.concatenate([np.where(ds.var_names == v)[0] for v in var_list])
+    return var_idxs
+
+def save_pickle(fn, obj):
+    with open(fn, 'wb') as f:
+        pickle.dump(obj, f)
+
+
+def load_pickle(fn):
+    with open(fn, 'rb') as f:
+        obj = pickle.load(f)
+    return obj
 
 
 def split_variables(x):
@@ -60,6 +62,13 @@ def split_variables(x):
     flut  = x[..., 85]
     return spdt, spdq, qrl, qrs, prect, flut
 
+def rmse_stat(x):
+    """
+    RMSE function for lat_z plots
+    Args: x 
+    Returns: sqrt(x)
+    """
+    return np.sqrt(np.mean(x**2))
 
 def np_rmse(y_true, y_pred):
     return np.sqrt(np.mean(np.square(y_true - y_pred), axis=1))
@@ -175,12 +184,4 @@ def get_dP_from_ds(ds):
     return p_diff.rename({'ilev':'lev'})
 
 
-def save_pickle(fn, obj):
-    with open(fn, 'wb') as f:
-        pickle.dump(obj, f)
 
-
-def load_pickle(fn):
-    with open(fn, 'rb') as f:
-        obj = pickle.load(f)
-    return obj

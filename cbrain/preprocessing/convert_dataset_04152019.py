@@ -87,14 +87,18 @@ def create_stacked_da(ds, vars):
             da = compute_bp(ds, var)
         elif var in ['LHFLX', 'SHFLX']:
             da = ds[var][:-1]
-#         elif var == 'PRECST':
-#             da = (ds['PRECSC'] + ds['PRECSL'])[1:]
-#         elif var == 'PRECT':
-#             da = (ds['PRECC'] + ds['PRECL'])[1:]
+        elif var == 'PRECST':
+            da = (ds['PRECSC'] + ds['PRECSL'])[1:]
+        elif var == 'PRECT':
+            da = (ds['PRECC'] + ds['PRECL'])[1:]
 #         elif var == 'PRECTEND':
 #             da = (ds['QCTEND'])[1:]
 #         elif var == 'PRECSTEN':
 #             da = (ds['QITEND'])[1:]
+        elif var == 'QRL':
+            da = 0*(ds['PHQ'])[1:]**0
+        elif var == 'QRS':
+            da = 0*(ds['PHQ'])[1:]**0    
         elif 'dt_adiabatic' in var:
             base_var = var[:-12] + 'AP'
             da = compute_adiabatic(ds, base_var)

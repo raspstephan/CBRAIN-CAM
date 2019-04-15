@@ -85,7 +85,7 @@ def mse_var(ratio):
         return K.mean(mse(y_true, y_pred)) + ratio * var_loss(y_true, y_pred)
     return loss
 
-def mass_res(inp, pred, inp_div, inp_sub, norm_q):
+def mass_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi):
     # Input
     PS_idx = 300
     LHFLX_idx = 303
@@ -98,7 +98,7 @@ def mass_res(inp, pred, inp_div, inp_sub, norm_q):
     PRECTEND_idx = 215
 
     # 1. Compute dP_tilde
-    dP_tilde = compute_dP_tilde(inp[:, PS_idx],  inp_div[PS_idx], inp_sub[PS_idx], norm_q)
+    dP_tilde = compute_dP_tilde(inp[:, PS_idx],  inp_div[PS_idx], inp_sub[PS_idx], norm_q, hyai, hybi)
 
     # 2. Compute water integral
     WATINT = K.sum(dP_tilde *(pred[:, PHQ_idx] + pred[:, PHCLDLIQ_idx] + pred[:, PHCLDICE_idx]), axis=1)
@@ -113,7 +113,7 @@ def mass_res(inp, pred, inp_div, inp_sub, norm_q):
     return K.square(WATRES)
 
 
-def ent_res(inp, pred, inp_div, inp_sub, norm_q):
+def ent_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi):
     # Input
     PS_idx = 300
     SHFLX_idx = 302
@@ -135,7 +135,7 @@ def ent_res(inp, pred, inp_div, inp_sub, norm_q):
     PRECSTEND_idx = 217
 
     # 1. Compute dP_tilde
-    dP_tilde = compute_dP_tilde(inp[:, PS_idx],  inp_div[PS_idx], inp_sub[PS_idx], norm_q)
+    dP_tilde = compute_dP_tilde(inp[:, PS_idx],  inp_div[PS_idx], inp_sub[PS_idx], norm_q, hyai, hybi)
 
     # 2. Compute net energy input from phase change and precipitation
     PHAS = L_I / L_V * (
@@ -169,19 +169,21 @@ def ent_res(inp, pred, inp_div, inp_sub, norm_q):
 
 
 class WeakLoss():
-    def __init__(self, inp_tensor, inp_div, inp_sub, norm_q, alpha_mass=0.25, alpha_ent=0.25,
+    def __init__(self, inp_tensor, inp_div, inp_sub, norm_q, hyai, hybi,
+                 alpha_mass=0.25, alpha_ent=0.25,
                  name='weak_loss'):
-        self.inp_tensor, self.inp_div, self.inp_sub, self.norm_q, self.alpha_mass, self.alpha_ent = \
-            inp_tensor, inp_div, inp_sub, norm_q, alpha_mass, alpha_ent
+        self.inp_tensor, self.inp_div, self.inp_sub, self.norm_q, self.hyai, self.hybi,\
+        self.alpha_mass, self.alpha_ent = \
+            inp_tensor, inp_div, inp_sub, norm_q, hyai, hybi, alpha_mass, alpha_ent
         self.alpha_mse = 1 - (alpha_mass + alpha_ent)
         self.__name__ = name
 
     def __call__(self, y_true, y_pred):
         loss = self.alpha_mse * mse(y_true, y_pred)
         loss += self.alpha_mass * mass_res(self.inp_tensor, y_pred, self.inp_div, self.inp_sub,
-                                           self.norm_q)
+                                           self.norm_q, self.hyai, self.hybi)
         loss += self.alpha_ent * ent_res(self.inp_tensor, y_pred, self.inp_div, self.inp_sub,
-                                         self.norm_q)
+                                         self.norm_q, self.hyai, self.hybi)
         return loss
 
 

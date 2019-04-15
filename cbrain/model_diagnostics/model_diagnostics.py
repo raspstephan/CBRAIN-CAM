@@ -13,9 +13,9 @@ from ..losses import *
 import pickle
 import yaml
 
-
+# tgb - 4/10/2019 - Adding a model_path input to load a custom model
 class ModelDiagnostics():
-    def __init__(self, config_fn, data_fn, nlat=64, nlon=128, nlev=30, ntime=48):
+    def __init__(self, model, config_fn, data_fn, nlat=64, nlon=128, nlev=30, ntime=48):
 
         self.nlat, self.nlon = nlat, nlon
         self.ngeo = nlat * nlon
@@ -24,9 +24,12 @@ class ModelDiagnostics():
         with open(config_fn, 'r') as f:
             config = yaml.load(f)
 
-        self.model = tf.keras.models.load_model(
-            repo_dir + 'saved_models/' + config['exp_name'] + '/model.h5',
-            custom_objects={**layer_dict, **loss_dict})
+#         self.model = tf.keras.models.load_model(
+#             repo_dir + 'saved_models/' + config['exp_name'] + '/model.h5',
+#             custom_objects={**layer_dict, **loss_dict})
+#         self.model = tf.keras.models.load_model(model_path,
+#             custom_objects={**layer_dict, **loss_dict})
+        self.model = model
 
         out_scale_dict = load_pickle(config['output_dict'])
 

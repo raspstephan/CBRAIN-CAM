@@ -12,7 +12,7 @@ from tensorflow.keras.layers import Layer
 
 
 # Helpers
-def compute_dP_tilde(PS, PS_div, PS_sub, norm_q):
+def compute_dP_tilde(PS, PS_div, PS_sub, norm_q, hyai, hybi):
     """
     Computes dP_tilde in Tom's notation.
     PS is the normalized pressure as it is used in the input.
@@ -68,7 +68,7 @@ class SurRadLayer(Layer):
         dP_tilde = compute_dP_tilde(
             inp[:, self.PS_idx],
             self.inp_div[self.PS_idx], self.inp_sub[self.PS_idx],
-            self.norm_q
+            self.norm_q, self.hyai, self.hybi
         )
 
         # 2. Compute radiative integrals
@@ -135,7 +135,7 @@ class MassConsLayer(Layer):
         dP_tilde = compute_dP_tilde(
             inp[:, self.PS_idx],
             self.inp_div[self.PS_idx], self.inp_sub[self.PS_idx],
-            self.norm_q
+            self.norm_q, self.hyai, self.hybi
         )
 
         # 2. Compute vertical cloud water integral
@@ -218,7 +218,7 @@ class EntConsLayer(Layer):
         dP_tilde = compute_dP_tilde(
             inp[:, self.PS_idx],
             self.inp_div[self.PS_idx], self.inp_sub[self.PS_idx],
-            self.norm_q
+            self.norm_q, self.hyai, self.hybi
         )
 
         # 2. Compute net energy input from phase change and precipitation
