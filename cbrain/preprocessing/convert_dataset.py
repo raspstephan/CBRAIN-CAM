@@ -87,10 +87,10 @@ def create_stacked_da(ds, vars):
             da = compute_bp(ds, var)
         elif var in ['LHFLX', 'SHFLX']:
             da = ds[var][:-1]
-#         elif var == 'PRECST':
-#             da = (ds['PRECSC'] + ds['PRECSL'])[1:]
-#         elif var == 'PRECT':
-#             da = (ds['PRECC'] + ds['PRECL'])[1:]
+        elif var == 'PRECST':
+            da = (ds['PRECSC'] + ds['PRECSL'])[1:]
+        elif var == 'PRECT':
+            da = (ds['PRECC'] + ds['PRECL'])[1:]
 #         elif var == 'PRECTEND':
 #             da = (ds['QCTEND'])[1:]
 #         elif var == 'PRECSTEN':

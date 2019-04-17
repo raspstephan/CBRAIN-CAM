@@ -34,7 +34,9 @@ class ModelDiagnostics():
         out_scale_dict = load_pickle(config['output_dict'])
 
         self.valid_gen = DataGenerator(
-            data_fn=config['data_dir'] + config['valid_fn'],
+            # tgb - 4/16/2019 - Changed data_fn to the argument data_fn of ModelDiagnostics
+            #data_fn=config['data_dir'] + config['valid_fn'],
+            data_fn = data_fn,
             input_vars=config['inputs'],
             output_vars=config['outputs'],
             norm_fn=config['data_dir'] + config['norm_fn'],
