@@ -85,10 +85,10 @@ def mse_var(ratio):
         return K.mean(mse(y_true, y_pred)) + ratio * var_loss(y_true, y_pred)
     return loss
 
-def mass_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi):
+def mass_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi, noadiab=False):
     # Input
-    PS_idx = 300
-    LHFLX_idx = 303
+    PS_idx = 150 if noadiab else 300
+    LHFLX_idx = 153 if noadiab else 303
 
     # Output
     PHQ_idx = slice(0, 30)
@@ -113,11 +113,11 @@ def mass_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi):
     return K.square(WATRES)
 
 
-def ent_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi):
+def ent_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi, noadiab=False):
     # Input
-    PS_idx = 300
-    SHFLX_idx = 302
-    LHFLX_idx = 303
+    PS_idx = 150 if noadiab else 300
+    SHFLX_idx = 152 if noadiab else 302
+    LHFLX_idx = 153 if noadiab else 303
 
     # Output
     PHQ_idx = slice(0, 30)
@@ -168,9 +168,9 @@ def ent_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi):
     return K.square(ENTRES)
 
 # tgb - 4/18/2019 - Add radiation loss
-def lw_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi):
+def lw_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi, noadiab=False):
     # Input
-    PS_idx = 300
+    PS_idx = 150 if noadiab else 300
     
     # Output
     QRL_idx = slice(120, 150)
@@ -191,9 +191,9 @@ def lw_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi):
 
     return K.square(LWRES)
 
-def sw_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi):
+def sw_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi, noadiab=False):
     # Input
-    PS_idx = 300
+    PS_idx = 150 if noadiab else 300
     
     # Output
     QRS_idx = slice(150, 180)
@@ -220,24 +220,25 @@ class WeakLoss():
     def __init__(self, inp_tensor, inp_div, inp_sub, norm_q, hyai, hybi,
                  alpha_mass=0.125, alpha_ent=0.125,
                  alpha_lw=0.125, alpha_sw=0.125,
-                 name='weak_loss'):
+                 name='weak_loss', noadiab=False):
         self.inp_tensor, self.inp_div, self.inp_sub, self.norm_q, self.hyai, self.hybi,\
         self.alpha_mass, self.alpha_ent, self.alpha_lw, self.alpha_sw = \
             inp_tensor, inp_div, inp_sub, norm_q, hyai, hybi,\
         alpha_mass, alpha_ent, alpha_lw, alpha_sw
         self.alpha_mse = 1 - (alpha_mass + alpha_ent + alpha_sw + alpha_lw)
         self.__name__ = name
+        self.noadiab = noadiab
 
     def __call__(self, y_true, y_pred):
         loss = self.alpha_mse * mse(y_true, y_pred)
         loss += self.alpha_mass * mass_res(self.inp_tensor, y_pred, self.inp_div, self.inp_sub,
-                                           self.norm_q, self.hyai, self.hybi)
+                                           self.norm_q, self.hyai, self.hybi, self.noadiab)
         loss += self.alpha_ent * ent_res(self.inp_tensor, y_pred, self.inp_div, self.inp_sub,
-                                         self.norm_q, self.hyai, self.hybi)
+                                         self.norm_q, self.hyai, self.hybi, self.noadiab)
         loss += self.alpha_lw * lw_res(self.inp_tensor, y_pred, self.inp_div, self.inp_sub,
-                                           self.norm_q, self.hyai, self.hybi)
+                                           self.norm_q, self.hyai, self.hybi, self.noadiab)
         loss += self.alpha_sw * sw_res(self.inp_tensor, y_pred, self.inp_div, self.inp_sub,
-                                         self.norm_q, self.hyai, self.hybi)
+                                         self.norm_q, self.hyai, self.hybi, self.noadiab)
         return loss
 
 

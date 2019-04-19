@@ -50,6 +50,7 @@ else:
     from tqdm import tqdm
 
 import tensorflow as tf
+from tensorflow.python.ops.parallel_for.gradients import jacobian
 
 def limit_mem():
     config = tf.ConfigProto()

@@ -1,0 +1,20 @@
+# Example training configuration file
+exp_name: 007_32col_pnas_exact
+data_dir: /local/S.Rasp/preprocessed_data/
+train_fn: 004_train_shuffle.nc
+valid_fn: 003_valid.nc
+norm_fn: 003_norm.nc
+
+inputs: [QBP, TBP, VBP, PS, SOLIN, SHFLX, LHFLX]
+outputs: [PHQ, TPHYSTND, FSNT, FSNS, FLNT, FLNS, PRECT]
+
+input_sub: mean
+input_div: maxrs
+output_dict: /home/s/S.Rasp/repositories/CBRAIN-CAM/nn_config/scale_dicts/002_pnas_scaling.pkl
+
+hidden_layers: [256,256,256,256,256,256,256,256,256]
+epochs: 4
+lr_step: 1
+conservation_layer: False
+loss: mse
+

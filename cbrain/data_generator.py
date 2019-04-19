@@ -19,7 +19,7 @@ class DataGenerator(tf.keras.utils.Sequence):
 
     def __init__(self, data_fn, input_vars, output_vars,
                  norm_fn=None, input_transform=None, output_transform=None,
-                 batch_size=1024, shuffle=True, xarray=False):
+                 batch_size=1024, shuffle=True, xarray=False, var_cut_off=None):
         # Just copy over the attributes
         self.data_fn, self.norm_fn = data_fn, norm_fn
         self.input_vars, self.output_vars = input_vars, output_vars
@@ -34,7 +34,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         self.n_batches = int(np.floor(self.n_samples) / self.batch_size)
 
         # Get input and output variable indices
-        self.input_idxs = return_var_idxs(self.data_ds, input_vars)
+        self.input_idxs = return_var_idxs(self.data_ds, input_vars, var_cut_off)
         self.output_idxs = return_var_idxs(self.data_ds, output_vars)
         self.n_inputs, self.n_outputs = len(self.input_idxs), len(self.output_idxs)
 
@@ -42,8 +42,8 @@ class DataGenerator(tf.keras.utils.Sequence):
         if input_transform is None:
             self.input_transform = Normalizer()
         elif type(input_transform) is tuple:
-            self.input_transform = InputNormalizer(self.norm_ds, input_vars,
-                                                   input_transform[0], input_transform[1])
+            self.input_transform = InputNormalizer(
+                self.norm_ds, input_vars, input_transform[0], input_transform[1], var_cut_off)
         else:
             self.input_transform = input_transform  # Assume an initialized normalizer is passed
 

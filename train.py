@@ -14,6 +14,7 @@ from cbrain.learning_rate_schedule import LRUpdate
 from cbrain.save_weights import save2txt, save_norm
 from tensorflow.keras.callbacks import LearningRateScheduler
 from tensorflow.keras.losses import mse
+import json
 
 logging.basicConfig(
     format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',
@@ -40,7 +41,8 @@ def main(args):
         input_transform=(args.input_sub, args.input_div),
         output_transform=out_scale_dict,
         batch_size=args.batch_size,
-        shuffle=True
+        shuffle=True,
+        var_cut_off=args.var_cut_off
     )
 
     if args.valid_fn is not None:
@@ -52,7 +54,8 @@ def main(args):
             input_transform=(args.input_sub, args.input_div),
             output_transform=out_scale_dict,
             batch_size=args.batch_size * 10,
-            shuffle=False
+            shuffle=False,
+            var_cut_off=args.var_cut_off
         )
     else:
         valid_gen = None
@@ -74,7 +77,7 @@ def main(args):
     if args.loss == 'weak_loss':
         loss = WeakLoss(model.input, inp_div=train_gen.input_transform.div,
                         inp_sub=train_gen.input_transform.sub, norm_q=out_scale_dict['PHQ'],
-                        alpha_mass=args.alpha_mass, alpha_ent=args.alpha_ent)
+                        alpha_mass=args.alpha_mass, alpha_ent=args.alpha_ent, noadiab=args.noadiab)
     else:
         loss = args.loss
 
@@ -82,10 +85,10 @@ def main(args):
     if args.conservation_metrics:
         mass_loss = WeakLoss(model.input, inp_div=train_gen.input_transform.div,
                         inp_sub=train_gen.input_transform.sub, norm_q=out_scale_dict['PHQ'],
-                        alpha_mass=1, alpha_ent=0, name='mass_loss')
+                        alpha_mass=1, alpha_ent=0, name='mass_loss', noadiab=args.noadiab)
         ent_loss = WeakLoss(model.input, inp_div=train_gen.input_transform.div,
                              inp_sub=train_gen.input_transform.sub, norm_q=out_scale_dict['PHQ'],
-                             alpha_mass=0, alpha_ent=1, name='ent_loss')
+                             alpha_mass=0, alpha_ent=1, name='ent_loss', noadiab=args.noadiab)
         metrics += [mass_loss, ent_loss]
 
     model.compile(args.optimizer, loss=loss, metrics=metrics)
@@ -126,6 +129,7 @@ if __name__ == '__main__':
     p.add('--input_sub', type=str, help='What to subtract from input array. E.g. "mean"')
     p.add('--input_div', type=str, help='What to divide input array by. E.g. "maxrs"')
     p.add('--output_dict', type=str, help='Output scaling dictionary.')
+    p.add('--var_cut_off', type=json.loads, help='Input variable cut off for upper levels.')
 
     p.add('--valid_fn', type=str, default=None, help='File name of training file.')
 
@@ -143,6 +147,9 @@ if __name__ == '__main__':
     p.set_defaults(conservation_metrics=False)
     p.add('--alpha_mass', type=float, default=0.25, help='If weak_loss, weight of mass loss.')
     p.add('--alpha_ent', type=float, default=0.25, help='If weak_loss, weight of ent loss.')
+    p.add('--noadiab', dest='noadiab', action='store_true',
+          help='noadiab')
+    p.set_defaults(noadiab=False)
 
     # Learning rate schedule
     p.add('--lr', type=float, default=0.001, help='Initial learning rate.')

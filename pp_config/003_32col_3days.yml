@@ -1,0 +1,13 @@
+# Describe this dataset
+vars : [QBP, QCBP, QIBP, TBP, VBP, PS, SOLIN, SHFLX, LHFLX, PHQ, PHCLDLIQ, PHCLDICE, TPHYSTND, QRL, QRS, DTVKE, FSNT, FSNS, FLNT, FLNS, PRECT, PRECTEND, PRECST, PRECSTEN, Qdt_adiabatic, QCdt_adiabatic, QIdt_adiabatic, Tdt_adiabatic, Vdt_adiabatic]
+
+in_dir : /project/meteo/w2w/A6/S.Rasp/SP-CAM/sp32fbp_andkua/
+in_fns : AndKua*.h1.0000-*-0[1-3]-00000.nc
+
+out_dir: /project/meteo/w2w/A6/S.Rasp/SP-CAM/preprocessed_data/
+out_fn: 003_train.nc
+
+val_in_fns: AndKua*.h1.0001-*-0[1-3]-00000.nc
+val_out_fn: 003_valid.nc
+
+norm_fn: 003_norm.nc
