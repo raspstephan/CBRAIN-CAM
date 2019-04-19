@@ -68,6 +68,13 @@ class ModelDiagnostics():
             pred = pred[:, var_idxs]
 
         return self.reshape_ngeo(truth), self.reshape_ngeo(pred)
+    
+    # tgb - 4/18/2019 - Gets input and prediction in normalized form
+    def get_inp_pred(self,itime):
+        """ Gets input and prediction in normalized form """
+        X, truth = self.valid_gen[itime]
+        pred = self.model.predict_on_batch(X)
+        return X.values, pred
 
     # Plotting functions
     def plot_double_xy(self, itime, ilev, var, **kwargs):
@@ -151,6 +158,185 @@ class ModelDiagnostics():
         df.loc['all']['hor_r2'] = np.mean(df['hor_r2'].mean())
         self.stats_df = df
         return df
+    
+    # Residual computation
+    def compute_res(self, niter=None):
+        """Compute budget residuals for [lat, lon, var, lev]"""
+        nt = self.valid_gen.n_batches
+        if niter is not None: nt = niter
+        # Allocate stats arrays
+        entres = np.zeros((self.nlat, self.nlon, self.valid_gen.n_outputs))
+        masres = np.copy(entres)
+        lwres = np.copy(entres)
+        swres = np.copy(entres)
+        for itime in tqdm(range(nt)):
+            inp, p = self.get_inp_pred(itime)  # [lat, lon, var, lev]
+            # residuals
+            entres += self.reshape_ngeo(self.ent_res(inp, p))
+            masres += self.reshape_ngeo(self.mass_res(inp, p))
+            lwres += self.reshape_ngeo(self.lw_res(inp, p))
+            swres += self.reshape_ngeo(self.sw_res(inp, p))
+
+        # Compute average statistics
+        self.res = {}
+        self.res['ent'] = entres/nt
+        self.res['mass'] = masres/nt
+        self.res['lw'] = lwres/nt
+        self.res['sw'] = swres/nt
+    
+    # tgb - 4/18/2019 - mse in W2/m4
+    def mse_W2m4(self):
+        """Calculate mean-squared-error in W2/m4"""
+        return self.stats['mse']*(self.valid_gen.output_transform.scale**2)
+    
+    # tgb - 4/18/2019 - Loss functions in numpy for model diagnostics purposes
+    def mass_res(self, inp, pred):
+        inp_div = self.valid_gen.input_transform.div
+        inp_sub = self.valid_gen.input_transform.sub
+        norm_q = self.valid_gen.output_transform.scale[self.get_output_var_idx('PHQ')]
+        
+        # Input
+        PS_idx = 300
+        LHFLX_idx = 303
+
+        # Output
+        PHQ_idx = slice(0, 30)
+        PHCLDLIQ_idx = slice(30, 60)
+        PHCLDICE_idx = slice(60, 90)
+        PRECT_idx = 214
+        PRECTEND_idx = 215
+
+        # 1. Compute dP_tilde
+        dP_tilde = compute_dP_tilde(inp[:, PS_idx],  inp_div[PS_idx], inp_sub[PS_idx], norm_q, hyai, hybi)
+
+        # 2. Compute water integral
+        WATINT = np.sum(dP_tilde *(pred[:, PHQ_idx] + pred[:, PHCLDLIQ_idx] + pred[:, PHCLDICE_idx]), axis=1)
+
+        # 3. Compute latent heat flux and precipitation forcings
+        LHFLX = inp[:, LHFLX_idx] * inp_div[LHFLX_idx] + inp_sub[LHFLX_idx]
+        PREC = pred[:, PRECT_idx] + pred[:, PRECTEND_idx]
+
+        # 4. Compute water mass residual
+        WATRES = LHFLX - PREC - WATINT
+
+        return np.square(WATRES)
+
+
+    def ent_res(self,inp,pred):
+        inp_div = self.valid_gen.input_transform.div
+        inp_sub = self.valid_gen.input_transform.sub
+        norm_q = self.valid_gen.output_transform.scale[self.get_output_var_idx('PHQ')]
+        
+        # Input
+        PS_idx = 300
+        SHFLX_idx = 302
+        LHFLX_idx = 303
+
+        # Output
+        PHQ_idx = slice(0, 30)
+        PHCLDLIQ_idx = slice(30, 60)
+        PHCLDICE_idx = slice(60, 90)
+        TPHYSTND_idx = slice(90, 120)
+        DTVKE_idx = slice(180, 210)
+        FSNT_idx = 210
+        FSNS_idx = 211
+        FLNT_idx = 212
+        FLNS_idx = 213
+        PRECT_idx = 214
+        PRECTEND_idx = 215
+        PRECST_idx = 216
+        PRECSTEND_idx = 217
+
+        # 1. Compute dP_tilde
+        dP_tilde = compute_dP_tilde(inp[:, PS_idx],  inp_div[PS_idx], inp_sub[PS_idx], norm_q, hyai, hybi)
+
+        # 2. Compute net energy input from phase change and precipitation
+        PHAS = L_I / L_V * (
+                (pred[:, PRECST_idx] + pred[:, PRECSTEND_idx]) -
+                (pred[:, PRECT_idx] + pred[:, PRECTEND_idx])
+        )
+
+        # 3. Compute net energy input from radiation, SHFLX and TKE
+        RAD = (pred[:, FSNT_idx] - pred[:, FSNS_idx] -
+               pred[:, FLNT_idx] + pred[:, FLNS_idx])
+        SHFLX = (inp[:, SHFLX_idx] * inp_div[SHFLX_idx] +
+                 inp_sub[SHFLX_idx])
+        KEDINT = np.sum(dP_tilde * pred[:, DTVKE_idx], 1)
+
+        # 4. Compute tendency of vapor due to phase change
+        LHFLX = (inp[:, LHFLX_idx] * inp_div[LHFLX_idx] +
+                 inp_sub[LHFLX_idx])
+        VAPINT = np.sum(dP_tilde * pred[:, PHQ_idx], 1)
+        SPDQINT = (VAPINT - LHFLX) * L_S / L_V
+
+        # 5. Same for cloud liquid water tendency
+        SPDQCINT = np.sum(dP_tilde * pred[:, PHCLDLIQ_idx], 1) * L_I / L_V
+
+        # 6. And the same for T but remember residual is still missing
+        DTINT = np.sum(dP_tilde * pred[:, TPHYSTND_idx], 1)
+
+        # 7. Compute enthalpy residual
+        ENTRES = SPDQINT + SPDQCINT + DTINT - RAD - SHFLX - PHAS - KEDINT
+
+        return np.square(ENTRES)
+
+    # tgb - 4/18/2019 - Add radiation loss
+    def lw_res(self,inp,pred):
+        inp_div = self.valid_gen.input_transform.div
+        inp_sub = self.valid_gen.input_transform.sub
+        norm_q = self.valid_gen.output_transform.scale[self.get_output_var_idx('PHQ')]
+        
+        # Input
+        PS_idx = 300
+
+        # Output
+        QRL_idx = slice(120, 150)
+        FLNS_idx = 213
+        FLNT_idx = 212
+
+        # 1. Compute dP_tilde
+        dP_tilde = compute_dP_tilde(inp[:, PS_idx],  inp_div[PS_idx], inp_sub[PS_idx], norm_q, hyai, hybi)
+
+        # 2. Compute longwave integral
+        LWINT = np.sum(dP_tilde *pred[:, QRL_idx], axis=1)
+
+        # 3. Compute net longwave flux from lw fluxes at top and bottom
+        LWNET = pred[:, FLNS_idx] - pred[:, FLNT_idx]
+
+        # 4. Compute water mass residual
+        LWRES = LWINT-LWNET
+
+        return np.square(LWRES)
+
+    def sw_res(self,inp,pred):
+        inp_div = self.valid_gen.input_transform.div
+        inp_sub = self.valid_gen.input_transform.sub
+        norm_q = self.valid_gen.output_transform.scale[self.get_output_var_idx('PHQ')]
+        
+        # Input
+        PS_idx = 300
+
+        # Output
+        QRS_idx = slice(150, 180)
+        FSNS_idx = 211
+        FSNT_idx = 210
+
+        # 1. Compute dP_tilde
+        dP_tilde = compute_dP_tilde(inp[:, PS_idx],  inp_div[PS_idx], inp_sub[PS_idx], norm_q, hyai, hybi)
+
+        # 2. Compute longwave integral
+        SWINT = np.sum(dP_tilde *pred[:, QRS_idx], axis=1)
+
+        # 3. Compute net longwave flux from lw fluxes at top and bottom
+        SWNET = pred[:, FSNT_idx] - pred[:, FSNS_idx]
+
+        # 4. Compute water mass residual
+        SWRES = SWINT-SWNET
+
+        return np.square(SWRES)
+    
+    # tgb - 4/18/2019 - energy/mass/etc loss functions in W2/m4
+    #def
     #
     # def save_stats(self, path=None):
     #     if path is None:

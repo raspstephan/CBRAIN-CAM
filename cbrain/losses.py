@@ -167,15 +167,65 @@ def ent_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi):
 
     return K.square(ENTRES)
 
+# tgb - 4/18/2019 - Add radiation loss
+def lw_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi):
+    # Input
+    PS_idx = 300
+    
+    # Output
+    QRL_idx = slice(120, 150)
+    FLNS_idx = 213
+    FLNT_idx = 212
 
+    # 1. Compute dP_tilde
+    dP_tilde = compute_dP_tilde(inp[:, PS_idx],  inp_div[PS_idx], inp_sub[PS_idx], norm_q, hyai, hybi)
+
+    # 2. Compute longwave integral
+    LWINT = K.sum(dP_tilde *pred[:, QRL_idx], axis=1)
+
+    # 3. Compute net longwave flux from lw fluxes at top and bottom
+    LWNET = pred[:, FLNS_idx] - pred[:, FLNT_idx]
+
+    # 4. Compute water mass residual
+    LWRES = LWINT-LWNET
+
+    return K.square(LWRES)
+
+def sw_res(inp, pred, inp_div, inp_sub, norm_q, hyai, hybi):
+    # Input
+    PS_idx = 300
+    
+    # Output
+    QRS_idx = slice(150, 180)
+    FSNS_idx = 211
+    FSNT_idx = 210
+
+    # 1. Compute dP_tilde
+    dP_tilde = compute_dP_tilde(inp[:, PS_idx],  inp_div[PS_idx], inp_sub[PS_idx], norm_q, hyai, hybi)
+
+    # 2. Compute longwave integral
+    SWINT = K.sum(dP_tilde *pred[:, QRS_idx], axis=1)
+
+    # 3. Compute net longwave flux from lw fluxes at top and bottom
+    SWNET = pred[:, FSNT_idx] - pred[:, FSNS_idx]
+
+    # 4. Compute water mass residual
+    SWRES = SWINT-SWNET
+
+    return K.square(SWRES)
+
+
+# tgb - 4/18/2019 - Add radiation loss
 class WeakLoss():
     def __init__(self, inp_tensor, inp_div, inp_sub, norm_q, hyai, hybi,
-                 alpha_mass=0.25, alpha_ent=0.25,
+                 alpha_mass=0.125, alpha_ent=0.125,
+                 alpha_lw=0.125, alpha_sw=0.125,
                  name='weak_loss'):
         self.inp_tensor, self.inp_div, self.inp_sub, self.norm_q, self.hyai, self.hybi,\
-        self.alpha_mass, self.alpha_ent = \
-            inp_tensor, inp_div, inp_sub, norm_q, hyai, hybi, alpha_mass, alpha_ent
-        self.alpha_mse = 1 - (alpha_mass + alpha_ent)
+        self.alpha_mass, self.alpha_ent, self.alpha_lw, self.alpha_sw = \
+            inp_tensor, inp_div, inp_sub, norm_q, hyai, hybi,\
+        alpha_mass, alpha_ent, alpha_lw, alpha_sw
+        self.alpha_mse = 1 - (alpha_mass + alpha_ent + alpha_sw + alpha_lw)
         self.__name__ = name
 
     def __call__(self, y_true, y_pred):
@@ -184,11 +234,16 @@ class WeakLoss():
                                            self.norm_q, self.hyai, self.hybi)
         loss += self.alpha_ent * ent_res(self.inp_tensor, y_pred, self.inp_div, self.inp_sub,
                                          self.norm_q, self.hyai, self.hybi)
+        loss += self.alpha_lw * lw_res(self.inp_tensor, y_pred, self.inp_div, self.inp_sub,
+                                           self.norm_q, self.hyai, self.hybi)
+        loss += self.alpha_sw * sw_res(self.inp_tensor, y_pred, self.inp_div, self.inp_sub,
+                                         self.norm_q, self.hyai, self.hybi)
         return loss
 
 
 # Define metric list and loss dictionary 
-loss_dict = {'weak_loss': mse, 'mass_loss': mse, 'ent_loss': mse}
+loss_dict = {'weak_loss': mse, 'mass_loss': mse, 'ent_loss': mse,\
+             'lw_loss': mse, 'sw_loss':mse}
 all_metrics = [rmse, log_loss, total_error, unexplained_error, rsquared,
                total_error_avgAx0, rsquared_avgAx0, var_ratio, var_loss,
                mse_var, mse_var(10)]
