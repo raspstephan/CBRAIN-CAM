@@ -1,3 +1,4 @@
+# tgb - 4/19/2019 - Modified the script to only loop over largest values of alpha
 # tgb - 4/18/2019 - Python script callable from command line
 # Follows notebook 010 @ https://github.com/tbeucler/CBRAIN-CAM/blob/master/notebooks/tbeucler_devlog/010_Conserving_Network_Paper_Runs.ipynb
 
@@ -49,7 +50,7 @@ valid_gen = DataGenerator(
     shuffle=False
 )
 
-alpha_array = [0,0.01,0.25,0.5,0.75,0.99,1] # Loop over weight given to MSE and conservation constraints
+alpha_array = [0.99,1] # Loop over weight given to MSE and conservation constraints
 Nep = 20
 
 for alpha in alpha_array:
