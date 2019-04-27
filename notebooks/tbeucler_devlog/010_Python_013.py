@@ -26,7 +26,7 @@ config_fn = '/filer/z-sv-pool12c/t/Tom.Beucler/SPCAM/CBRAIN-CAM/pp_config/8col_r
 data_fn = '/local/Tom.Beucler/SPCAM_PHYS/8col009_13_valid.nc'
 dict_lay = {'SurRadLayer':SurRadLayer,'MassConsLayer':MassConsLayer,'EntConsLayer':EntConsLayer}
 
-alpha_array = [0,0.01,0.25,0.5,0.75,0.99,1] # Loop over weight given to MSE and conservation constraints
+alpha_array = [0.99,1] # Loop over weight given to MSE and conservation constraints
 for alpha in alpha_array:
     print('alpha = ',str(alpha))
     NN = {}; md = {};
@@ -49,3 +49,25 @@ for alpha in alpha_array:
     path = TRAINDIR+'HDF5_DATA/NNL'+str(alpha)+'res3K.pkl'
     pickle.dump(md.res,open(path,'wb'))
     print('Budget residuals are saved in ',path)
+    
+print('Constrained-architecture')
+NN = {}; md = {};
+
+# 1) Load model
+path = TRAINDIR+'HDF5_DATA/NNA.h5'
+NN = load_model(path,custom_objects=dict_lay)
+
+# 2) Define model diagnostics object
+md = ModelDiagnostics(NN,config_fn,data_fn)
+
+# 3) Calculate statistics and save in pickle file
+md.compute_stats()
+path = TRAINDIR+'HDF5_DATA/NNAmd3K.pkl'
+pickle.dump(md.stats,open(path,'wb'))
+print('Stats are saved in ',path)
+
+# 4) Calculate budget residuals and save in pickle file
+md.compute_res()
+path = TRAINDIR+'HDF5_DATA/NNAres3K.pkl'
+pickle.dump(md.res,open(path,'wb'))
+print('Budget residuals are saved in ',path)

@@ -160,6 +160,41 @@ class ModelDiagnostics():
         self.stats_df = df
         return df
     
+    # tgb - 4/26/2019 - Calculates precipitation PDF
+    def compute_precipPDF(self, niter=None, Nbin=100, Pmin=0, Pmax=350):
+        """Compute precipitation [mm/day] PDF with Nbin bins from Pmin to Pmax"""
+        #TODO: Could calculate bins automatically from first timestep
+        nt = self.valid_gen.n_batches
+        if niter is not None: nt = niter
+        # Constants
+        self.CONV = 1e3*24*3600 # Conversion from m/s to mm/day
+        # Allocate histogram array
+        Phist = np.zeros(self.Nbin)
+        Thist = np.copy(Phist)
+        for itime in tqdm(range(nt)):
+            # Get normalized truth and prediction vectors
+            inp, tru = self.valid_gen[itime]  # get normalized
+            pred = self.model.predict_on_batch(inp)
+            # Calculate true and predicted precipitation
+            Pprec = (np.sum(pred[:,-4:],axis=1))*P_CONV/(L_V*RHO_L)
+            Tprec = (np.sum(tru[:,-4:],axis=1))*P_CONV/(L_V*RHO_L)
+            # Calculate true and predicted histograms
+            hist,edges = np.histogram(Pprec,
+                                     range=(self.Pmin,self.Pmax),
+                                     bins=Nbin)
+            Phist += hist
+            hist,edges = np.histogram(Tprec,
+                                     range=(self.Pmin,self.Pmax),
+                                     bins=Nbin)
+            Thist +=hist
+
+        # Saves histograms
+        self.precip = {}
+        self.precip['predcount'] = Phist
+        self.precip['truecount'] = Thist
+        self.precip['edges'] = edges
+        self.precip['bins'] = 0.5*(edges[1:]+edges[:-1])
+    
     # Residual computation
     def compute_res(self, niter=None):
         """Compute budget residuals for [lat, lon, var, lev]"""
