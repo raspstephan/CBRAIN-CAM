@@ -50,6 +50,11 @@ class ModelDiagnostics():
 
     def reshape_ngeo(self, x):
         return x.reshape(self.nlat, self.nlon, -1)
+    
+    def get_input_var_idx(self, var):
+        var_idxs = self.valid_gen.norm_ds.var_names[self.valid_gen.input_idxs]
+        var_idxs = np.where(var_idxs == var)[0]
+        return var_idxs
 
     def get_output_var_idx(self, var):
         var_idxs = self.valid_gen.norm_ds.var_names[self.valid_gen.output_idxs]
@@ -76,6 +81,24 @@ class ModelDiagnostics():
         X, truth = self.valid_gen[itime]
         pred = self.model.predict_on_batch(X)
         return X.values, pred
+    
+    # tgb - 5/20/2019 - Get normalized/full pressure coordinate
+    def dP_tilde(self,itime):
+        X, truth = self.valid_gen[itime]
+        return compute_dP_tilde(X.values[:, self.get_input_var_idx('PS')[0]],
+                                self.valid_gen.input_transform.div[self.get_input_var_idx('PS')[0]],
+                                self.valid_gen.input_transform.div[self.get_input_var_idx('PS')[0]],
+                                self.valid_gen.output_transform.scale[self.get_output_var_idx('PHQ')],
+                                hyai, hybi)
+    
+    def dP(self,itime):
+        X, truth = self.valid_gen[itime]
+        PS = X.values[:, self.get_input_var_idx('PS')[0]]
+        PS_div = self.valid_gen.input_transform.div[self.get_input_var_idx('PS')[0]]
+        PS_sub = self.valid_gen.input_transform.sub[self.get_input_var_idx('PS')[0]]
+        PS = PS * PS_div + PS_sub
+        P = P0 * hyai + PS[:, None] * hybi
+        return P[:, 1:]-P[:, :-1]
 
     # Plotting functions
     def plot_double_xy(self, itime, ilev, var, **kwargs):

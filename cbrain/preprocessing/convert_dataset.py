@@ -174,11 +174,13 @@ def preprocess(in_dir, in_fns, out_dir, out_fn, vars, lev_range=(0, 30)):
     -------
 
     """
-    in_fns = path.join(in_dir, in_fns)
+    if in_dir=='None': logging.debug(f'No in_dir so in_fns is set to in_fns')
+    else: in_fns = path.join(in_dir, in_fns)
     out_fn = path.join(out_dir, out_fn)
     logging.debug(f'Start preprocessing file {out_fn}')
 
     logging.info('Reading input files')
+    logging.debug(f'Reading input file {in_fns}')
     ds = xr.open_mfdataset(in_fns, decode_times=False, decode_cf=False, concat_dim='time')
 
     logging.info('Crop levels')
