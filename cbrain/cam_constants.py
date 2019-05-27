@@ -15,7 +15,11 @@ G = 9.80616
 P0 = 1e5
 RHO_L = 1e3
 
-from .imports import hyai, hybi
+#from .imports import hyai, hybi
+# tgb - 4/22/2019 - Need to import hyai do define default values of pressure levels
+import os, pickle
+with open(os.path.join(os.path.dirname(__file__), 'hyai_hybi.pkl'), 'rb') as f:
+    hyai, hybi = pickle.load(f)
 P = P0*hyai+P0*hybi # Total pressure [Pa]
 P = (P[1:] + P[:-1]) / 2 / 100
 

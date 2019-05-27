@@ -50,6 +50,11 @@ class ModelDiagnostics():
 
     def reshape_ngeo(self, x):
         return x.reshape(self.nlat, self.nlon, -1)
+    
+    def get_input_var_idx(self, var):
+        var_idxs = self.valid_gen.norm_ds.var_names[self.valid_gen.input_idxs]
+        var_idxs = np.where(var_idxs == var)[0]
+        return var_idxs
 
     def get_output_var_idx(self, var):
         var_idxs = self.valid_gen.norm_ds.var_names[self.valid_gen.output_idxs]
@@ -76,6 +81,24 @@ class ModelDiagnostics():
         X, truth = self.valid_gen[itime]
         pred = self.model.predict_on_batch(X)
         return X.values, pred
+    
+    # tgb - 5/20/2019 - Get normalized/full pressure coordinate
+    def dP_tilde(self,itime):
+        X, truth = self.valid_gen[itime]
+        return compute_dP_tilde(X.values[:, self.get_input_var_idx('PS')[0]],
+                                self.valid_gen.input_transform.div[self.get_input_var_idx('PS')[0]],
+                                self.valid_gen.input_transform.div[self.get_input_var_idx('PS')[0]],
+                                self.valid_gen.output_transform.scale[self.get_output_var_idx('PHQ')],
+                                hyai, hybi)
+    
+    def dP(self,itime):
+        X, truth = self.valid_gen[itime]
+        PS = X.values[:, self.get_input_var_idx('PS')[0]]
+        PS_div = self.valid_gen.input_transform.div[self.get_input_var_idx('PS')[0]]
+        PS_sub = self.valid_gen.input_transform.sub[self.get_input_var_idx('PS')[0]]
+        PS = PS * PS_div + PS_sub
+        P = P0 * hyai + PS[:, None] * hybi
+        return P[:, 1:]-P[:, :-1]
 
     # Plotting functions
     def plot_double_xy(self, itime, ilev, var, **kwargs):
@@ -159,6 +182,45 @@ class ModelDiagnostics():
         df.loc['all']['hor_r2'] = np.mean(df['hor_r2'].mean())
         self.stats_df = df
         return df
+    
+    # tgb - 4/26/2019 - Calculates precipitation PDF
+    def compute_precipPDF(self, niter=None, Nbin=100, Pmin=0, Pmax=350):
+        """Compute precipitation [mm/day] PDF with Nbin bins from Pmin to Pmax"""
+        # Add attributes
+        self.Nbin = Nbin
+        self.Pmin = Pmin
+        self.Pmax = Pmax
+        #TODO: Could calculate bins automatically from first timestep
+        nt = self.valid_gen.n_batches
+        if niter is not None: nt = niter
+        # Constants
+        self.CONV = 1e3*24*3600 # Conversion from m/s to mm/day
+        # Allocate histogram array
+        Phist = np.zeros(self.Nbin)
+        Thist = np.copy(Phist)
+        for itime in tqdm(range(nt)):
+            # Get normalized truth and prediction vectors
+            inp, tru = self.valid_gen[itime]  # get normalized
+            pred = self.model.predict_on_batch(inp)
+            # Calculate true and predicted precipitation
+            Pprec = (np.sum(pred[:,-4:],axis=1))*self.CONV/(L_V*RHO_L)
+            Tprec = (np.sum(tru[:,-4:],axis=1))*self.CONV/(L_V*RHO_L)
+            # Calculate true and predicted histograms
+            hist,edges = np.histogram(Pprec,
+                                     range=(self.Pmin,self.Pmax),
+                                     bins=Nbin)
+            Phist += hist
+            hist,edges = np.histogram(Tprec,
+                                     range=(self.Pmin,self.Pmax),
+                                     bins=Nbin)
+            Thist +=hist
+
+        # Saves histograms
+        self.precip = {}
+        self.precip['predcount'] = Phist
+        self.precip['truecount'] = Thist
+        self.precip['edges'] = edges
+        self.precip['bins'] = 0.5*(edges[1:]+edges[:-1])
     
     # Residual computation
     def compute_res(self, niter=None):

@@ -5,7 +5,7 @@ in_dir : /project/meteo/w2w/A6/S.Rasp/SP-CAM/sp8fbp_4k/
 in_fns :  sp8fbp_4k.cam2.h2.0000-11-18-00000.nc
 
 out_dir: /local/Tom.Beucler/SPCAM_PHYS/
-out_fn: 8col009_02_train.nc
+out_fn: 8col009_14_train.nc
 
-val_in_fns:  sp8fbp_4k.cam2.h2.0000-01-*-*.nc
-val_out_fn: 8col009_02_valid.nc
+val_in_fns:  sp8fbp_4k.cam2.h2.0000-*-0*-*.nc
+val_out_fn: 8col009_14_valid.nc

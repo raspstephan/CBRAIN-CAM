@@ -12,7 +12,7 @@ from tensorflow.keras.layers import *
 from tensorflow.keras.models import *
 import xarray as xr
 import numpy as np
-from cbrain.model_diagnostics.model_diagnostics import ModelDiagnostics
+from cbrain.model_diagnostics import ModelDiagnostics
 # Otherwise tensorflow will use ALL your GPU RAM for no reason
 limit_mem()
 TRAINDIR = '/local/Tom.Beucler/SPCAM_PHYS/'

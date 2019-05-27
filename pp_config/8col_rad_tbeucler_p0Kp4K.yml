@@ -1,0 +1,16 @@
+# tgb - 5/20/2019 - Trains half on +0K and half on +4K
+# Uses the equivalent of OR in wildcards - see https://unix.stackexchange.com/questions/50220/using-or-patterns-in-shell-wildcards
+# The wildcards didn't work so I just symlinked all the files into my own directory
+# Validation on half +0K half +4K
+vars : [QBP, QCBP, QIBP, TBP, VBP, PS, SOLIN, SHFLX, LHFLX, PHQ, PHCLDLIQ, PHCLDICE, TPHYSTND, QRL, QRS, DTVKE, FSNT, FSNS, FLNT, FLNS, PRECT, PRECTEND, PRECST, PRECSTEN, Qdt_adiabatic, QCdt_adiabatic, QIdt_adiabatic, Tdt_adiabatic, Vdt_adiabatic]
+
+in_dir : /project/meteo/w2w/A6/Tom.Beucler/SPCAM
+in_fns : train_p0kp4k/*
+
+out_dir: /local/Tom.Beucler/SPCAM_PHYS/
+out_fn: 8col009_40_train.nc
+
+val_in_fns: valid_p0kp4k/*
+val_out_fn: 8col009_40_valid.nc
+
+norm_fn: 8col009_01_norm.nc
