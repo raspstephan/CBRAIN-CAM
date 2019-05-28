@@ -203,8 +203,8 @@ class ModelDiagnostics():
             inp, tru = self.valid_gen[itime]  # get normalized
             pred = self.model.predict_on_batch(inp)
             # Calculate true and predicted precipitation
-            Pprec = (np.sum(pred[:,-4:],axis=1))*self.CONV/(L_V*RHO_L)
-            Tprec = (np.sum(tru[:,-4:],axis=1))*self.CONV/(L_V*RHO_L)
+            Pprec = (np.sum(pred[:,-4:-2],axis=1))*self.CONV/(L_V*RHO_L)
+            Tprec = (np.sum(tru[:,-4:-2],axis=1))*self.CONV/(L_V*RHO_L)
             # Calculate true and predicted histograms
             hist,edges = np.histogram(Pprec,
                                      range=(self.Pmin,self.Pmax),
