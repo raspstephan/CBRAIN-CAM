@@ -1,0 +1,15 @@
+# Describe this dataset
+vars : [QBP, TBP, PS, SOLIN, SHFLX, LHFLX, PHQ, TPHYSTND, FSNT, FSNS, FLNT, FLNS, PRECT]
+
+in_dir : /oasis/scratch/comet/gmooers/temp_project/Tom/small_data/
+in_fns : TimestepOutput_Neuralnet_SPCAM_216.cam.h1.2009-01-01-[012]*
+
+out_dir: /oasis/scratch/comet/tbeucler/temp_project/
+out_fn: 000_train.nc
+
+val_in_fns: TimestepOutput_Neuralnet_SPCAM_216.cam.h1.2009-01-01-[457]*
+val_out_fn: 000_valid.nc
+
+norm_fn: 000_norm.nc
+
+SPCAM_v: 5

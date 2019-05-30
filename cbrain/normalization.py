@@ -13,9 +13,11 @@ from .cam_constants import *
 
 conversion_dict = {
     'TPHYSTND': C_P,
+    'PTTEND': C_P,
     'TPHY_NOKE': C_P,
     'TPHYSTND_NORAD': C_P,
     'PHQ': L_S,
+    'PTEQ': L_S,
     'PHCLDLIQ' : L_S,
     'PHCLDICE' : L_S,
     'SPDT': C_P,
