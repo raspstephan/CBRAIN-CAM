@@ -1,3 +1,4 @@
+# tgb - 6/4/2019 - Replacing it with residual
 # tgb - 6/3/2019 - Calculates statistics on all of Jordan networks
 # tgb - 5/1/2019 - Calculates statistics on NNLA for all datasets
 # tgb - 4/27/2019 - Calculates precipitation PDF for each network on +0K and +4K
@@ -44,6 +45,6 @@ for i,NNs in enumerate(NNa):
         print('Loading statistics') # 2) Define model diagnostics object
         md = ModelDiagnostics(NN,config_fn,data_fn_array[j])
         # 3) Calculate statistics and save in pickle file
-        md.compute_stats()
-        pickle.dump(md.stats,open(TRAINDIR+'HDF5_DATA/'+NNs+
-                                   'md'+dataref[j]+'.pkl','wb'))
+        md.compute_res()
+        pickle.dump(md.res,open(TRAINDIR+'HDF5_DATA/'+NNs+
+                                   'mdres'+dataref[j]+'.pkl','wb'))
