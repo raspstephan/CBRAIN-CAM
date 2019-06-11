@@ -11,8 +11,8 @@ If you are looking for the version of the code that corresponds to the PNAS pape
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1402384.svg)](https://doi.org/10.5281/zenodo.1402384)
 
-The modified climate model code is available at https://gitlab.com/mspritch/spcam3.0-neural-net (branch: `nn_fbp_engy_ess`)
-
+The modified climate model code is available at https://gitlab.com/mspritch/spcam3.0-neural-net. 
+To create the training data (regular SPCAM) the correct branch is `fluxbypass`. To implement the trained neural network, check out `revision`.
 
 ### Papers
 
