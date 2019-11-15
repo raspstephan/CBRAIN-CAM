@@ -1,0 +1,13 @@
+# Describe this dataset
+vars : [QBP, TfromMA, PS, SOLIN, SHFLX, LHFLX, PHQ, TPHYSTND, FSNT, FSNS, FLNT, FLNS]
+
+in_dir : /project/meteo/w2w/A6/S.Rasp/SP-CAM/fluxbypass_aqua/
+in_fns : AndKua_aqua_SPCAM3.0_sp_fbp_f4.cam2.h1.0000-01-0*-00000.nc
+
+out_dir: /local/Tom.Beucler/SPCAM_PHYS/
+out_fn: 106_train.nc
+
+val_in_fns: AndKua_aqua_SPCAM3.0_sp_fbp_f4.cam2.h1.0001-01-0*-00000.nc
+val_out_fn: 106_valid.nc
+
+norm_fn: 106_norm.nc

@@ -1,0 +1,18 @@
+# Example training configuration file
+exp_name: 000_example
+data_dir: /local/Tom.Beucler/SPCAM_PHYS/
+train_fn: 107_train_shuffle.nc
+valid_fn: 107_valid.nc
+norm_fn: 106_norm.nc
+
+inputs: [QBP,TfromMA,PS,SOLIN,SHFLX,LHFLX]
+outputs: [PHQ,TPHYSTND,FSNT,FSNS,FLNT,FLNS]
+
+input_sub: mean
+input_div: maxrs
+output_dict: /home/t/Tom.Beucler/SPCAM/CBRAIN-CAM/nn_config/scale_dicts/100_POG_scaling.pkl
+
+hidden_layers: [1, 1]
+epochs: 1
+conservation_layer: False
+loss: mse

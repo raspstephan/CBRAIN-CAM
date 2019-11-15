@@ -1,0 +1,11 @@
+# Describe this dataset
+vars : [QBP, TBP, PS, SOLIN, SHFLX, LHFLX, PHQ, TPHYSTND, FSNT, FSNS, FLNT, FLNS]
+
+in_dir : /project/meteo/w2w/A6/S.Rasp/SP-CAM/sp8fbp_4k/
+in_fns : sp8fbp_4k.cam2.h2.0000-*-0*-00000.nc
+
+out_dir: /local/Tom.Beucler/SPCAM_PHYS/
+out_fn: 102_train.nc
+
+val_in_fns: sp8fbp_4k.cam2.h2.0001-*-0*-00000.nc
+val_out_fn: 102_valid.nc
