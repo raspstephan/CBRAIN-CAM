@@ -8,7 +8,7 @@ Author: Stephan Rasp, raspstephan@gmail.com
 from .imports import *
 from .utils import *
 from .normalization import *
-
+import h5py
 
 class DataGenerator(tf.keras.utils.Sequence):
     """
@@ -19,7 +19,7 @@ class DataGenerator(tf.keras.utils.Sequence):
 
     def __init__(self, data_fn, input_vars, output_vars,
                  norm_fn=None, input_transform=None, output_transform=None,
-                 batch_size=1024, shuffle=True, xarray=False, var_cut_off=None):
+                 batch_size=1024, shuffle=True, xarray=False, var_cut_off=None, normalize_flag=True):
         # Just copy over the attributes
         self.data_fn, self.norm_fn = data_fn, norm_fn
         self.input_vars, self.output_vars = input_vars, output_vars
@@ -28,8 +28,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         # Open datasets
         self.data_ds = xr.open_dataset(data_fn)
         if norm_fn is not None: self.norm_ds = xr.open_dataset(norm_fn)
-
-        # Compute number of samples and batches
+     # Compute number of samples and batches
         self.n_samples = self.data_ds.vars.shape[0]
         self.n_batches = int(np.floor(self.n_samples) / self.batch_size)
 
@@ -42,8 +41,9 @@ class DataGenerator(tf.keras.utils.Sequence):
         if input_transform is None:
             self.input_transform = Normalizer()
         elif type(input_transform) is tuple:
+            ## normalize flag added by Ankitesh
             self.input_transform = InputNormalizer(
-                self.norm_ds, input_vars, input_transform[0], input_transform[1], var_cut_off)
+                self.norm_ds,normalize_flag, input_vars, input_transform[0], input_transform[1], var_cut_off)
         else:
             self.input_transform = input_transform  # Assume an initialized normalizer is passed
 
@@ -74,7 +74,6 @@ class DataGenerator(tf.keras.utils.Sequence):
         # Split into inputs and outputs
         X = batch[:, self.input_idxs]
         Y = batch[:, self.output_idxs]
-
         # Normalize
         X = self.input_transform.transform(X)
         Y = self.output_transform.transform(Y)
@@ -84,4 +83,3 @@ class DataGenerator(tf.keras.utils.Sequence):
     def on_epoch_end(self):
         self.indices = np.arange(self.n_batches)
         if self.shuffle: np.random.shuffle(self.indices)
-

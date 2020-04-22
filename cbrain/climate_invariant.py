@@ -13,6 +13,12 @@ import tensorflow_probability as tfp
 import yaml
 import pickle
 
+path = '/home/ankitesh/CBrain_project/CBRAIN-CAM/cbrain/'
+path_hyam = 'hyam_hybm.pkl'
+
+hf = open(path+path_hyam,'rb')
+hyam,hybm = pickle.load(hf)
+
 ################################### Tensorflow Versions ##############################################
 
 ################### Q2VRH and T2TNS Layers ########################################
@@ -1000,6 +1006,6 @@ def load_climate_model(dict_lay,config_fn,data_fn,lev,hyam,hybm,TRAINDIR,
                     interpolate=interpolate,
                     model = model,
                     pos_model=pos_model,neg_model=neg_model,
-                    train_gen_RH_pos,train_gen_RH_neg,
-                    train_gen_TNS_pos,train_gen_TNS_neg)
+                    train_gen_RH_pos=train_gen_RH_pos,train_gen_RH_neg=train_gen_RH_neg,
+                    train_gen_TNS_pos=train_gen_TNS_pos,train_gen_TNS_neg=train_gen_TNS_neg)
     return obj
