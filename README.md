@@ -6,7 +6,9 @@
 
 ## About
 
-This branch consists code for climate invariant cloud convection parameterization
+This branch consists code for climate invariant cloud convection parameterization.  
+Set up the conda environment using the [env.yml](env.yml) file
+
 
 
 ## Repository description
@@ -22,11 +24,11 @@ The process of creating a model is as follows.
 To preprocess the data you the major files are  
 
 **preprocessing.py** and **convert_dataset.py**.
-You can check out [this](notebooks/ankitesh-devlog/01_Preprocssing.ipynb) notebook for more information about it.
+You can check out [this](notebooks/ankitesh-devlog/01_Preprocessing.ipynb) notebook for more information about it.
 
 ### Model Training
 
-Once the data is precessed we can train the model as a whole or in progression. Below is the architecture of the whole network
+Once the data is processed we can train the model as a whole or in progression. Below is the architecture of the whole network
 
 Inp -> RH Transformation -> LH Transformation -> T-TNS Transformation -> Split + Scaling -> Vertical Interpolation.
 

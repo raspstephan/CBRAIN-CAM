@@ -6,7 +6,7 @@ Author: Stephan Rasp, raspstephan@gmail.com
 """
 
 from cbrain.imports import *
-from cbrain.preprocessing.convert_dataset_20191113 import preprocess
+from cbrain.preprocessing.convert_dataset import preprocess
 from cbrain.preprocessing.shuffle_dataset import shuffle
 from cbrain.preprocessing.compute_normalization import normalize
 
@@ -30,29 +30,25 @@ def main(args):
 
 #     Shuffle training dataset
     if args.shuffle:
-       if(args.split_bflx):
-           logging.info('Shuffle training dataset for pos_crh')
-           shuffle(args.out_dir, 'PosCRH_'+args.out_fn, args.chunk_size)
-           logging.info('Shuffle training dataset for neg_crh')
-           shuffle(args.out_dir, 'NegCRH_'+args.out_fn, args.chunk_size)
+        if(args.split_bflx):
+            logging.info('Shuffle training dataset for pos_crh')
+            shuffle(args.out_dir, 'PosCRH_'+args.out_fn, args.chunk_size)
+            logging.info('Shuffle training dataset for neg_crh')
+            shuffle(args.out_dir, 'NegCRH_'+args.out_fn, args.chunk_size)
 
-       else:
+        else:
 
-           logging.info('Shuffle training dataset')
-           shuffle(args.out_dir, args.out_fn, args.chunk_size)
+            logging.info('Shuffle training dataset')
+            shuffle(args.out_dir, args.out_fn, args.chunk_size)
 
     # Potentially
     if args.val_in_fns is not None:
-       logging.info('Preprocess validation dataset')
-       preprocess(args.in_dir, args.val_in_fns, args.out_dir, args.val_out_fn, args.vars,split_bflx=args.split_bflx)
+        logging.info('Preprocess validation dataset')
+        preprocess(args.in_dir, args.val_in_fns, args.out_dir, args.val_out_fn, args.vars,split_bflx=args.split_bflx)
 
     if args.norm_fn is not None:
         logging.info(f'Compute normalization file from {args.norm_train_or_valid}')
-         normalize(
-             args.out_dir,
-             args.out_fn if args.norm_train_or_valid == 'train' else args.val_out_fn,
-             args.norm_fn
-         )
+
         if(args.split_bflx):
             logging.info(f'Compute normalization file from {args.norm_train_or_valid} on blfx split')
             logging.info(f'Compute normalization file from postive crh')
@@ -67,6 +63,12 @@ def main(args):
                 'NegCRH_'+args.out_fn,
                 'NegCRH_'+args.norm_fn
             )
+        else:
+            normalize(
+             args.out_dir,
+             args.out_fn if args.norm_train_or_valid == 'train' else args.val_out_fn,
+             args.norm_fn
+            )            
 
     logging.info('Finish entire preprocessing script.')
 

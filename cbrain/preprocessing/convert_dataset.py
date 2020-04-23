@@ -506,7 +506,6 @@ def preprocess(in_dir, in_fns, out_dir, out_fn, vars, lev_range=(0, 30),split_bf
     print(split_bflx)
     if(split_bflx):
         logging.info('Splitting the dataset with respect to crh value')
-#         bflx_da = bflx(da[:,62],da[:,63],da[:,59])
         path = '/home1/07064/tg863631/CBrain_project/CBRAIN-CAM/cbrain/'
         path_hyam = 'hyam_hybm.pkl'
 
