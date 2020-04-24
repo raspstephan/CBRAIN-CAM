@@ -13,9 +13,11 @@ from .cam_constants import *
 
 conversion_dict = {
     'TPHYSTND': C_P,
+    'PTTEND': C_P,
     'TPHY_NOKE': C_P,
     'TPHYSTND_NORAD': C_P,
     'PHQ': L_S,
+    'PTEQ': L_S,
     'PHCLDLIQ' : L_S,
     'PHCLDICE' : L_S,
     'SPDT': C_P,
@@ -49,9 +51,11 @@ class Normalizer(object):
 
 class InputNormalizer(object):
     """Normalizer that subtracts and then divides."""
-    def __init__(self, norm_ds, var_list, sub='mean', div='std_by_var', var_cut_off=None):
+    ## normalize flag added by Ankitesh
+    def __init__(self, norm_ds,normalize_flag, var_list, sub='mean', div='std_by_var', var_cut_off=None):
         var_idxs = return_var_idxs(norm_ds, var_list, var_cut_off)
         self.sub = norm_ds[sub].values[var_idxs]
+        self.normalize_flag = normalize_flag
         if div == 'maxrs':
             rang = norm_ds['max'][var_idxs] - norm_ds['min'][var_idxs]
             std_by_var = rang.copy()
@@ -72,8 +76,9 @@ class InputNormalizer(object):
             'sub': self.sub,
             'div': self.div
         }
-
     def transform(self, x):
+        if not self.normalize_flag:
+            return x
         return (x - self.sub) / self.div
 
     def inverse_transform(self, x):
@@ -105,4 +110,3 @@ class DictNormalizer(object):
 
     def inverse_transform(self, x):
         return x / self.scale
-
